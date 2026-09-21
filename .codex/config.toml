@@ -1,0 +1,17 @@
+# Shared, secret-free MCP configuration. Project config loads only in trusted repos.
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest", "--headless"]
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+enabled_tools = ["browser_navigate", "browser_snapshot", "browser_resize", "browser_take_screenshot", "browser_click", "browser_type", "browser_wait_for", "browser_console_messages"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+startup_timeout_sec = 45
+enabled_tools = ["resolve-library-id", "query-docs"]
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+startup_timeout_sec = 30
