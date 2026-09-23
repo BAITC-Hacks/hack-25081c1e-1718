@@ -4,10 +4,10 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: Начат утверждённый 90-минутный этап качества (15:56 UTC+5). Принят Tariflow UI9d748c7. Полный baseline4473540; новые поля описаны в QUALITY_STAGE.md.
-- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests и общие контракты. Workers имеют исключительные agent.py+test_quality_policy и quality_benchmark+test_quality_benchmark. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные заморожены.
-- Next: Три варианта на dev0–9 → фиксация одного → независимые100–119 → только принятие по gate. Азим параллельно отображает диагностику, причины исключения и разные области прогноза/факта. Потом online120–122 и выпуск.
-- Blockers: Нет. Новая политика пока не является production-default. При провале gate сохраняем baseline и выпускаем улучшения отчёта. Официальную загрузку выполняет команда.
+- Current: b0975ab реализовал три экспериментальных варианта и новые отчёты; e8353df зафиксировал empirical доholdout. Dev0–9 и независимая100–119 завершены, gate не пройден: ordinary Agent() сохраняет baseline/template. Результаты/хеши в QUALITY_RESULTS.md.
+- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/ и общие контракты. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные остаются замороженными.
+- Next: Три отдельные online/offlineпары120–122 (максимум6советов), регрессияbaseline, CSV/standalone/пакет и интеграция диагностикиАзима.
+- Blockers: Нет. Рост экономики не подтверждён, экспериментальные режимы по умолчанию не включаются. Послеholdout параметры не подбираем. Новые поля отчёта/источники/единицы готовы.
 
 ## Azim
 

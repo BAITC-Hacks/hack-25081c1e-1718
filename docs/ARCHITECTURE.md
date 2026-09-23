@@ -172,3 +172,9 @@ Standalone для сдачи создаёт scripts/package_submission.py в out
 По запросу пользователя23.09 начинаем развитие по docs/NEXT_STAGE.md. Дима владеет новыми server.py и report_assistant.py, а также контрактом docs/API.md. Азим исключительно владеет web/**, docs/DESIGN.md, docs/DEMO.md и README.md. Существующие candidate_model.py/analysis/ остаются его зоной, но на время сравнений заморожены. Свои STATUS/HANDOFF редактирует каждый сам.
 
 Сервер на127.0.0.1:8765 обслуживает тот же frontend и ограниченныйAPI для запуска, статуса, чтения отчёта и вопросов по его фактам. Подробные структуры и состояния закреплены в API.md. Редизайн не должен ждать реализации backend: viewer/адаптивность/состояния разрабатываются на настоящем report1.0. Ключ хранится только в окружении сервера; в браузер не передаётся. Официальная standalone-поставка остаётся отдельной от веб-оболочки.
+
+## Диагностика качества — совместимое расширение report1.0
+
+Контрактнеобязательныхselection_diagnostics,forecast_summary,strategy_configиallocation.sample_std/empirical_se/template_uncertainty/uncertainty_methodописанвQUALITY_STAGE.md. Exporterпроверяетсчётчикипозавершённымпилотамивозвращённомуплану. forecast_summary—толькофинальныекaмпании;evaluation.scope=pilots_and_final_deduplicated. Ихразностьнеявляетсяошибкойпрогноза. Q&Aиспользуетчисловуюсводкуизэтихжеполей;OpenAIможетдобавитькачественныйкомментарий. Старыеотчётыбезновыхполейдопустимы.
+
+Agent()сохраняетbaseline/template. Keywordпараметрыexploration_policy=balancedиuncertainty_mode=empiricalнужныдлявоспроизводимогоисследования;послеотрицательныхdev/holdoutрезультатовониневключаютсявобычномзапуске. Кандидаты/данные/Agent.act/CSV/HTTPзапросынеизменны. Результаты—QUALITY_RESULTS.md.

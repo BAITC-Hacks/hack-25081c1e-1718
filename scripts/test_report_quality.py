@@ -3,6 +3,7 @@
 import copy
 import json
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 import report_assistant as assistant
@@ -160,6 +161,32 @@ class ReportQualityTests(unittest.TestCase):
             self.assertEqual(reply["usage"]["input_tokens"], 123)
             self.assertIn("проверку", reply["warnings"][0])
             self.assertNotIn("999999", reply["answer"])
+
+    def test_provider_errors_never_retry_or_replace_verified_facts(self):
+        failures = (TimeoutError(), urllib.error.URLError("fixture"),
+                    urllib.error.HTTPError("https://api.openai.com/v1/responses", 401, "fixture", {}, None))
+        for failure in failures:
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "local-fixture", "ARPU_OFFLINE": "0"}), \
+                    patch("urllib.request.urlopen", side_effect=failure) as provider:
+                reply = assistant.answer_question(self.report, "Какой бюджет остался?")
+            self.assertEqual(provider.call_count, 1)
+            self.assertEqual(reply["mode"], "offline")
+            self.assertIn("99 200", reply["answer"])
+            self.assertTrue(reply["warnings"])
+
+    def test_refusal_and_incomplete_response_keep_usage_and_fall_back(self):
+        for kind in ("refusal", "incomplete"):
+            response = ProviderResponse("Комментарий", ["resources"])
+            if kind == "incomplete":
+                response.payload["status"] = "incomplete"
+            else:
+                response.payload["output"][0]["content"] = [{"type": "refusal", "refusal": "fixture"}]
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "local-fixture", "ARPU_OFFLINE": "0"}), \
+                    patch("urllib.request.urlopen", return_value=response):
+                reply = assistant.answer_question(self.report, "Какой бюджет остался?")
+            self.assertEqual(reply["mode"], "offline")
+            self.assertEqual(reply["usage"]["input_tokens"], 123)
+            self.assertIn("99 200", reply["answer"])
 
     def test_unit_and_number_guards(self):
         self.assertTrue(assistant._invalid_uncertainty_units("Неопределённость 4,3%"))
