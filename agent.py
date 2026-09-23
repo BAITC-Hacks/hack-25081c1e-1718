@@ -208,7 +208,10 @@ class Agent:
             self.last_report = {"schema_version": "1.0", "engine": "adaptive-offline", "campaigns": [],
                                 "pilots": [], "resources": self._resources(env), "warnings": ["no_supported_channels"]}
             return []
-        scout = "sms" if "sms" in channels else min(channels, key=lambda channel: CHANNEL_COSTS[channel])
+        # Pilots themselves count towards net revenue. Start with the cheapest
+        # available channel; expensive channels need their own evidence to justify
+        # consuming campaign budget while the effect is still unknown.
+        scout = min(channels, key=lambda channel: CHANNEL_COSTS[channel])
         candidates, source = self._candidates(profile, tariffs, warnings)
         candidates = self._diverse(candidates)
         events.append({"role": "analyst", "status": "completed", "source": source, "candidate_count": len(candidates)})

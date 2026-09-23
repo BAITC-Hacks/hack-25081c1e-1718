@@ -73,3 +73,17 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: Guide lists effectiveness multipliers but does not fully specify the semantics needed for transferring observed_lift_ratio. Previously an untested expensive channel could enter the final plan. The public run_pilot response supplies additional useful operational evidence without reading hidden internals.
 - Who: Dima, independent of Azim's candidate_model and web work.
 - Consequences: [AFFECTS-OTHERS] Optional report-v1 fields added; no candidate interface or Azim-owned files changed. On paired seeds 0..9, median improved from −14 363 to −2 150 and positive runs from 3/10 to 5/10; economic robustness still incomplete. Historical priors no longer reduce the estimated pilot noise variance. New evaluations remain local mock evidence only.
+
+### 2026-09-23 - Synchronize roughly every four active minutes
+
+- Decision: Both owners aim for small verified commits/pushes about every four active minutes, checking remote changed paths and each other's STATUS/HANDOFF first. Fetch can run during evaluation; pull/integration waits for the active evaluation to finish so inputs do not change mid-run. Existing file ownership remains in force.
+- Why: Explicit user request to increase cadence and prevent duplicate work or missed changes.
+- Who: Dima records the user's instruction for both owners; each edits their own status.
+- Consequences: [AFFECTS-OTHERS] AGENTS, agent-sync, team guide, work plan and reminder default updated. No empty/broken timer commits; unpushed remote-machine edits remain invisible. Latest fetch at 14:06 showed no Azim commits yet; work on Dima's controller continues independently.
+
+### 2026-09-23 - Reduce exploration cost and make release evidence reproducible
+
+- Decision: Scout with the cheapest documented available channel while keeping final estimates channel-specific. Anchor PowerShell workflows to repository root; add an explicit offline -Release CSV generation/structure gate. Benchmark records resolved baseline/source/shared-input hashes and requires successful pilots and valid resource counters.
+- Why: Pilot spend is part of net revenue. Existing cwd-dependent verification could skip checks; missing CSV freshness and unstable baseline references weakened evidence.
+- Who: Dima; candidate and web ownership unchanged.
+- Consequences: [AFFECTS-OTHERS] Channel choice changes the default plan, regenerated CSV included. Paired median0..9 improves to +16 068; heldout10..19 median +1 170, 5/10 positive. No final robustness claim. verify -Release rewrites submission.csv explicitly; checkpoint stays selective.

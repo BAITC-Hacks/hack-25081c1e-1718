@@ -11,3 +11,5 @@
 ## 2026-09-23 13:47 - [AFFECTS-OTHERS] реализовано адаптивное ядро и OpenAI / текущая часть Димы перед подключением Азима / agent.py, llm_advisor.py, scripts, docs, submission.csv / live initial+feedback успешны; offline seed42 PASS +21710, 3/10 положительных, G3 не достигнут; source и метрики явно задокументированы
 
 ## 2026-09-23 14:01 - [AFFECTS-OTHERS] убран перенос между непроверенными каналами / повысить корректность и снизить риск / agent.py, scripts/benchmark.py, scripts/verify.ps1, docs, submission.csv / 5 из 10 положительных вместо 3; медиана -2150 вместо -14363; seed42 +36223; отчёт расширен совместимо
+
+## 2026-09-23 14:09 - [AFFECTS-OTHERS] снижена стоимость пилотов и усилен checkpoint / работа независимо от Азима / agent.py, scripts, docs, submission.csv / 7 из10 на знакомой серии, 5 из10 на отложенной; cadence4 минуты; release проверен из scripts
