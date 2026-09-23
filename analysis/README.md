@@ -1,7 +1,7 @@
 # Public-data candidate model, v1
 
 This is a hypothesis generator for the synthetic hackathon data, not a fitted
-causal response model or a forecast of the judging effects. Owner: Azim.
+causal response model or a forecast of the judging effects.
 
 ## Reproduce
 
