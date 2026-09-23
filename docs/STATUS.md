@@ -4,9 +4,9 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: Эксперимент b0975ab и freeze e8353df проверены на dev 0–9 и holdout 100–119; gate не пройден, Agent() сохраняет baseline/template. Отдельно OpenAI выиграл 3/3 пары 120–122 при ровно шести обращениях советника. Отчёты и источники числовых ответов улучшены. По запросу из задачи Азима добавляется ru/kk для чата.
+- Current: Новый совместный проход по ТЗ 16:55. Принят 27e3b2a. Проверяю адаптивный размер пилота и компактную воспроизводимую поставку; baseline/template остаётся default до независимого gate. Исторические balanced/empirical gate не пройдены, результаты сохранены.
 - Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/ и общие контракты. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные остаются замороженными.
-- Next: Двуязычный UI db56214 принят: 33 Node-теста и обзор 375/768/1440 PASS. Исправлены вопросы о рисках/пилотах и термины из QUESTIONS 16:38; текущих quality/API-тестов 59. Чистый standalone/CSV и официальный --runs10 подтверждены. Аудит в JUDGING_AUDIT.md; Азиму остаются диагностические блоки QUALITY_STAGE и актуальные README/DEMO.
+- Next: Зафиксировать новый эксперимент до независимых seed, проверить набор вариантов и release; передать Азиму точные результаты для README. Сверка GitHub каждые 3 минуты. Азим самостоятельно завершает QUALITY_STAGE UI/README/DEMO.
 - Blockers: Своих нет. Все 5 must-have проверены; 100 баллов обещать нельзя. Рост от нового алгоритма не подтверждён, baseline сохранён. Двуязычие опубликовано; диагностический UI и обновление результатов README/DEMO ещё нужны. Способ и факт финальной загрузки организаторам не подтверждены.
 
 ## Azim
