@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: По прямому запросу пользователя готов RU/KK Tariflow: переключатель, полный UI, тарифы/сегменты/ошибки и интеграция согласованного языка чата. Принят backend161473c.33Node,6chatfixtures,375/768/1440 и реальныйKKofflineответ с собственнымиpilots17/18 PASS.
+- Current: Опубликован db56214: по прямому запросу пользователя готов RU/KK Tariflow: переключатель, полный UI, тарифы/сегменты/ошибки и интеграция согласованного языка чата. Принят backend161473c.33 Node, 6 сценариев чата, 4 проверки крайних состояний, 375/768/1440 и реальныйKKofflineответ с собственнымиpilots17/18 PASS.
 - Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis и данные заморожены.
 - Next: Диме исправить конкретные KK routing/терминологию поQUESTIONS16:38; Азиму проверить интеграцию. Затем отдельный QUALITY_STAGE UI по согласованным полям. Сверка GitHub каждые4активные минуты.
 - Blockers: UI готов; перед полным закрытием двуязычного сценария ждём исправления вопросов о рисках/сынақ/байланысу в зонеДимы. Финальныйrelease остаётся уДимы. Экономическийgate не пройден, baseline сохраняется.
