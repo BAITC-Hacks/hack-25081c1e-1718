@@ -21,3 +21,27 @@ test-results/
 beeline_case_participants (1)/
 output/
 reports/
+
+# Local development harness and retired coordination material (not part of submission).
+/.agents/
+/.codex/
+/AGENTS.md
+/docs/agents/
+/docs/STATUS.md
+/docs/WORK_PLAN.md
+/docs/NEXT_STAGE.md
+/docs/QUALITY_STAGE.md
+/docs/DECISIONS.md
+/docs/BASELINE.md
+/docs/QUALITY_RESULTS.md
+/docs/QUALITY_FOLLOWUP.md
+/docs/JUDGING_AUDIT.md
+/docs/RUNBOOK.md
+/docs/HACKATHON_RULES.md
+/docs/quality/default-regression.json
+/docs/quality/development.json
+/docs/quality/holdout.json
+/docs/quality/live-chat.json
+/docs/quality/release.json
+/scripts/autosave.ps1
+/scripts/checkpoint.ps1

@@ -68,7 +68,7 @@ documentary; tariff numbers and these values are not hardcoded in the model.
 No heuristic was selected by inspecting hidden effects or optimizing mock seeds.
 The core currently reorders candidates by revenue and positive prior, so the
 module's returned ordering is not the eventual pilot ordering. Allocation,
-confirmation, stop conditions and final resource checks remain Dima's area.
+confirmation, stop conditions and final resource checks are implemented in agent.py.
 
 ## Verification and limitations
 
@@ -78,4 +78,4 @@ duplicate history, nonexpressible large cells and sparse/unknown inputs. Missing
 filter values are excluded transparently; this model does not cover all 23,441
 subscribers. Package fit is observational, and the supplied total minutes do not
 constitute a tariff billing simulation. No claim of economic improvement follows
-from passing these tests; official run results belong in the current Azim handoff.
+from passing these tests; official run results are recorded in [VALIDATION](../docs/VALIDATION.md).

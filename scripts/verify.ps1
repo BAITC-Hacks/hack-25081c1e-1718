@@ -103,7 +103,7 @@ if (Test-Path 'go.mod') { Run-Step 'go test' { go test ./... } }
 if (Test-Path 'Cargo.toml') { Run-Step 'cargo test' { cargo test } }
 
 if (-not $ran) { Write-Host 'nothing to verify' }
-Write-Host 'Technical verification passed. Economic quality is evaluated separately; see docs/BASELINE.md.'
+Write-Host 'Technical verification passed. Economic quality is evaluated separately; see docs/VALIDATION.md.'
 } finally {
     Pop-Location
 }
