@@ -72,6 +72,19 @@ def _numeric_fields(value, names):
     return {name: _number(value[name]) for name in names if _finite(value.get(name)) is not None}
 
 
+def _canonical_filters(value):
+    if not isinstance(value, dict):
+        return None
+    result = {}
+    for name in ("current_tariff", "arpu_segment", "data_segment", "call_segment"):
+        prefixed = "filter_" + name
+        if name in value and prefixed in value and value[name] != value[prefixed]:
+            return None
+        if prefixed in value or name in value:
+            result[prefixed] = value.get(prefixed, value.get(name))
+    return result
+
+
 def _project(report):
     """Keep only bounded report facts that are useful for a human answer."""
     if not isinstance(report, dict):
@@ -143,7 +156,8 @@ def _project(report):
                         if not isinstance(campaign, dict):
                             continue
                         name = campaign.get("campaign_name")
-                        if (name in ("compass_" + candidate_id, "fallback_" + candidate_id) and
+                        if (isinstance(name, str) and
+                                (name == candidate_id or name.endswith(("_" + candidate_id, "-" + candidate_id))) and
                                 campaign.get("channel") == item.get("channel")):
                             matches.append(campaign)
                 if len(matches) == 1:
@@ -153,13 +167,16 @@ def _project(report):
                         text = _text(campaign.get(field), 80)
                         if text:
                             value[field] = text
-                    pilot_rows = report.get("pilots", [])
-                    expected_filters = {field: campaign[field] for field in campaign if field.startswith("filter_")}
+                    pilot_rows = report.get("pilots", report.get("pilot_records", []))
+                    expected_filters = _canonical_filters(campaign)
                     if isinstance(pilot_rows, list):
                         value["pilot_refs"] = [f"pilots.{pilot_index}" for pilot_index, row in enumerate(pilot_rows[:20])
                             if isinstance(row, dict) and row.get("status") == "completed"
                             and row.get("candidate_id") == candidate_id and row.get("channel") == item.get("channel")
-                            and row.get("target_tariff") == campaign.get("target_tariff") and row.get("filters") == expected_filters]
+                            and row.get("target_tariff") == campaign.get("target_tariff")
+                            and expected_filters is not None and _canonical_filters(row.get("filters")) == expected_filters]
+                elif len(matches) > 1:
+                    value["evidence_status"] = "ambiguous_campaign_identity"
                 if value:
                     items.append({"index": index, **value})
                     refs.append(f"allocation.{index}")
@@ -291,7 +308,9 @@ def _offline_answer(report, message, warnings):
                     parts.append("Номера пилотов: " + _number_ranges([row["index"] + 1 for row in evidence]) + ".")
                     used.extend(item["pilot_refs"])
                 else:
-                    parts.append("Собственные завершённые пилоты с измеренным эффектом в отчёте не найдены.")
+                    parts.append("Нет однозначного источника: несколько кампаний имеют тот же идентификатор и канал."
+                        if item.get("evidence_status") == "ambiguous_campaign_identity" else
+                        "Собственные завершённые пилоты с измеренным эффектом в отчёте не найдены.")
                 uncertainty = _finite(item.get("uncertainty_percentage_points"))
                 if uncertainty is not None:
                     parts.append(f"Эвристический запас неопределённости — {uncertainty:.1f} п. п.; это не калиброванный доверительный интервал.")

@@ -76,6 +76,33 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("нет диагностики", reply["answer"])
         self.assertEqual(reply["citations"], [])
 
+    def test_legacy_names_pilot_records_and_unprefixed_filters(self):
+        self.report["campaigns"][0]["campaign_name"] = "campaign-c_a"
+        self.report["pilot_records"] = self.report.pop("pilots")
+        for row in self.report["pilot_records"]:
+            row["filters"] = {key.removeprefix("filter_"): value for key, value in row["filters"].items()}
+        self.report["resources"]["planned_resources_after_final"] = self.report.pop("planned_resources")
+        context, refs = assistant._project(self.report)
+        self.assertEqual(context["allocation"][0]["pilot_refs"], ["pilots.0", "pilots.1"])
+        self.assertEqual(context["allocation"][0]["uncertainty_percentage_points"], 4)
+        self.assertEqual(context["planned_resources"]["remaining_budget"], 98400)
+        reply = assistant.answer_question(self.report, "Первая кампания", offline=True)
+        self.assertIn("Номера пилотов: 1–2", reply["answer"])
+        self.assertIn("тариф №2", reply["answer"])
+
+    def test_ambiguous_legacy_identity_does_not_borrow_evidence(self):
+        duplicate = dict(self.report["campaigns"][0], campaign_name="campaign-c_a")
+        self.report["campaigns"].append(duplicate)
+        context, _ = assistant._project(self.report)
+        self.assertNotIn("pilot_refs", context["allocation"][0])
+        reply = assistant.answer_question(self.report, "Первая кампания", offline=True)
+        self.assertIn("Нет однозначного источника", reply["answer"])
+
+    def test_conflicting_legacy_filters_do_not_match(self):
+        self.report["pilots"][0]["filters"] = {"filter_current_tariff": "tariff_1", "current_tariff": "tariff_3"}
+        context, _ = assistant._project(self.report)
+        self.assertEqual(context["allocation"][0]["pilot_refs"], ["pilots.1"])
+
     def test_campaign_context_excludes_all_global_totals(self):
         context, refs = assistant._project(self.report)
         for question in ("первая кампания", "1-я кампания", "кампания №1"):
