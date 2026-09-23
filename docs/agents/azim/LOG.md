@@ -57,3 +57,7 @@ Playwright MCP не нашёл свой Chrome; проверено устано�
 ## 2026-09-23 15:53 - Tariflow / выбранное пользователем имя и удобство / web, README, DESIGN, DEMO, свои заметки / завершённый UI checkpoint
 
 [AFFECTS-OTHERS] Нарисована F-монограмма, бренд переименован. Mobileнижнее меню всех5разделов,44pxминимум; KPIчисло/единицы, исходные номера после сортировки, предзаполненный вопрос кампании, загрузка последнего server snapshot безPOST. DelayedGET не подменяет более поздний localimport. HTTP/CSVполя/rawIDs/staticpaths неизменны.23/23Node,6chatregressions,viewer/контраст5вкладок,375/768/1440,targetedUX/racechecks PASS. Реальныйofflinee978571:404→run42→report→campaign1→pilots17/18→focus; dirty=trueиз-заwebправок,неrelease. PNGоценены. Приняты затемa55d02b/4473540 (сжатие missingranges, принятиеebedc80), контракты прежние. Core/candidates/data/server/scripts не менялись. Публикация через checkpoint с явными путями и verifyдо/послеpull.
+
+## 2026-09-23 15:57 - финальная передача Tariflow / опубликованный интерфейс / README, DEMO, свои заметки, QUESTIONS
+
+9d748c7 опубликован; оба verify PASS. Сервер перезапущен на опубликованной версии, новый seed42 имеет source_git_sha=9d748c7 и dirty=false. Браузерный путь из первой кампании к реальному автономному ответу прошёл; ссылки на пилоты17/18 корректны. Название кнопки в README/DEMO приведено к фактическому «Открыть последний расчёт». Диме передан вопрос по оставшимся техническим обозначениям в тексте backend-ответа; сам backend не менялся.
