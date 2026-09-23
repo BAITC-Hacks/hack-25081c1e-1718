@@ -136,3 +136,21 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: A greedy first campaign can block a higher-value combination. A bounded exact selector solves that case without changing candidate inputs or increasing API/pilot spend. Report-based evidence must not silently pass overlap or cross-channel confirmation bugs.
 - Who: Dima, bounded worker in agent.py and independent read-only review; Azim UI/data ownership unchanged.
 - Consequences: [AFFECTS-OTHERS] Compatible report1.0 extension. Export/benchmark verify final audience overlap from the public profile, allocation resources and matching pilot records; historical controllers without new metadata remain explicitly unchecked by this new gate. Development0..9 and new50..59 are exactly equal to92872b5; no measured net improvement claimed. One illustrative30→40 counterexample and100 independent exhaustive cases verify the selector. New online/offline pairs60..62 all favor OpenAI in this small exploratory sample; not a general performance guarantee.
+
+### 2026-09-23 - Scope campaign answers to their own evidence
+
+- Decision: Project exact allocation-to-pilot references by candidate, channel, target and filters. For numbered campaign questions send only selected allocations and their completed pilots; exclude overall evaluation. Preserve missing campaign numbers and enumerate bounded comparisons fully in offline answers.
+- Why: A live answer wrongly used total net and unrelated pilots as evidence for one campaign. A schema-valid reference alone does not establish semantic correctness.
+- Who: Dima; independent review covered numbered forms, missing entries and comparison truncation. Azim's frontend remains unchanged.
+- Consequences: [AFFECTS-OTHERS] HTTP/report contracts and dependencies unchanged. Campaign-specific budget explanations use campaign costs. Seventeen bounded checks pass, including 10-campaign comparison; current data/web suites pass 7/7 and 21/21. Live OpenAI and provider-401 fallback are checked separately. Free-text answers remain approximate explanations, not proof of future effect; questions are stateless.
+
+Дополнение к решению о контексте ответов: live-проверка обнаружила путаницу процентов
+и процентных пунктов неопределённости. Внутренняя проекция теперь явно передаёт п.п.;
+ограниченный guard отклоняет известную неверную формулировку. Ответ при этом честно
+становитсяoffline, сохраняет usage и отдельное предупреждение о проверке. Это не
+универсальная семантическая проверка. Выходной API и исходный отчёт не изменены.
+
+Дополнение: модель получает человеческое поле number для кампаний и пилотов вместо
+нулевогоindex. Машинныйsource_ref не является номером для текста. Явный список
+номеров пилотов вне переданных источников отклоняется; это закрывает наблюдавшийся
+сдвиг16/17 вместоUI17/18, сохраняя контрактcitation-кнопок.
