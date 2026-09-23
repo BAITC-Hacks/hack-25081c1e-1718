@@ -3,6 +3,7 @@
 This is a development-quality comparison, not an organizer score.  Each row is
 executed in a fresh subprocess whose import root is a unique ``git archive``
 snapshot.  The parent process never imports controller code from a snapshot.
+Run only trusted team revisions: subprocess isolation is not a security sandbox.
 """
 
 from __future__ import annotations
@@ -216,7 +217,7 @@ def _child_source() -> str:
                         holder["config_error"] = "requested_strategy_modes_rejected"
                         raise UnsupportedStrategyConfig("requested_strategy_modes_rejected") from error
                     for key, value in options.items():
-                        if hasattr(instance, key) and getattr(instance, key) != value:
+                        if not hasattr(instance, key) or getattr(instance, key) != value:
                             holder["config_error"] = "requested_strategy_mode_not_honored"
                             raise UnsupportedStrategyConfig("requested_strategy_mode_not_honored")
                 holder["instance"] = instance
@@ -259,16 +260,20 @@ def _child_source() -> str:
     ''')
 
 
+def offline_child_environment() -> dict[str, str]:
+    """Pass runtime paths, never inherited provider/CI/cloud credentials."""
+    allowed = {"SYSTEMROOT", "WINDIR", "COMSPEC", "TEMP", "TMP", "PATH", "PATHEXT",
+               "LANG", "LC_ALL"}
+    env = {key: value for key, value in os.environ.items() if key.upper() in allowed}
+    env.update(ARPU_OFFLINE="1", PYTHONHASHSEED="0")
+    return env
+
+
 def run_child(snapshot: Path, seed: int, variant: str, timeout: float = MAX_RUNTIME_SECONDS) -> dict:
     timeout = min(float(timeout), MAX_RUNTIME_SECONDS)
     runner = snapshot / "scripts" / f".quality_child_{uuid.uuid4().hex}.py"
     runner.write_text(_child_source(), encoding="utf-8")
-    env = os.environ.copy()
-    env.pop("OPENAI_API_KEY", None)
-    env["ARPU_OFFLINE"] = "1"
-    env.pop("PYTHONPATH", None)
-    env.pop("PYTHONHOME", None)
-    env["PYTHONHASHSEED"] = "0"
+    env = offline_child_environment()
     started = __import__("time").monotonic()
     try:
         completed = subprocess.run(

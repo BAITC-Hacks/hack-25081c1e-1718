@@ -42,7 +42,7 @@ if (Test-Path 'agent.py') {
     if (-not $PythonCommand) { throw 'Python is missing. Activate .venv or set ARPU_PYTHON to your Python executable.' }
     if (Test-Path 'scripts/test_quality_policy.py') {
         Run-Step 'quality policy, report and isolated benchmark checks' {
-            & $PythonCommand -B -X utf8 -m unittest scripts.test_quality_policy scripts.test_quality_benchmark scripts.test_report_quality scripts.test_report_localization scripts.test_chat_language -q
+            & $PythonCommand -B -X utf8 -m unittest scripts.test_quality_policy scripts.test_quality_benchmark scripts.test_report_quality scripts.test_report_localization scripts.test_chat_language scripts.test_package_submission -q
         }
     }
     Run-Step 'official local_eval.py (UTF-8)' {

@@ -201,5 +201,5 @@ capability для совместимости со старым сервером;
 
 До принятия gate Agent() сохраняет baseline/template/fixed. Опциональные
 exploration_policy=confirmation_first и pilot_sizing=adaptive описаны в
-QUALITY_FOLLOWUP.md. strategy_config.pilot_sizing необязателен; старыйJSON
+[QUALITY_FOLLOWUP.md](QUALITY_FOLLOWUP.md). strategy_config.pilot_sizing необязателен; старыйJSON
 допустим, UI не должен выводить выдуманное значение. ПубличныеHTTP/CSV неизменны.

@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 try:
@@ -9,6 +10,17 @@ except ImportError:  # Direct execution from the scripts directory.
 
 
 class QualityBenchmarkTests(unittest.TestCase):
+    def test_child_environment_drops_inherited_credentials(self):
+        with patch.dict("os.environ", {"GITHUB_TOKEN": "sentinel-git",
+                                       "AWS_SECRET_ACCESS_KEY": "sentinel-cloud",
+                                       "OPENAI_API_KEY": "sentinel-model",
+                                       "PYTHONPATH": "untrusted", "ARPU_OFFLINE": "0"}):
+            env = qb.offline_child_environment()
+        for key in ("GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY", "OPENAI_API_KEY", "PYTHONPATH"):
+            self.assertNotIn(key, env)
+        self.assertEqual(env["ARPU_OFFLINE"], "1")
+        self.assertEqual(env["PYTHONHASHSEED"], "0")
+
     def test_frozen_inputs_detect_added_removed_and_analysis_changes(self):
         original = {"candidate_model.py": "a", "customer_profile.csv": "b", "analysis/history.py": "c"}
         self.assertTrue(qb.frozen_hashes_equal(original, dict(original)))
@@ -101,6 +113,13 @@ class QualityBenchmarkTests(unittest.TestCase):
             self.assertEqual(record["variant"], "balanced")
             self.assertEqual(record["net_arpu_gain"], 3.0)
             self.assertTrue(record["strategy_config"]["honored"])
+            (snapshot / "agent.py").write_text(
+                "class Agent:\n    def __init__(self, **kwargs):\n        self.last_report = {}\n",
+                encoding="utf-8")
+            ignored = qb.run_child(snapshot, 7, "adaptive", timeout=10)
+            self.assertEqual(ignored["status"], "failure")
+            self.assertEqual(ignored["reason"], "requested_strategy_mode_not_honored")
+            self.assertFalse(ignored["strategy_config"]["honored"])
 
 
 if __name__ == "__main__":

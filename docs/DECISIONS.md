@@ -179,3 +179,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: User asked for another evidence-based quality pass; earlier balanced favored new hypotheses ahead of confirmation. Adaptive sizing uses own-channel evidence and public break-even economics.
 - Who: Dima; read-only algorithm review; Azim retains web/README ownership.
 - Consequences: [AFFECTS-OTHERS] Optional strategy_config.pilot_sizing=fixed|adaptive; exploration_policy may be confirmation_first. No HTTP/CSV/data/dependency changes. SIZE is heuristic, no confidence-interval claim. Detailed freeze in QUALITY_FOLLOWUP.md.
+
+### 2026-09-23 — Package product documentation and isolate comparison credentials
+
+- Decision: Submission ZIP includes README, a kit-overlay quickstart and linked product documents, with an explicit manifest inventory/hashes. Exclude personal notes and generated files; reject symlink/junction paths and scan validated snapshots before writes.
+- Why: User requested a clean reproducible delivery; old ZIP lacked explanatory documentation. Independent review also found that comparison subprocesses inherited unrelated credentials and could silently ignore requested modes.
+- Who: Dima integrates bounded package worker and independent review. Azim keeps source README ownership.
+- Consequences: [AFFECTS-OTHERS] Package inventory grows; no runtime dependency, CSV, Agent.act or HTTP change. Comparison children get only runtime environment paths and must actually expose requested strategy options. Run trusted team revisions only; subprocess is not a security sandbox. Existing frozen experiment code remains a10e7b1.
