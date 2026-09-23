@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: По выбору пользователя готов Tariflow: SVG-знак F, mobile5разделов, читаемые KPI, исходные номера кампаний, вопрос из карточки и загрузка последнего снимка.23/23Node,6chatregressions,новыеUX/raceпроверки,контраст5разделов,375/768/1440 и реальныйoffline run→campaign1→pilots17/18 прошли. Приняты e978571/a55d02b/4473540 Димы; core6550806 и кандидаты заморожены.
+- Current: Tariflow UI9d748c7 принят Димой. По запросу пользователя добавлен favicon F; он встроен в HTML, новых static paths нет, вкладка8080 обновлена. Прежние23/23Node, UX/контраст/375/768/1440 и реальная offline интеграция пройдены. Принят625b376 с этапом качества; кандидаты/данные заморожены.
 - Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis не меняются в этом этапе.
-- Next: Диме принять Tariflow UI (git log -1 -- web/index.html), завершить release/общую интеграцию. Новых HTTPпутей/контрактов нет, machineIDs прежние. Сверка GitHub каждые4активные минуты.
+- Next: Favicon публикуется отдельным законченным checkpoint. Далее согласованный этап диагностики качества по docs/QUALITY_STAGE.md в своей зоне, отдельный от этой правки. Сверка GitHub каждые4активные минуты.
 - Blockers: В зоне Азима нет. Чистыйrelease и независимая проверка остаются у Димы; UIQA не является обещанием реальной прибыли или судейского результата.
