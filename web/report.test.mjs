@@ -55,6 +55,41 @@ test("campaign required strings and optional nested report fields are checked", 
   assert.doesNotThrow(() => validateReport({ ...minimal(), pilots: [{ status: "failed", channel: "push" }], warnings: ["new_warning_code"] }));
 });
 
+test("quality diagnostics remain optional but known fields reject malformed values", () => {
+  const report = {
+    ...minimal(),
+    selection_diagnostics: {
+      generated_candidates: 5, tested_candidates: 1, tested_variants: 1,
+      confirmed_variants: 1, selected_variants: 1, unexplored_candidates: 4,
+      reason_counts: {selected: 1},
+      variants: [{candidate_id: "c_a", channel: "sms", repeats: 2, conservative_net: -10,
+        selected: true, reason: "selected", pilot_refs: ["pilots.0", "pilots.1"]}],
+      strategy_config: {exploration_policy: "baseline", uncertainty_mode: "template"},
+    },
+    forecast_summary: {scope: "final_campaigns_only", estimated_net: 100, conservative_net: 80,
+      communication_cost: 20, campaign_count: 1, comparison_to_evaluation: "not_comparable"},
+    allocation: [{candidate_id: "c_a", template_uncertainty: .04, sample_std: null,
+      empirical_se: .02, uncertainty_method: "template_floor", pilot_refs: null}],
+  };
+  assert.doesNotThrow(() => validateReport(report));
+  assert.doesNotThrow(() => validateReport({...report, future_optional_field: {unknown: true}}));
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics, tested_variants: "1"}}), /tested_variants/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics, generated_candidates: -1.5}}), /generated_candidates/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics, reason_counts: {selected: -3}}}), /reason_counts.selected/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics, reason_counts: {selected: "1"}}}), /reason_counts.selected/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics,
+    variants: [{...report.selection_diagnostics.variants[0], pilot_refs: [0]}]}}), /pilot_refs/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics,
+    variants: [{...report.selection_diagnostics.variants[0], repeats: -2}]}}), /repeats/);
+  assert.throws(() => validateReport({...report, forecast_summary: {...report.forecast_summary, estimated_net: Infinity}}), /estimated_net/);
+  assert.throws(() => validateReport({...report, forecast_summary: {...report.forecast_summary, campaign_count: -4.5}}), /campaign_count/);
+  assert.throws(() => validateReport({...report, allocation: [{sample_std: "0.1"}]}), /sample_std/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics,
+    variants: Array(21).fill(report.selection_diagnostics.variants[0])}}), /selection_diagnostics.variants/);
+  assert.throws(() => validateReport({...report, selection_diagnostics: {...report.selection_diagnostics,
+    variants: [{...report.selection_diagnostics.variants[0], pilot_refs: Array(21).fill("pilots.0")}]}}), /pilot_refs/);
+});
+
 test("allocation only joins unambiguous matching identities and channels", () => {
   const campaign = validCampaign();
   const allocation = { candidate_id: "a", channel: "push", communication_cost: 0 };

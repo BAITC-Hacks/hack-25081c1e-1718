@@ -8,6 +8,7 @@ registerMessages({
   "Звонки": "Қоңыраулар",
   "ожидается строка": "жол болуы керек",
   "ожидается конечное число или null": "шекті сан немесе null болуы керек",
+  "ожидается целое неотрицательное число или null": "теріс емес бүтін сан немесе null болуы керек",
   "ожидается массив": "массив болуы керек",
   "массив превышает 10 000 записей": "массивте 10 000-нан астам жазба бар",
   "ожидается объект": "нысан болуы керек",
@@ -15,6 +16,8 @@ registerMessages({
   "ожидается объект с остатками ресурсов": "қалған ресурстары бар нысан болуы керек",
   "ожидается массив строк": "жолдар массиві болуы керек",
   "массив превышает 1 000 предупреждений": "массивте 1 000-нан астам ескерту бар",
+  "не более 20 записей диагностики": "диагностикада 20-дан көп жазба болмауы керек",
+  "не более 64 причин": "64-тен көп себеп болмауы керек",
   "ожидается true или false": "true немесе false болуы керек",
   "Поле «{path}»: {expected}. Выберите корректный отчёт версии 1.0.": "«{path}» өрісі: {expected}. 1.0 нұсқасындағы дұрыс есепті таңдаңыз.",
   "Отчёт должен быть JSON-объектом. Выберите report.json, созданный агентом.": "Есеп JSON нысаны болуы керек. Агент жасаған report.json файлын таңдаңыз.",
@@ -126,6 +129,12 @@ function numericFields(value, keys, path) {
   }
 }
 
+function countFields(value, keys, path) {
+  for (const key of keys) {
+    if (!absent(value[key]) && (!Number.isSafeInteger(value[key]) || value[key] < 0)) fail(`${path}.${key}`, "ожидается целое неотрицательное число или null");
+  }
+}
+
 function arrayOfObjects(value, path, required = false) {
   if (absent(value) && !required) return [];
   if (!Array.isArray(value)) fail(path, "ожидается массив");
@@ -166,11 +175,51 @@ export function validateReport(report) {
     if (!object(report.evaluation)) fail("evaluation", "ожидается объект");
     numericFields(report.evaluation, ["net_arpu_gain", "n_pilots", "n_campaigns_including_pilots"], "evaluation");
     optionalString(report.evaluation.status, "evaluation.status");
+    optionalString(report.evaluation.scope, "evaluation.scope");
   }
   arrayOfObjects(report.allocation, "allocation").forEach((allocation, i) => {
-    for (const key of ["candidate_id", "campaign_name", "channel", "rationale"]) optionalString(allocation[key], `allocation[${i}].${key}`);
-    numericFields(allocation, ["audience_size", "communication_cost", "posterior_mean", "uncertainty", "n_customers", "estimated_net", "conservative_net", "repeats"], `allocation[${i}]`);
+    for (const key of ["candidate_id", "campaign_name", "channel", "rationale", "uncertainty_method"]) optionalString(allocation[key], `allocation[${i}].${key}`);
+    numericFields(allocation, ["audience_size", "communication_cost", "posterior_mean", "uncertainty", "template_uncertainty", "sample_std", "empirical_se", "n_customers", "estimated_net", "conservative_net", "repeats"], `allocation[${i}]`);
+    if (!absent(allocation.pilot_refs)) {
+      if (!Array.isArray(allocation.pilot_refs) || !allocation.pilot_refs.every((ref) => typeof ref === "string")) fail(`allocation[${i}].pilot_refs`, "ожидается массив строк");
+      if (allocation.pilot_refs.length > 20) fail(`allocation[${i}].pilot_refs`, "не более 20 записей диагностики");
+    }
   });
+  if (!absent(report.selection_diagnostics)) {
+    const selection = report.selection_diagnostics;
+    if (!object(selection)) fail("selection_diagnostics", "ожидается объект");
+    countFields(selection, ["generated_candidates", "tested_candidates", "tested_variants", "confirmed_variants", "selected_variants", "unexplored_candidates"], "selection_diagnostics");
+    if (!absent(selection.reason_counts)) {
+      if (!object(selection.reason_counts)) fail("selection_diagnostics.reason_counts", "ожидается объект");
+      if (Object.keys(selection.reason_counts).length > 64) fail("selection_diagnostics.reason_counts", "не более 64 причин");
+      countFields(selection.reason_counts, Object.keys(selection.reason_counts), "selection_diagnostics.reason_counts");
+    }
+    if (Array.isArray(selection.variants) && selection.variants.length > 20) fail("selection_diagnostics.variants", "не более 20 записей диагностики");
+    arrayOfObjects(selection.variants, "selection_diagnostics.variants").forEach((variant, i) => {
+      for (const key of ["candidate_id", "channel", "reason"]) optionalString(variant[key], `selection_diagnostics.variants[${i}].${key}`);
+      countFields(variant, ["repeats"], `selection_diagnostics.variants[${i}]`);
+      numericFields(variant, ["conservative_net"], `selection_diagnostics.variants[${i}]`);
+      if (!absent(variant.selected) && typeof variant.selected !== "boolean") fail(`selection_diagnostics.variants[${i}].selected`, "ожидается true или false");
+      if (!absent(variant.pilot_refs)) {
+        if (!Array.isArray(variant.pilot_refs) || !variant.pilot_refs.every((ref) => typeof ref === "string")) fail(`selection_diagnostics.variants[${i}].pilot_refs`, "ожидается массив строк");
+        if (variant.pilot_refs.length > 20) fail(`selection_diagnostics.variants[${i}].pilot_refs`, "не более 20 записей диагностики");
+      }
+    });
+    if (!absent(selection.strategy_config)) {
+      if (!object(selection.strategy_config)) fail("selection_diagnostics.strategy_config", "ожидается объект");
+      for (const key of ["exploration_policy", "uncertainty_mode", "pilot_sizing"]) optionalString(selection.strategy_config[key], `selection_diagnostics.strategy_config.${key}`);
+    }
+  }
+  if (!absent(report.forecast_summary)) {
+    if (!object(report.forecast_summary)) fail("forecast_summary", "ожидается объект");
+    numericFields(report.forecast_summary, ["estimated_net", "conservative_net", "communication_cost"], "forecast_summary");
+    countFields(report.forecast_summary, ["campaign_count"], "forecast_summary");
+    for (const key of ["scope", "comparison_to_evaluation"]) optionalString(report.forecast_summary[key], `forecast_summary.${key}`);
+  }
+  if (!absent(report.strategy_config)) {
+    if (!object(report.strategy_config)) fail("strategy_config", "ожидается объект");
+    for (const key of ["exploration_policy", "uncertainty_mode", "pilot_sizing"]) optionalString(report.strategy_config[key], `strategy_config.${key}`);
+  }
   for (const key of ["events", "advisor"]) {
     arrayOfObjects(report[key], key).forEach((entry, i) => {
       for (const field of ["role", "phase", "status", "reason", "summary", "action", "model"]) optionalString(entry[field], `${key}[${i}].${field}`);

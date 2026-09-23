@@ -70,6 +70,8 @@ registerMessages({
   "Итог расчёта": "Есептеу нәтижесі",
   "Ресурсы": "Ресурстар",
   "План ресурсов": "Ресурстар жоспары",
+  "Исследование": "Зерттеу",
+  "Прогноз плана": "Жоспар болжамы",
   "Кампания {number}": "Науқан {number}",
   "Пилот {number}": "Сынақ {number}",
   "{label} · исходная подпись, ссылка недоступна": "{label} · бастапқы атау, сілтеме қолжетімсіз",
@@ -337,6 +339,8 @@ $("load-latest-report")?.addEventListener("click", openLatestReport);
 
 function evidenceTarget(ref, report) {
   if (!report || typeof ref !== "string") return null;
+  if (ref === "selection_diagnostics" && report.selection_diagnostics) return ref;
+  if (ref === "forecast_summary" && report.forecast_summary) return ref;
   if (["evaluation", "resources", "planned_resources"].includes(ref) && report[ref]) {
     return ref === "evaluation" ? "evaluation.net_arpu_gain" : ref;
   }
@@ -369,6 +373,8 @@ function citationLabel(ref, target) {
   if (ref === "evaluation") return ["Итог расчёта", {}];
   if (ref === "resources") return ["Ресурсы", {}];
   if (ref === "planned_resources") return ["План ресурсов", {}];
+  if (ref === "selection_diagnostics") return ["Исследование", {}];
+  if (ref === "forecast_summary") return ["Прогноз плана", {}];
   const campaign = /^campaigns\[(\d+)\]$/.exec(target);
   if (campaign) return ["Кампания {number}", {number:Number(campaign[1]) + 1}];
   const pilot = /^pilots\[(\d+)\]$/.exec(target);

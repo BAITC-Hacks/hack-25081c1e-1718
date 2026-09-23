@@ -112,6 +112,67 @@ registerMessages({
   "Пояснение из отчёта (исходный текст)": "Есептегі түсіндірме (түпнұсқа мәтін)"
 });
 
+registerMessages({
+  "Исследование не передано в этом отчёте. Счётчики и причины выбора недоступны.": "Бұл есепте зерттеу деректері берілмеген. Есептегіштер мен таңдау себептері қолжетімсіз.",
+  "Создано гипотез": "Құрылған жорамалдар",
+  "Исследовано гипотез": "Зерттелген жорамалдар",
+  "Исследовано вариантов с каналом": "Арнасы бар зерттелген нұсқалар",
+  "Проверено повторными пилотами": "Қайталанған сынақтармен тексерілген",
+  "Выбрано вариантов": "Таңдалған нұсқалар",
+  "Не исследовано гипотез": "Зерттелмеген жорамалдар",
+  "Расходы на пилоты": "Сынақтарға жұмсалған қаражат",
+  "Сумма записанных расходов всех пилотов; если хотя бы одна стоимость отсутствует, итог не показан.": "Барлық сынақтың тіркелген шығынының қосындысы; бір сынақтың құны жоқ болса, жиынтық көрсетілмейді.",
+  "Вариант проверен повторно при двух и более завершённых пилотах. Это не означает положительный эффект.": "Екі немесе одан көп аяқталған сынақ болса, нұсқа қайта тексерілген деп саналады. Бұл оң әсерді білдірмейді.",
+  "Варианты исследования не переданы.": "Зерттеу нұсқалары берілмеген.",
+  "Показано {shown} из {total} исследованных вариантов.": "Зерттелген {total} нұсқаның {shown} нұсқасы көрсетілген.",
+  "Вариант {n}": "{n}-нұсқа",
+  "Исходный код гипотезы: {id}": "Жорамалдың бастапқы коды: {id}",
+  "Повторных пилотов: {n}": "Қайталанған сынақтар: {n}",
+  "Осторожная оценка: {value}": "Сақтықпен есептелген баға: {value}",
+  "Включён в план": "Жоспарға енгізілген",
+  "Обязательная резервная кампания": "Міндетті резервтік науқан",
+  "Недостаточно пилотов": "Сынақтар жеткіліксіз",
+  "Неположительная осторожная оценка": "Сақтықпен есептелген баға оң емес",
+  "Аудитория пересекается с выбранной": "Аудитория таңдалған нұсқамен қабаттасады",
+  "Не хватает оставшегося бюджета": "Қалған бюджет жеткіліксіз",
+  "Не хватает оставшегося лимита связи": "Қалған байланысу лимиті жеткіліксіз",
+  "Другой вариант выбран для плана": "Жоспарға басқа нұсқа таңдалған",
+  "Причина не передана": "Себебі берілмеген",
+  "Неизвестная причина в отчёте: {code}": "Есептегі белгісіз себеп: {code}",
+  "Остаток бюджета и контактов для исключения оценивается после выбранного плана.": "Алып тастау үшін бюджет пен байланысу лимитінің қалдығы таңдалған жоспардан кейін бағаланады.",
+  "Сведения о политике: разведка — {exploration}, неопределённость — {uncertainty}.": "Саясат туралы мәлімет: зерттеу — {exploration}, белгісіздік — {uncertainty}.",
+  "Размер пилота — {sizing}.": "Сынақ көлемі — {sizing}.",
+  "Базовая политика": "Негізгі саясат",
+  "Сбалансированная разведка": "Теңгерімді зерттеу",
+  "Сначала подтверждение": "Алдымен растау",
+  "Шаблонный запас": "Үлгі бойынша түзету",
+  "Эмпирический запас": "Эмпирикалық түзету",
+  "Фиксированные этапы": "Бекітілген кезеңдер",
+  "Адаптивный размер": "Бейімделетін көлем",
+  "Прогноз финальных кампаний не передан.": "Қорытынды науқандар болжамы берілмеген.",
+  "Область прогноза не указана": "Болжамның қамтуы көрсетілмеген",
+  "Итог расчёта · область не указана": "Есептеу нәтижесі · қамтуы көрсетілмеген",
+  "Область измерения не указана в отчёте.": "Өлшеудің қамтуы есепте көрсетілмеген.",
+  "Области прогноза и итога не указаны полностью; прямое сравнение недоступно.": "Болжам мен нәтиженің қамтуы толық көрсетілмеген; тікелей салыстыруға болмайды.",
+  "Прирост выручки за вычетом расходов на коммуникации": "Байланысу шығындарын шегергендегі кіріс өсімі",
+  "Сумма размеров пилотов, не число уникальных абонентов": "Сынақтар көлемдерінің қосындысы, бірегей абоненттер саны емес",
+  "Эвристический запас неопределённости": "Белгісіздікті ескеретін шамамен түзету",
+  "Запас по публичному шаблону": "Ашық үлгі бойынша түзету",
+  "Разброс повторных наблюдений": "Қайталанған сынақтар нәтижелерінің шашырауы",
+  "Оценка ошибки среднего по повторам": "Қайталаулар бойынша орташа мән қатесінің бағасы",
+  "Метод оценки неопределённости": "Белгісіздікті бағалау тәсілі",
+  "Порог по шаблону": "Үлгі бойынша шек",
+  "Максимум шаблона и повторных наблюдений": "Үлгі мен қайталанған бақылаулардың үлкені",
+  "Эти доли показаны в процентных пунктах. Запас эвристический, не доверительный интервал.": "Бұл үлестер пайыздық тармақпен берілген. Түзету шамамен есептелген, сенімділік аралығы емес.",
+  "Причина включения в план": "Жоспарға енгізу себебі",
+  "Статус выбора не передан": "Таңдау күйі берілмеген",
+  "Вариант имеет повторные пилоты своего канала и положительную осторожную оценку; план также учитывает пересечение аудиторий и остатки ресурсов.": "Нұсқаның өз арнасында қайталанған сынақтары және оң сақтық бағасы бар; жоспар аудиториялардың қабаттасуын және қалған ресурстарды да ескереді."
+});
+registerMessages({
+  "Количество пилотов этого канала": "Осы арнадағы сынақтар саны",
+  "Взвешенный разброс повторных наблюдений": "Қайталанған сынақтар нәтижелерінің салмақталған шашырауы"
+});
+
 import {
   MAX_FILE_BYTES, MISSING, FILTER_LABELS, parseReport, validateReport, number, money, ratio,
   isNumber, displayText, findAllocation, campaignMatches, campaignsToCsv, translate, channelLabel,
@@ -207,6 +268,10 @@ export function focusEvidence(ref) {
     view = "overview"; target = $("resources");
   } else if (ref === "planned_resources") {
     view = "overview"; target = $("planned-resources");
+  } else if (ref === "selection_diagnostics" && currentReport.selection_diagnostics) {
+    view = "overview"; target = $("selection-diagnostics");
+  } else if (ref === "forecast_summary" && currentReport.forecast_summary) {
+    view = "overview"; target = $("forecast-summary");
   } else if (ref === "warnings") {
     view = "limitations"; target = $("warnings-panel");
   } else if (ref === "advisor") {
@@ -310,6 +375,136 @@ function effectClass(value) {
   return isNumber(value) && value !== 0 ? (value > 0 ? "positive" : "negative") : "";
 }
 
+const SELECTION_REASONS = Object.freeze({
+  selected: "Включён в план",
+  mandatory_fallback: "Обязательная резервная кампания",
+  insufficient_pilots: "Недостаточно пилотов",
+  nonpositive_estimate: "Неположительная осторожная оценка",
+  overlap: "Аудитория пересекается с выбранной",
+  budget: "Не хватает оставшегося бюджета",
+  contacts: "Не хватает оставшегося лимита связи",
+  not_selected: "Другой вариант выбран для плана",
+});
+function selectionReason(reason) {
+  return typeof reason === "string" && Object.hasOwn(SELECTION_REASONS, reason)
+    ? t(SELECTION_REASONS[reason]) : typeof reason === "string" && reason.trim()
+      ? t("Неизвестная причина в отчёте: {code}", {code:reason.slice(0, 80)}) : t("Причина не передана");
+}
+function diagnosticPilotIndices(variant, report) {
+  if (!Array.isArray(variant?.pilot_refs)) return [];
+  const indices = new Set();
+  for (const ref of variant.pilot_refs) {
+    const match = /^pilots\.(0|[1-9]\d*)$/.exec(ref);
+    if (!match) continue;
+    const index = Number(match[1]);
+    const pilot = report.pilots[index];
+    if (pilot?.status === "completed" && pilot.candidate_id === variant.candidate_id && pilot.channel === variant.channel) indices.add(index);
+  }
+  return [...indices];
+}
+function selectedVariant(campaign, allocation) {
+  const variants = currentReport?.selection_diagnostics?.variants;
+  if (!Array.isArray(variants)) return null;
+  const derived = typeof campaign.campaign_name === "string" && campaign.campaign_name.startsWith("compass_")
+    ? campaign.campaign_name.slice(8) : null;
+  const id = allocation?.candidate_id || campaign.candidate_id || derived;
+  if (!id) return null;
+  const matches = variants.filter((variant) => variant.candidate_id === id && variant.channel === campaign.channel && variant.selected === true);
+  return matches.length === 1 ? matches[0] : null;
+}
+function diagnosticCount(list, label, value) {
+  const item = element("div", "diagnostic-count");
+  item.append(element("dt", "", label), element("dd", "", value));
+  list.append(item);
+}
+function renderDiagnostics(report) {
+  const selection = report.selection_diagnostics;
+  const counts = $("selection-counts");
+  counts.replaceChildren();
+  setText("selection-intro", selection
+    ? "Вариант проверен повторно при двух и более завершённых пилотах. Это не означает положительный эффект."
+    : "Исследование не передано в этом отчёте. Счётчики и причины выбора недоступны.");
+  for (const [label, key] of [
+    ["Создано гипотез", "generated_candidates"], ["Исследовано гипотез", "tested_candidates"],
+    ["Исследовано вариантов с каналом", "tested_variants"], ["Проверено повторными пилотами", "confirmed_variants"],
+    ["Выбрано вариантов", "selected_variants"], ["Не исследовано гипотез", "unexplored_candidates"],
+  ]) diagnosticCount(counts, label, number(selection?.[key]));
+  const pilotCost = report.pilots.every((pilot) => isNumber(pilot.cost))
+    ? report.pilots.reduce((sum, pilot) => sum + pilot.cost, 0) : null;
+  diagnosticCount(counts, "Расходы на пилоты", money(pilotCost, 2));
+  setText("selection-note", "Сумма записанных расходов всех пилотов; если хотя бы одна стоимость отсутствует, итог не показан.");
+  const variants = $("selection-variants");
+  variants.replaceChildren();
+  if (!Array.isArray(selection?.variants) || !selection.variants.length) {
+    variants.append(element("p", "small-note", selection ? "Варианты исследования не переданы." : "Исследование не передано в этом отчёте. Счётчики и причины выбора недоступны."));
+  } else {
+    if (isNumber(selection.tested_variants) && selection.tested_variants > selection.variants.length) {
+      variants.append(element("p", "small-note", t("Показано {shown} из {total} исследованных вариантов.",
+        {shown:number(selection.variants.length), total:number(selection.tested_variants)})));
+    }
+    if (selection.reason_counts && Object.keys(selection.reason_counts).length) {
+      const reasons = element("ul", "diagnostic-reasons");
+      for (const [code, count] of Object.entries(selection.reason_counts)) {
+        if (isNumber(count) && count > 0) reasons.append(element("li", "", `${selectionReason(code)}: ${number(count)}`));
+      }
+      variants.append(reasons);
+    }
+    const list = element("ol", "diagnostic-variants");
+    selection.variants.forEach((variant, index) => {
+      const item = element("li", "diagnostic-variant");
+      const title = element("div", "diagnostic-variant-title");
+      title.append(element("strong", "", t("Вариант {n}", {n:number(index + 1)})), rawElement("span", "channel-chip", channelLabel(variant.channel)));
+      const refs = diagnosticPilotIndices(variant, report);
+      const example = refs.length ? report.pilots[refs[0]] : null;
+      const segment = example?.filters ? Object.keys(FILTER_LABELS).filter((key) => key !== "filter_current_tariff" && example.filters[key])
+        .map((key) => segmentInfo(key, example.filters[key]).label).join(" · ") : "";
+      if (segment) item.append(title, element("p", "diagnostic-variant-segment", `${segment} · ${tariffLabel(example.target_tariff)}`));
+      else item.append(title);
+      item.append(element("p", "diagnostic-variant-reason", selectionReason(variant.reason)));
+      item.append(element("p", "small-note", t("Повторных пилотов: {n}", {n:number(variant.repeats)})));
+      item.append(element("p", effectClass(variant.conservative_net), t("Осторожная оценка: {value}", {value:money(variant.conservative_net, 2)})));
+      if (typeof variant.candidate_id === "string" && variant.candidate_id) item.append(element("p", "diagnostic-variant-id", t("Исходный код гипотезы: {id}", {id:variant.candidate_id})));
+      const links = element("div", "campaign-evidence");
+      refs.forEach((pilotIndex) => {
+        const link = element("button", "evidence-link", t("Пилот {n}", {n:pilotIndex + 1}));
+        link.type = "button";
+        link.addEventListener("click", () => focusEvidence(`pilots[${pilotIndex}]`));
+        links.append(link);
+      });
+      if (links.childElementCount) item.append(links);
+      list.append(item);
+    });
+    variants.append(list);
+  }
+  const policy = report.strategy_config ?? selection?.strategy_config;
+  if (policy?.exploration_policy || policy?.uncertainty_mode) {
+    const values = {baseline:"Базовая политика", balanced:"Сбалансированная разведка",
+      confirmation_first:"Сначала подтверждение", template:"Шаблонный запас", empirical:"Эмпирический запас",
+      fixed:"Фиксированные этапы", adaptive:"Адаптивный размер"};
+    const policyLabel = (value) => typeof value === "string" && Object.hasOwn(values, value) ? t(values[value]) : displayText(value);
+    variants.append(element("p", "small-note", t("Сведения о политике: разведка — {exploration}, неопределённость — {uncertainty}.",
+      {exploration:policyLabel(policy.exploration_policy), uncertainty:policyLabel(policy.uncertainty_mode)})));
+    if (policy.pilot_sizing) variants.append(element("p", "small-note", t("Размер пилота — {sizing}.", {sizing:policyLabel(policy.pilot_sizing)})));
+  }
+  if ((selection?.reason_counts?.budget ?? 0) > 0 || (selection?.reason_counts?.contacts ?? 0) > 0) {
+    variants.append(element("p", "small-note", "Остаток бюджета и контактов для исключения оценивается после выбранного плана."));
+  }
+
+  const forecast = report.forecast_summary;
+  setText("forecast-plan-scope", forecast?.scope === "final_campaigns_only" ? "Только финальные кампании · прогноз" : forecast ? "Область прогноза не указана" : "Прогноз финальных кампаний не передан.");
+  setText("forecast-actual-scope", report.evaluation?.scope === "pilots_and_final_deduplicated" ? "Пилоты и финальные кампании · факт" : "Итог расчёта · область не указана");
+  setText("forecast-estimated", money(forecast?.estimated_net, 2));
+  setText("forecast-conservative", money(forecast?.conservative_net, 2));
+  setText("forecast-cost", money(forecast?.communication_cost, 2));
+  setText("forecast-campaigns", number(forecast?.campaign_count));
+  setText("forecast-actual", money(report.evaluation?.net_arpu_gain, 2));
+  setText("forecast-actual-note", report.evaluation?.scope === "pilots_and_final_deduplicated"
+    ? "Итог всей синтетической симуляции с учётом пилотов и повторных абонентов." : "Область измерения не указана в отчёте.");
+  setText("forecast-note", forecast?.scope === "final_campaigns_only" && report.evaluation?.scope === "pilots_and_final_deduplicated"
+    ? "Разные области расчёта: разницу между ними нельзя считать ошибкой прогноза."
+    : "Области прогноза и итога не указаны полностью; прямое сравнение недоступно.");
+}
+
 function campaignDetails(campaign, allocation) {
   const details = element("details", "row-details");
   details.append(element("summary", "", "Основания и оценки"));
@@ -328,13 +523,26 @@ function campaignDetails(campaign, allocation) {
   }
   if (allocation) {
     addDefinition(dl, "Ожидаемое изменение дохода с абонента", ratio(allocation.posterior_mean));
-    addDefinition(dl, "Поправка на возможную ошибку оценки", isNumber(allocation.uncertainty) ? t("{n} п. п.", {n:number(allocation.uncertainty * 100, 2)}) : MISSING);
-    addDefinition(dl, "Контактов в наблюдениях", number(allocation.n_customers));
-    addDefinition(dl, "Количество пилотов по гипотезе", number(allocation.repeats));
+    const points = (value) => isNumber(value) ? t("{n} п. п.", {n:number(value * 100, 2)}) : MISSING;
+    addDefinition(dl, "Эвристический запас неопределённости", points(allocation.uncertainty));
+    addDefinition(dl, "Запас по публичному шаблону", points(allocation.template_uncertainty));
+    addDefinition(dl, "Взвешенный разброс повторных наблюдений", points(allocation.sample_std));
+    addDefinition(dl, "Оценка ошибки среднего по повторам", points(allocation.empirical_se));
+    const methods = {template_floor:"Порог по шаблону", max_template_empirical:"Максимум шаблона и повторных наблюдений"};
+    addDefinition(dl, "Метод оценки неопределённости", Object.hasOwn(methods, allocation.uncertainty_method) ? t(methods[allocation.uncertainty_method]) : MISSING);
+    addDefinition(dl, "Сумма размеров пилотов, не число уникальных абонентов", number(allocation.n_customers));
+    addDefinition(dl, "Количество пилотов этого канала", number(allocation.repeats));
+    const variant = selectedVariant(campaign, allocation);
+    addDefinition(dl, "Причина включения в план", variant ? selectionReason(variant.reason) : t("Статус выбора не передан"));
   } else {
     addDefinition(dl, "Распределение", "Нет однозначно связанных оценок этой кампании в отчёте.");
   }
   details.append(dl);
+  if (allocation) details.append(element("p", "small-note", "Эти доли показаны в процентных пунктах. Запас эвристический, не доверительный интервал."));
+  const variant = allocation ? selectedVariant(campaign, allocation) : null;
+  if (variant?.reason === "selected" && isNumber(variant.repeats) && variant.repeats >= 2 && isNumber(variant.conservative_net) && variant.conservative_net > 0) {
+    details.append(element("p", "small-note", "Вариант имеет повторные пилоты своего канала и положительную осторожную оценку; план также учитывает пересечение аудиторий и остатки ресурсов."));
+  }
   const rationale = campaign.rationale || allocation?.rationale;
   if (rationale) {
     details.append(element("p", "small-note", "Пояснение из отчёта (исходный текст)"));
@@ -616,6 +824,7 @@ function renderReport(report, source, preserveFilters = false) {
   setText("overview-title", report.campaigns.length ? "Результаты анализа" : "План не сформирован");
   setText("overview-description", "Итог расчёта, рекомендованные кампании и доступные ресурсы.");
   setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
+  setText("evaluation-label", "Прирост выручки за вычетом расходов на коммуникации");
   setMoneyValue("metric-net", report.evaluation?.net_arpu_gain);
   setRawText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
     ? (report.evaluation?.status ? translate(report.evaluation.status) : t("Итог расчёта"))
@@ -648,6 +857,7 @@ function renderReport(report, source, preserveFilters = false) {
   renderPilotChart(report);
   renderLimits(report);
   renderResultSummary(report, source);
+  renderDiagnostics(report);
   renderOverview(report);
   setReportVisible(true);
 }
@@ -687,6 +897,14 @@ function clearReport() {
   $("advisor-content").replaceChildren(element("p", "advisor-entry", "Отчёт пока не загружен."));
   setText("uncertainty-note", "Неопределённость — приблизительный запас для планирования, а не доверительный интервал.");
   renderResultSummary(null);
+  $("selection-counts").replaceChildren();
+  $("selection-variants").replaceChildren(element("p", "small-note", "Исследование не передано в этом отчёте. Счётчики и причины выбора недоступны."));
+  setText("selection-intro", "Откройте отчёт, чтобы увидеть исследованные гипотезы и варианты каналов.");
+  setText("selection-note", "");
+  for (const id of ["forecast-estimated", "forecast-conservative", "forecast-cost", "forecast-campaigns", "forecast-actual"]) setText(id, MISSING);
+  setText("forecast-plan-scope", "Прогноз финальных кампаний не передан.");
+  setText("forecast-actual-scope", "Итог расчёта · область не указана");
+  setText("forecast-actual-note", "Область измерения не указана в отчёте.");
   showView("overview", false);
   document.dispatchEvent(new CustomEvent("arpu:report-cleared"));
 }
