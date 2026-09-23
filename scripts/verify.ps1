@@ -34,7 +34,14 @@ if (Test-Path 'agent.py') {
     }
     if (-not $PythonCommand) { throw 'Python is missing. Activate .venv or set ARPU_PYTHON to your Python executable.' }
     Run-Step 'official local_eval.py (UTF-8)' {
-        $evaluation = & $PythonCommand -X utf8 local_eval.py 2>&1
+        $previousOffline = $env:ARPU_OFFLINE
+        try {
+            $env:ARPU_OFFLINE = '1'
+            $evaluation = & $PythonCommand -X utf8 local_eval.py 2>&1
+        } finally {
+            if ($null -eq $previousOffline) { Remove-Item Env:ARPU_OFFLINE -ErrorAction SilentlyContinue }
+            else { $env:ARPU_OFFLINE = $previousOffline }
+        }
         $evaluation | ForEach-Object { Write-Host $_ }
         if ($LASTEXITCODE -ne 0) { throw 'Official evaluator failed.' }
         if (($evaluation -join "`n") -match 'Агент упал|Кампания .*отброшена|Агент не вернул') {

@@ -26,12 +26,20 @@ def main():
         'seed': args.seed,
         'synthetic': True,
         'generated_at': datetime.now(timezone.utc).isoformat(),
-        'evaluation': {'net_arpu_gain': float(result['net_arpu_gain'])} if result else None,
+        'evaluation': {
+            'net_arpu_gain': float(result['net_arpu_gain']),
+            'status': str(result.get('status', 'unknown')),
+            'n_pilots': int(result.get('n_pilots', 0)),
+            'n_campaigns_including_pilots': int(result.get('n_campaigns', 0)),
+        } if result else None,
     })
     destination = ROOT / 'output' / 'report.json'
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False), encoding='utf-8')
     print(destination)
+    print('Engine:', report.get('engine', 'unknown'))
+    for event in report.get('advisor', []):
+        print('OpenAI:', event.get('phase'), event.get('status'), event.get('reason', ''), event.get('status_code', ''))
 
 
 if __name__ == '__main__':

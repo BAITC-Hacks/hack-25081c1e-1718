@@ -59,3 +59,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: The user explicitly requested the agent system with OpenAI and an early GitHub handoff.
 - Who: Dima under the user's latest instruction.
 - Consequences: [AFFECTS-OTHERS] Use Responses structured outputs with a candidate-ID allowlist, at most two short requests, timeout and offline fallback. OPENAI_API_KEY comes only from environment; OPENAI_MODEL selects the model; ARPU_OFFLINE=1 disables network. No full customer records or credentials in reports. Numerical constraints remain enforced by Python. Implementation follows in a separate commit.
+
+### 2026-09-23 - Publish Dima's integrated core while Azim's modules remain separate
+
+- Decision: Implement bounded OpenAI initial/feedback, adaptive confirmation, strict candidate normalization, non-overlapping allocation, report export and a hidden memory-only key launcher. Preserve the three-argument candidate_model interface; Azim owns candidate_model.py, analysis/, web/ and substantive README work. Dima made only factual README status/command updates for this handoff.
+- Why: The user asked to finish Dima's current files, commit/push, describe current state and provide a precise independent task for Azim.
+- Who: Dima
+- Consequences: [AFFECTS-OTHERS] Report v1 is extended compatibly with planned_resources, allocation, events, advisor and evaluation. Checkpoints are offline. API integration is verified live, but economic quality remains below G3: current 3/10 positive and negative median. Early history-transfer experiment was rejected; built-in candidates use cautious price hypotheses until Azim's specialist module. Keep 1a025b4 as the reference; do not present this integration commit as a final winning strategy.
