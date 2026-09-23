@@ -31,9 +31,11 @@ function showView(view, focus = true) {
   });
   setText("view-label", VIEW_LABELS[view]);
   if (focus) {
+    if ($("load-status").classList.contains("notice-success")) setNotice("", "");
     $("main").focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
   }
+  document.dispatchEvent(new CustomEvent("arpu:view-changed", {detail:{view}}));
   return true;
 }
 
@@ -212,6 +214,10 @@ function renderOverview(report) {
     card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}, ${channelLabel(campaign.channel)}`);
     const text = element("span", "recommendation-text");
     text.append(element("strong", "", `${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}`));
+    const segment = Object.entries(FILTER_LABELS)
+      .filter(([key]) => key !== "filter_current_tariff" && campaign[key])
+      .map(([key, label]) => `${label}: ${campaign[key]}`).join(" · ");
+    text.append(element("span", "recommendation-segment", segment || "Все сегменты"));
     const evidence = campaignPilotIndices(campaign).length;
     text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `наблюдений: ${number(evidence)}` : "нет связанных наблюдений"}`));
     const effect = element("span", "recommendation-effect");
@@ -230,7 +236,7 @@ function renderOverview(report) {
   const messages = [];
   if (report.campaigns.length === 0) messages.push("В отчёте нет финального плана.");
   if (isNumber(report.evaluation?.net_arpu_gain) && report.evaluation.net_arpu_gain < 0) messages.push("Фактический чистый прирост этого прогона отрицательный.");
-  if (!isNumber(report.evaluation?.net_arpu_gain)) messages.push("Фактическая оценка evaluator недоступна.");
+  if (!isNumber(report.evaluation?.net_arpu_gain)) messages.push("Итог расчёта недоступен.");
   messages.push(...(report.warnings ?? []).map(translate));
   if (ranked.some(({ allocation }) => !allocation)) messages.push("Для части кампаний нет однозначно связанных плановых оценок.");
   if (!messages.length) messages.push("Агент не записал предупреждений. Это не гарантия положительного эффекта.");
@@ -367,9 +373,8 @@ function renderLimits(report) {
   else list.append(element("li", "", Array.isArray(report.warnings) ? "Агент не записал предупреждений в этот отчёт." : "Предупреждения не переданы в отчёте."));
   if (report.campaigns.length === 0) list.append(element("li", "warning", "Нет финальных кампаний: результат прогона неполный."));
   if (report.campaigns.length > 10) list.append(element("li", "warning", "В отчёте больше 10 кампаний. Проверьте допустимый размер финального плана."));
-  if (!isNumber(report.evaluation?.net_arpu_gain)) list.append(element("li", "", "Чистый прирост evaluator недоступен. Плановые оценки не заменяют фактическую оценку прогона."));
+  if (!isNumber(report.evaluation?.net_arpu_gain)) list.append(element("li", "", "Итог расчёта недоступен. Прогнозы кампаний не заменяют его."));
   if (!report.planned_resources) list.append(element("li", "", "Остатки после финального плана не переданы; лимиты этого этапа нельзя оценить по отчёту."));
-  if (report.synthetic === false) list.append(element("li", "warning", "Файл не отмечен как синтетический. Этот интерфейс предназначен для учебного кейса HackAlem AI."));
   const negativeResources = [report.resources, report.planned_resources].some((resources) => resources && ["remaining_budget", "remaining_contacts", "pilots_left"].some((key) => isNumber(resources[key]) && resources[key] < 0));
   if (negativeResources) list.append(element("li", "warning", "В отчёте есть отрицательный остаток ресурсов. Проверьте соблюдение лимитов перед использованием плана."));
   list.append(element("li", "", "Расходы включают повторные контакты. Охваты отдельных кампаний нельзя считать уникальной аудиторией всего плана."));
@@ -393,6 +398,20 @@ function renderLimits(report) {
   if (!advisor.childElementCount) advisor.append(element("p", "advisor-entry", "В этом отчёте нет статусов или пояснений советника."));
 }
 
+function renderResultSummary(report, source = "") {
+  setText("result-source", report ? source : "Отчёт не выбран");
+  setText("result-seed", report ? number(report.seed) : MISSING);
+  setText("result-time", report ? formatDate(report.generated_at) : MISSING);
+  setText("result-engine", report ? report.engine : MISSING);
+  setText("result-budget-pilots", money(report?.resources?.remaining_budget));
+  setText("result-budget-planned", money(report?.planned_resources?.remaining_budget));
+  setText("result-contacts-pilots", number(report?.resources?.remaining_contacts));
+  setText("result-contacts-planned", number(report?.planned_resources?.remaining_contacts));
+  const hasNegative = [report?.resources, report?.planned_resources].some(resources => resources && ["remaining_budget", "remaining_contacts", "pilots_left"].some(key => isNumber(resources[key]) && resources[key] < 0));
+  const needsReview = report && (!report.campaigns.length || report.campaigns.length > 10 || hasNegative || report.warnings?.length || report.validation?.valid === false);
+  setText("result-verdict", !report ? "Нет отчёта" : needsReview ? "Проверьте ограничения" : "План готов к проверке");
+}
+
 function renderReport(report, source) {
   currentReport = report;
   setText("run-badge", source === "Текущий прогон" ? "Текущий прогон" : "Сохранённый прогон");
@@ -402,12 +421,12 @@ function renderReport(report, source) {
   setText("meta-time", formatDate(report.generated_at));
   setText("meta-engine", report.engine);
   setText("overview-title", report.campaigns.length ? "Результаты анализа" : "План не сформирован");
-  setText("overview-description", "Фактический эффект, план кампаний и доступные ресурсы.");
+  setText("overview-description", "Итог расчёта, рекомендованные кампании и доступные ресурсы.");
   setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
   setText("metric-net", money(report.evaluation?.net_arpu_gain));
   setText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
-    ? (report.evaluation?.status ? translate(report.evaluation.status) : "Фактическая оценка синтетического прогона")
-    : "Оценка evaluator отсутствует");
+    ? (report.evaluation?.status ? translate(report.evaluation.status) : "Итог расчёта")
+    : "Итог расчёта недоступен");
   setText("metric-campaigns", number(report.campaigns.length));
   setText("metric-pilots", number(report.pilots.length));
   const completed = report.pilots.filter((pilot) => pilot.status === "completed").length;
@@ -430,6 +449,7 @@ function renderReport(report, source) {
   renderPilots();
   renderPilotChart(report);
   renderLimits(report);
+  renderResultSummary(report, source);
   renderOverview(report);
   setReportVisible(true);
 }
@@ -462,11 +482,12 @@ function clearReport() {
   setText("campaign-heading-count", "");
   setText("pilot-heading-count", "");
   setText("run-badge", "Отчёт не загружен");
-  $("overview-title").replaceChildren(document.createTextNode("Выбирайте кампании."), element("br"), element("span", "", "Проверяйте эффект."));
-  setText("overview-description", "Агент проверяет гипотезы пилотами и предлагает план с учётом бюджета и доступных контактов.");
+  setText("overview-title", "Тарифные кампании");
+  setText("overview-description", "Запустите анализ аудитории или откройте сохранённый план.");
   $("warnings-list").replaceChildren(element("li", "", "Откройте отчёт, чтобы увидеть ограничения фактического прогона."));
   $("advisor-content").replaceChildren(element("p", "advisor-entry", "Отчёт пока не загружен."));
   setText("uncertainty-note", "Неопределённость — приблизительный запас для планирования, а не доверительный интервал.");
+  renderResultSummary(null);
   showView("overview", false);
   document.dispatchEvent(new CustomEvent("arpu:report-cleared"));
 }
@@ -546,6 +567,7 @@ document.querySelectorAll("[data-view]").forEach((link) => {
 document.querySelectorAll("[data-question]").forEach((button) => {
   button.addEventListener("click", () => {
     $("agent-question").value = button.dataset.question;
+    $("agent-question").dispatchEvent(new Event("input"));
     $("agent-question").focus();
   });
 });

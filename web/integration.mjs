@@ -14,6 +14,10 @@ let snapshotId = null;
 let reportGeneration = 0;
 let serverImport = false;
 let chatSequence = 0;
+let chatReportId = null;
+let chatTurns = [];
+let knownRunId = null;
+let previousRunId = null;
 
 function text(id, value) { const node = $(id); if (node) node.textContent = value; }
 function message(error) { return error instanceof Error ? error.message : "Не удалось выполнить запрос. Повторите попытку."; }
@@ -25,7 +29,9 @@ function updateControls() {
   $("analysis-mode").disabled = !!activeRun;
   $("run-seed").disabled = !!activeRun;
   $("ask-agent").disabled = !health?.capabilities.chat || !snapshotId || chatBusy || !!activeRun;
-  $("agent-question").disabled = !snapshotId || chatBusy || !!activeRun;
+  $("agent-question").disabled = !snapshotId || !!activeRun;
+  $("chat-clear").disabled = chatBusy || !chatTurns.length;
+  document.querySelectorAll(".chat-retry").forEach(button => { button.disabled = chatBusy || !!activeRun || !health?.capabilities.chat; });
   if ($("load-server-report")) $("load-server-report").disabled = !health || !!activeRun || connecting || chatBusy;
   if ($("retry-api")) $("retry-api").disabled = connecting || polling;
 }
@@ -43,25 +49,33 @@ function modeHint() {
     ? "Настройки OpenAI доступны. Успех вызова будет известен после запуска."
     : "Автономный анализ работает без запросов к OpenAI.");
 }
-function clearAnswer() {
+function clearConversation() {
   chatSequence++;
-  text("agent-answer", "");
-  $("agent-evidence").replaceChildren();
-  text("agent-mode", "Ответ ещё не получен");
+  chatTurns = [];
+  $("chat-messages").replaceChildren($("chat-empty"));
+  $("chat-empty").hidden = false;
+  $("agent-question").value = "";
+  updateDraft();
+  text("agent-mode", "По текущему отчёту");
 }
 function chatHint() {
-  if (!getCurrentReport()) text("agent-status", "Сначала запустите анализ или загрузите снимок сервера.");
-  else if (!snapshotId) text("agent-status", "Этот отчёт импортирован локально. Для вопросов загрузите снимок сервера или запустите новый анализ; ваш файл не отправляется.");
+  const report = getCurrentReport();
+  text("chat-source", !report ? "Отчёт не выбран" : !snapshotId ? "Отчёт из файла · доступен для просмотра" : `Кампаний: ${report.campaigns.length} · пилотов: ${report.pilots.length}`);
+  if (!report) text("agent-status", "Запустите анализ или загрузите отчёт сервера, чтобы задать вопрос.");
+  else if (!snapshotId) text("agent-status", "Для вопросов нужен отчёт сервера. Загрузите его кнопкой выше или запустите анализ.");
   else if (!health) text("agent-status", "Для ответа нужен локальный API. Открытый отчёт сохранён.");
-  else text("agent-status", "Ответ будет основан на этом снимке. Фактический режим указан под ответом.");
+  else text("agent-status", "Каждый вопрос рассматривается отдельно, по текущему отчёту.");
 }
 document.addEventListener("arpu:report-loaded", () => {
-  reportGeneration++;
   if (!serverImport) snapshotId = null;
-  clearAnswer(); chatHint(); updateControls();
+  if (!serverImport || chatReportId !== snapshotId) {
+    reportGeneration++; clearConversation();
+  }
+  chatReportId = snapshotId;
+  chatHint(); updateControls();
 });
 document.addEventListener("arpu:report-cleared", () => {
-  reportGeneration++; snapshotId = null; clearAnswer(); chatHint(); updateControls();
+  reportGeneration++; snapshotId = null; chatReportId = null; clearConversation(); chatHint(); updateControls();
 });
 async function displaySnapshot(payload, source) {
   serverImport = true;
@@ -80,13 +94,17 @@ async function refreshHealth({resume = true} = {}) {
     health = await api.health();
     text("api-status", connectionText());
     if (resume) {
-      if (health.run.state === "running" || (activeRun && health.run.state !== "idle")) {
+      if (activeRun === "unconfirmed" && health.run.run_id === previousRunId && health.run.state !== "running") {
+        activeRun = null;
+        showAppNotice("info", "Новый запуск не подтверждён", "Сервер показывает предыдущий расчёт. Можно загрузить его отчёт или вручную повторить запуск.");
+      } else if (health.run.state === "running" || (activeRun && health.run.state !== "idle")) {
         activeRun = health.run.run_id;
       } else if (activeRun && health.run.state === "idle") {
         activeRun = null;
         showAppNotice("info", "Активный запуск не найден", "Сервер не подтверждает прежний запуск. Можно загрузить его последний снимок или запустить анализ вручную.");
       }
     }
+    knownRunId = health.run.run_id;
   } catch (error) {
     health = null;
     text("api-status", "Локальный API недоступен");
@@ -147,11 +165,13 @@ $("run-analysis").addEventListener("click", async () => {
   }
   // Disable immediately: a second click must not start a duplicate calculation.
   activeRun = "pending";
-  clearAnswer(); updateControls();
+  previousRunId = knownRunId;
+  updateControls();
   text("analysis-status", "Передаём запуск локальному серверу…");
   try {
     const run = await api.startRun({mode:selectedMode(), seed});
     activeRun = run.run_id;
+    knownRunId = run.run_id;
   } catch (error) {
     if (!error?.status || (error.status >= 200 && error.status < 300)) {
       activeRun = "unconfirmed";
@@ -202,26 +222,56 @@ function evidenceTarget(ref, report) {
   }
   return null;
 }
-$("ask-agent").addEventListener("click", async () => {
-  if (!snapshotId || chatBusy || activeRun || !health) return;
-  const question = $("agent-question").value.trim();
-  if (!question || question.length > 2000) {
-    text("agent-status", "Введите вопрос от 1 до 2000 символов."); $("agent-question").focus(); return;
+function updateDraft() {
+  text("chat-count", `${$("agent-question").value.length} / 2000`);
+}
+function chatNode(className, value, tag = "div") {
+  const node = document.createElement(tag);
+  node.className = className;
+  if (value !== undefined) node.textContent = value;
+  return node;
+}
+function scrollConversation() {
+  $("chat-messages").scrollTop = $("chat-messages").scrollHeight;
+}
+document.addEventListener("arpu:view-changed", event => {
+  if (event.detail.view === "ask") requestAnimationFrame(scrollConversation);
+});
+window.addEventListener("resize", () => {
+  if (!$("ask").hidden) requestAnimationFrame(scrollConversation);
+});
+function addTurn(question) {
+  const user = chatNode("chat-message is-user");
+  user.append(chatNode("message-meta", "Вы"), chatNode("message-body", question));
+  const assistant = chatNode("chat-message is-assistant");
+  const turn = {question, reportId:snapshotId, user, assistant};
+  chatTurns.push(turn);
+  // Local page memory only. Bound long sessions without discarding the current turn.
+  if (chatTurns.length > 20) {
+    const oldest = chatTurns.shift(); oldest.user.remove(); oldest.assistant.remove();
   }
+  $("chat-empty").hidden = true;
+  $("chat-messages").append(user, assistant);
+  return turn;
+}
+async function askQuestion(turn) {
+  if (!snapshotId || chatBusy || activeRun || !health?.capabilities.chat || turn.reportId !== snapshotId) return;
   const askedSnapshot = snapshotId;
   const generation = reportGeneration;
   const sequence = ++chatSequence;
   chatBusy = true;
-  text("agent-answer", ""); $("agent-evidence").replaceChildren();
-  text("agent-mode", "Ожидаем фактический режим ответа");
+  turn.assistant.classList.add("is-pending");
+  turn.assistant.replaceChildren(chatNode("message-meta", "Compass"), chatNode("message-body", "Изучаю данные отчёта…"));
+  turn.assistant.setAttribute("aria-busy", "true");
+  text("agent-mode", "Готовит ответ");
   text("agent-status", "Агент готовит ответ по текущему отчёту…");
-  updateControls();
+  updateControls(); scrollConversation();
   try {
-    const answer = await api.chat({report_id:askedSnapshot, message:question});
+    const answer = await api.chat({report_id:askedSnapshot, message:turn.question});
     if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
-    text("agent-answer", answer.answer);
-    text("agent-mode", answer.mode === "openai" ? "Ответ OpenAI" : "Автономный ответ");
-    text("agent-status", answer.warnings?.length ? answer.warnings.join(" · ") : "Ответ получен. Откройте доказательства, чтобы проверить объяснение.");
+    const label = answer.mode === "openai" ? "OpenAI" : "Автономный ответ";
+    turn.assistant.replaceChildren(chatNode("message-meta", `Compass · ${label}`), chatNode("message-body", answer.answer));
+    const evidence = chatNode("message-evidence");
     for (const citation of answer.citations) {
       const target = evidenceTarget(citation.ref, getCurrentReport());
       const node = document.createElement(target ? "button" : "span");
@@ -229,13 +279,49 @@ $("ask-agent").addEventListener("click", async () => {
       node.className = target ? "evidence-link" : "evidence-unavailable";
       if (target) { node.type = "button"; node.addEventListener("click", () => focusEvidence(target)); }
       else node.textContent += " · ссылка недоступна";
-      $("agent-evidence").append(node);
+      evidence.append(node);
     }
+    if (evidence.childElementCount) turn.assistant.append(evidence);
+    if (answer.warnings?.length) turn.assistant.append(chatNode("message-warning", answer.warnings.join(" · ")));
+    text("agent-mode", label);
+    text("agent-status", "Ответ готов. Ссылки под ним открывают данные отчёта.");
   } catch (error) {
-    if (generation !== reportGeneration || sequence !== chatSequence) return;
+    if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
+    turn.assistant.replaceChildren(chatNode("message-meta", "Compass · ответ не получен"), chatNode("message-warning", message(error)));
+    const retry = chatNode("button button-secondary chat-retry", "Повторить вопрос", "button");
+    retry.type = "button";
+    retry.addEventListener("click", () => askQuestion(turn));
+    turn.assistant.append(retry);
     text("agent-mode", "Ответ не получен");
-    text("agent-status", message(error));
-  } finally { chatBusy = false; updateControls(); }
+    text("agent-status", "Вопрос сохранён. Повторите его кнопкой в сообщении.");
+  } finally {
+    turn.assistant.classList.remove("is-pending");
+    turn.assistant.removeAttribute("aria-busy");
+    chatBusy = false; updateControls(); scrollConversation();
+  }
+}
+$("chat-form").addEventListener("submit", event => {
+  event.preventDefault();
+  if (!snapshotId || chatBusy || activeRun || !health?.capabilities.chat) return;
+  const question = $("agent-question").value.trim();
+  if (!question || question.length > 2000) {
+    text("agent-status", "Введите вопрос от 1 до 2000 символов."); $("agent-question").focus(); return;
+  }
+  const turn = addTurn(question);
+  $("agent-question").value = ""; updateDraft();
+  askQuestion(turn);
+});
+$("agent-question").addEventListener("input", updateDraft);
+$("agent-question").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault(); $("chat-form").requestSubmit();
+  }
+});
+$("chat-clear").addEventListener("click", () => {
+  if (chatBusy) return;
+  clearConversation(); chatHint(); updateControls(); $("agent-question").focus();
 });
 updateControls();
+updateDraft();
+chatHint();
 refreshHealth();
