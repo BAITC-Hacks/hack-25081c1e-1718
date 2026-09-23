@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: Опубликованы data f740180 (7/7 тестов, 299 кандидатов/160 сегментов) и web 593667d (8/8 тестов, Chromium 375/768/1440). Принят 92872b5 Димы: фактический seed42 net +685150, 20 пилотов/3 кампании, validation.valid=true. Новый report импортирован и проверен; README обновлён. Рабочее дерево после UI checkpoint было чистым, provenance.dirty=false.
-- Ownership: candidate_model.py, analysis/; затем web/ и README.md. Только свои LOG/HANDOFF и этот раздел STATUS.
-- Next: Диме подтянуть UI checkpoint и проверить совместный запуск по README; final release/CSV и выбор стратегии ведёт Дима. Сверять main/handoff примерно каждые4 активные минуты во время активной совместной работы.
+- Current: Приняты 9f8d1da и ca9bac0/API. Разрабатываю рабочее место маркетолога: компактная навигация, обзор и карточки, затем запуск/API/вопросы. DESIGN обновлён; кандидатный модуль и analysis заморожены.
+- Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis не меняются в этом этапе.
+- Next: Первый checkpoint каркаса на реальном JSON, затем adapter api.mjs/integration.mjs и панель агента по API.md, затем проверки/DEMO. Диме учесть эти два JS-модуля в static allowlist. Сверять GitHub каждые4 активные минуты.
 - Blockers: Mock-результат не предсказывает судейский; независимая проверка и сравнение контроллеров остаются у Димы. Изменения общего контракта не требуются.

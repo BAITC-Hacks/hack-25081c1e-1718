@@ -1,11 +1,12 @@
 import {
-  MAX_FILE_BYTES, MISSING, FILTER_LABELS, parseReport, number, money, ratio,
+  MAX_FILE_BYTES, MISSING, FILTER_LABELS, parseReport, validateReport, number, money, ratio,
   isNumber, displayText, findAllocation, campaignMatches, campaignsToCsv, translate, channelLabel,
 } from "./report.mjs";
 
 const $ = (id) => document.getElementById(id);
 let currentReport = null;
 let loading = false;
+const VIEW_LABELS = { overview: "Обзор", campaigns: "Кампании", pilots: "Пилоты", ask: "Спросить агента", limitations: "О результате" };
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -15,6 +16,71 @@ function element(tag, className, text) {
 }
 
 function setText(id, text) { $(id).textContent = text; }
+
+export function getCurrentReport() { return currentReport; }
+export function showAppNotice(kind, title, description = "") { setNotice(kind, title, description); }
+
+function showView(view, focus = true) {
+  if (!Object.hasOwn(VIEW_LABELS, view)) return false;
+  document.querySelectorAll("[data-panel]").forEach((panel) => { panel.hidden = panel.dataset.panel !== view; });
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    const active = link.dataset.view === view;
+    link.classList.toggle("active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  setText("view-label", VIEW_LABELS[view]);
+  if (focus) {
+    $("main").focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+  return true;
+}
+
+function icon(name) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", `#i-${name}`);
+  svg.append(use);
+  return svg;
+}
+
+export function focusEvidence(ref) {
+  if (!currentReport || typeof ref !== "string") return false;
+  let view, target;
+  const campaign = /^campaigns\[(\d+)\]$/.exec(ref);
+  const pilot = /^pilots\[(\d+)\]$/.exec(ref);
+  if (campaign && Number(campaign[1]) < currentReport.campaigns.length) {
+    $("campaign-search").value = "";
+    $("campaign-channel").value = "";
+    renderCampaigns();
+    view = "campaigns"; target = $(`campaign-${Number(campaign[1])}`);
+  } else if (pilot && Number(pilot[1]) < currentReport.pilots.length) {
+    $("pilot-status").value = "";
+    renderPilots();
+    view = "pilots"; target = $(`pilot-${Number(pilot[1])}`);
+  } else if (ref === "evaluation.net_arpu_gain" || ref === "evaluation") {
+    view = "overview"; target = $("evaluation-summary");
+  } else if (ref === "resources") {
+    view = "overview"; target = $("resources");
+  } else if (ref === "planned_resources") {
+    view = "overview"; target = $("planned-resources");
+  } else if (ref === "warnings") {
+    view = "limitations"; target = $("warnings-panel");
+  } else if (ref === "advisor") {
+    view = "limitations"; target = $("advisor-panel"); target.open = true;
+  }
+  if (!target) return false;
+  showView(view, false);
+  target.setAttribute("tabindex", "-1");
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  target.classList.add("evidence-highlight");
+  setTimeout(() => target.classList.remove("evidence-highlight"), 3500);
+  return true;
+}
 
 function setNotice(kind, title, description = "") {
   const notice = $("load-status");
@@ -37,10 +103,7 @@ function setReportVisible(value) {
   $("report-view").hidden = !value;
   $("empty-state").hidden = value;
   $("nav-campaign-count").hidden = !value;
-  document.querySelectorAll("[data-report-link]").forEach((link) => {
-    if (value) link.removeAttribute("aria-disabled");
-    else link.setAttribute("aria-disabled", "true");
-  });
+  $("clear-report").disabled = !value;
 }
 
 function formatDate(value) {
@@ -102,31 +165,118 @@ function campaignDetails(campaign, allocation) {
   return details;
 }
 
+function campaignPilotIndices(campaign) {
+  // Match the hypothesis AND channel; pilots on another channel are not evidence.
+  const allocation = findAllocation(campaign, currentReport?.allocation ?? []);
+  const derived = (
+    typeof campaign.campaign_name === "string" && campaign.campaign_name.startsWith("compass_")
+      ? campaign.campaign_name.slice(8) : null
+  );
+  if (campaign.candidate_id && derived && campaign.candidate_id !== derived) return [];
+  const id = allocation?.candidate_id || campaign.candidate_id || derived;
+  if (!id) return [];
+  return currentReport.pilots.map((pilot, index) => ({ pilot, index }))
+    .filter(({ pilot }) => pilot.candidate_id === id && pilot.channel === campaign.channel && pilot.status === "completed")
+    .map(({ index }) => index);
+}
+
+function campaignEvidence(campaign) {
+  const box = element("div", "campaign-evidence");
+  const indices = campaignPilotIndices(campaign);
+  box.append(element("span", "", indices.length ? "Наблюдения этого канала:" : "Нет завершённых пилотов этой гипотезы и канала в отчёте."));
+  indices.forEach((index) => {
+    const link = element("button", "evidence-link", `Пилот ${index + 1}`);
+    link.type = "button";
+    link.addEventListener("click", () => focusEvidence(`pilots[${index}]`));
+    box.append(link);
+  });
+  return box;
+}
+
+function renderOverview(report) {
+  const recommendations = $("recommendations");
+  recommendations.replaceChildren();
+  const ranked = report.campaigns.map((campaign, index) => ({ campaign, index, allocation: findAllocation(campaign, report.allocation ?? []) }))
+    .sort((a, b) => {
+      const left = a.allocation?.conservative_net;
+      const right = b.allocation?.conservative_net;
+      if (isNumber(left) && isNumber(right)) return right - left;
+      if (isNumber(left)) return -1;
+      if (isNumber(right)) return 1;
+      return a.index - b.index;
+    }).slice(0, 3);
+  ranked.forEach(({ campaign, index, allocation }, rank) => {
+    const card = element("button", "recommendation-card");
+    card.type = "button";
+    card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}, ${channelLabel(campaign.channel)}`);
+    const text = element("span", "recommendation-text");
+    text.append(element("strong", "", `${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}`));
+    const evidence = campaignPilotIndices(campaign).length;
+    text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `наблюдений: ${number(evidence)}` : "нет связанных наблюдений"}`));
+    const effect = element("span", "recommendation-effect");
+    effect.append(element("strong", effectClass(allocation?.conservative_net), money(allocation?.conservative_net)), element("span", "", "осторожная оценка"));
+    card.append(element("span", "recommendation-rank", String(rank + 1).padStart(2, "0")), text, effect);
+    card.addEventListener("click", () => focusEvidence(`campaigns[${index}]`));
+    recommendations.append(card);
+  });
+  if (!ranked.length) {
+    const empty = element("div", "panel inline-empty");
+    empty.append(element("h3", "", "План кампаний не сформирован"), element("p", "", "Прогон не готов к отправке. Проверьте предупреждения и наблюдения пилотов."));
+    recommendations.append(empty);
+  }
+  const risks = $("risk-summary");
+  risks.replaceChildren();
+  const messages = [];
+  if (report.campaigns.length === 0) messages.push("В отчёте нет финального плана.");
+  if (isNumber(report.evaluation?.net_arpu_gain) && report.evaluation.net_arpu_gain < 0) messages.push("Фактический чистый прирост этого прогона отрицательный.");
+  if (!isNumber(report.evaluation?.net_arpu_gain)) messages.push("Фактическая оценка evaluator недоступна.");
+  messages.push(...(report.warnings ?? []).map(translate));
+  if (ranked.some(({ allocation }) => !allocation)) messages.push("Для части кампаний нет однозначно связанных плановых оценок.");
+  if (!messages.length) messages.push("Агент не записал предупреждений. Это не гарантия положительного эффекта.");
+  messages.slice(0, 2).forEach((message) => risks.append(element("li", "", message)));
+  risks.append(element("li", "", "Плановые оценки приблизительны. Результат пилота не гарантирует эффект всей кампании."));
+}
+
 function renderCampaigns() {
   if (!currentReport) return;
   const query = $("campaign-search").value;
   const channel = $("campaign-channel").value;
-  const campaigns = currentReport.campaigns.filter((campaign) => campaignMatches(campaign, query, channel));
-  const rows = $("campaign-rows");
+  const campaigns = currentReport.campaigns.map((campaign, index) => ({ campaign, index })).filter(({ campaign }) => campaignMatches(campaign, query, channel));
+  const rows = $("campaign-cards");
   rows.replaceChildren();
-  campaigns.forEach((campaign) => {
+  campaigns.forEach(({ campaign, index }) => {
     const allocation = findAllocation(campaign, currentReport.allocation ?? []);
-    const row = element("tr");
-    const segment = element("td", "segment-cell");
-    segment.append(makeSegment(campaign), campaignDetails(campaign, allocation));
-    const target = element("td");
-    target.append(element("span", "target-tariff", campaign.target_tariff));
-    const channelCell = element("td");
-    channelCell.append(element("span", "channel-chip", channelLabel(campaign.channel)));
-    row.append(segment, target, channelCell,
-      numericCell(number(allocation?.audience_size), "контактов"),
-      numericCell(money(allocation?.communication_cost), "на коммуникацию"),
-      numericCell(money(allocation?.estimated_net), `Осторожная: ${money(allocation?.conservative_net)}`),
-    );
+    const row = element("article", "campaign-card");
+    row.id = `campaign-${index}`;
+    row.tabIndex = -1;
+    const header = element("div", "campaign-card-header");
+    const heading = element("div", "campaign-card-heading");
+    heading.append(element("p", "eyebrow", `Кампания ${String(index + 1).padStart(2, "0")}`),
+      element("h2", "", `${campaign.filter_current_tariff || "Все текущие тарифы"} → ${campaign.target_tariff}`),
+      element("span", "channel-chip", channelLabel(campaign.channel)));
+    const effect = element("div", "campaign-effect");
+    effect.append(element("span", "", "Прогноз чистого эффекта"), element("strong", effectClass(allocation?.estimated_net), money(allocation?.estimated_net)),
+      element("span", "effect-secondary", `Осторожная оценка: ${money(allocation?.conservative_net)}`));
+    header.append(heading, effect);
+    const facts = element("div", "campaign-facts");
+    const segment = element("div");
+    segment.append(element("span", "campaign-fact-label", "Аудитория"));
+    const tags = element("div", "segment-tags");
+    for (const [key, label] of Object.entries(FILTER_LABELS)) {
+      if (key !== "filter_current_tariff" && campaign[key]) tags.append(element("span", "segment-tag", `${label} · ${campaign[key]}`));
+    }
+    if (!tags.childElementCount) tags.append(element("span", "small-note", "Без дополнительных фильтров"));
+    segment.append(tags);
+    const reach = element("div");
+    reach.append(element("span", "campaign-fact-label", "Плановый охват"), element("strong", "", `${number(allocation?.audience_size)}${isNumber(allocation?.audience_size) ? " контактов" : ""}`));
+    const cost = element("div");
+    cost.append(element("span", "campaign-fact-label", "Расходы на коммуникацию"), element("strong", "", money(allocation?.communication_cost)));
+    facts.append(segment, reach, cost);
+    row.append(header, facts, campaignEvidence(campaign), campaignDetails(campaign, allocation));
     rows.append(row);
   });
   setText("campaign-result-count", `Показано ${number(campaigns.length)} из ${number(currentReport.campaigns.length)}`);
-  $("campaign-table-wrap").hidden = campaigns.length === 0;
+  $("campaign-cards").hidden = campaigns.length === 0;
   $("campaign-empty").hidden = campaigns.length !== 0;
   setText("campaign-empty-title", currentReport.campaigns.length ? "По этим условиям кампаний нет" : "План кампаний не сформирован");
   setText("campaign-empty-description", currentReport.campaigns.length
@@ -154,6 +304,8 @@ function renderPilots() {
   rows.replaceChildren();
   pilots.forEach(({ pilot, index }) => {
     const row = element("tr");
+    row.id = `pilot-${index}`;
+    row.tabIndex = -1;
     const segment = element("td", "segment-cell");
     segment.append(makeSegment(pilot.filters ?? {}));
     segment.append(element("div", "cell-subtext", `→ ${displayText(pilot.target_tariff)}`));
@@ -242,12 +394,15 @@ function renderLimits(report) {
 
 function renderReport(report, source) {
   currentReport = report;
-  setText("run-badge", "Сохранённый прогон");
+  setText("run-badge", source === "Текущий прогон" ? "Текущий прогон" : "Сохранённый прогон");
   $("run-badge").className = "badge badge-neutral";
   setText("meta-source", source);
   setText("meta-seed", number(report.seed));
   setText("meta-time", formatDate(report.generated_at));
   setText("meta-engine", report.engine);
+  setText("overview-title", report.campaigns.length ? "Ваш план. С понятными основаниями." : "Прогон завершён без плана.");
+  setText("overview-description", "Проверьте фактический результат, плановые оценки кампаний и ограничения перед решением.");
+  setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
   setText("metric-net", money(report.evaluation?.net_arpu_gain));
   setText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
     ? (report.evaluation?.status ? translate(report.evaluation.status) : "Фактическая оценка синтетического прогона")
@@ -274,7 +429,45 @@ function renderReport(report, source) {
   renderPilots();
   renderPilotChart(report);
   renderLimits(report);
+  renderOverview(report);
   setReportVisible(true);
+}
+
+export function importReport(report, source = "Текущий прогон") {
+  validateReport(report);
+  renderReport(report, typeof source === "string" ? source : "Текущий прогон");
+  showView("overview", false);
+  document.dispatchEvent(new CustomEvent("arpu:report-loaded", { detail: { report, source } }));
+  return report;
+}
+
+function clearReport() {
+  currentReport = null;
+  setReportVisible(false);
+  $("export-csv").disabled = true;
+  $("campaign-cards").replaceChildren();
+  $("pilot-rows").replaceChildren();
+  $("pilot-chart").replaceChildren();
+  $("pilot-chart-panel").hidden = true;
+  $("pilot-table-wrap").hidden = true;
+  $("pilot-empty").hidden = false;
+  $("campaign-empty").hidden = false;
+  setText("campaign-empty-title", "План пока не загружен");
+  setText("campaign-empty-description", "Запустите анализ или откройте готовый report.json, чтобы изучить рекомендации.");
+  setText("campaign-result-count", "");
+  $("campaign-search").value = "";
+  fillSelect("campaign-channel", [], channelLabel);
+  fillSelect("pilot-status", [], translate);
+  setText("campaign-heading-count", "");
+  setText("pilot-heading-count", "");
+  setText("run-badge", "Отчёт не загружен");
+  setText("overview-title", "Ваш следующий уверенный шаг.");
+  setText("overview-description", "Найдите перспективные тарифные кампании и проверьте их пилотами — до расходования бюджета.");
+  $("warnings-list").replaceChildren(element("li", "", "Откройте отчёт, чтобы увидеть ограничения фактического прогона."));
+  $("advisor-content").replaceChildren(element("p", "advisor-entry", "Отчёт пока не загружен."));
+  setText("uncertainty-note", "Неопределённость — приблизительный запас для планирования, а не доверительный интервал.");
+  showView("overview", false);
+  document.dispatchEvent(new CustomEvent("arpu:report-cleared"));
 }
 
 async function loadReport(readText, source) {
@@ -285,12 +478,10 @@ async function loadReport(readText, source) {
     const text = await readText();
     if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error("Файл больше 10 МБ. Выберите меньший отчёт.");
     const report = parseReport(text);
-    renderReport(report, source);
+    importReport(report, source);
     setNotice("success", "Отчёт загружен", "Открыт сохранённый прогон. Новый расчёт и рассылки не запускаются.");
   } catch (error) {
-    currentReport = null;
-    setReportVisible(false);
-    setText("run-badge", "Отчёт не загружен");
+    clearReport();
     setNotice("error", "Не удалось открыть отчёт", error instanceof Error ? error.message : "Выберите корректный report.json и повторите попытку.");
   } finally {
     setLoading(false);
@@ -345,11 +536,20 @@ $("export-csv").addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
-document.querySelectorAll(".nav-link").forEach((link) => {
+document.querySelectorAll("[data-view]").forEach((link) => {
   link.addEventListener("click", (event) => {
-    if (link.getAttribute("aria-disabled") === "true") { event.preventDefault(); return; }
-    document.querySelectorAll(".nav-link").forEach((other) => other.classList.remove("active"));
-    link.classList.add("active");
+    event.preventDefault();
+    showView(link.dataset.view);
   });
+});
+document.querySelectorAll("[data-question]").forEach((button) => {
+  button.addEventListener("click", () => {
+    $("agent-question").value = button.dataset.question;
+    $("agent-question").focus();
+  });
+});
+$("clear-report").addEventListener("click", () => {
+  clearReport();
+  setNotice("", "");
 });
 setReportVisible(false);

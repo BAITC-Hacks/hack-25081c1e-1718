@@ -75,7 +75,8 @@ test("channel and status labels treat prototype-shaped strings as ordinary data"
     assert.equal(channelLabel(name), name);
     assert.equal(translate(name), name);
   }
-  assert.equal(channelLabel("push"), "Push");
+  assert.equal(channelLabel("push"), "Push-уведомление");
+  assert.equal(channelLabel("digital_ads"), "Цифровая реклама");
   assert.equal(channelLabel(null), MISSING);
   assert.equal(translate("offline_mode"), "Автономный режим");
 });

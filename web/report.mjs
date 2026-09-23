@@ -188,6 +188,6 @@ export function translate(value) {
 }
 
 export function channelLabel(value) {
-  const labels = { sms: "SMS", push: "Push", call: "Звонок" };
+  const labels = { sms: "SMS", push: "Push-уведомление", call: "Звонок оператора", digital_ads: "Цифровая реклама" };
   return Object.hasOwn(labels, value) ? labels[value] : displayText(value);
 }
