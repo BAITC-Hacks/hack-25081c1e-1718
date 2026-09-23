@@ -43,7 +43,14 @@ def finite(value, default=0.0):
 
 
 class Agent:
-    def __init__(self):
+    def __init__(self, *, exploration_policy="baseline", uncertainty_mode="template"):
+        if exploration_policy not in {"baseline", "balanced"}:
+            raise ValueError("exploration_policy must be baseline or balanced")
+        if uncertainty_mode not in {"template", "empirical"}:
+            raise ValueError("uncertainty_mode must be template or empirical")
+        self.exploration_policy = exploration_policy
+        self.uncertainty_mode = uncertainty_mode
+        self._exploration_categories = {}
         self.last_report = {}
 
     @staticmethod
@@ -163,7 +170,7 @@ class Agent:
         return sorted(normalized, key=lambda item: item["arpu_sum"] * (max(0, item["prior_lift_ratio"]) + 0.01), reverse=True)
 
     @staticmethod
-    def _estimate(candidate, observations, channel):
+    def _estimate(candidate, observations, channel, uncertainty_mode="template"):
         rows = [row for row in observations if row["candidate_id"] == candidate["candidate_id"]
                 and row["status"] == "completed" and row["channel"] == channel]
         # The target population differs: history ranks exploration, but contributes
@@ -176,9 +183,32 @@ class Agent:
         # SMS arm is not evidence for an untested advertising/call arm.
         numerator += sum(row["observed_lift_ratio"] * row["n_customers"] for row in rows)
         mean = numerator / max(1, weight + total)
-        uncertainty = 0.07 * math.sqrt(150 / max(1, total))
+        template_uncertainty = 0.07 * math.sqrt(150 / max(1, total))
+        sample_std = None
+        empirical_se = None
+        if len(rows) >= 2:
+            weights = [max(1, int(finite(row.get("n_customers"), 0))) for row in rows]
+            observed = [finite(row.get("observed_lift_ratio"), 0.0) for row in rows]
+            weight_sum = sum(weights)
+            weight_squared = sum(weight * weight for weight in weights)
+            observed_mean = sum(weight * value for weight, value in zip(weights, observed)) / max(1, weight_sum)
+            denominator = weight_sum - weight_squared / max(1, weight_sum)
+            if denominator > 0:
+                variance = sum(weight * (value - observed_mean) ** 2
+                               for weight, value in zip(weights, observed)) / denominator
+                sample_std = math.sqrt(max(0.0, variance))
+                effective_n = weight_sum * weight_sum / max(1, weight_squared)
+                empirical_se = sample_std / math.sqrt(max(1.0, effective_n))
+        if uncertainty_mode == "empirical" and empirical_se is not None:
+            uncertainty = max(template_uncertainty, empirical_se)
+            uncertainty_method = "max_template_empirical"
+        else:
+            uncertainty = template_uncertainty
+            uncertainty_method = "template_floor"
         lower = mean - 0.8 * uncertainty
-        return {"posterior_mean": mean, "uncertainty": uncertainty, "n_customers": total,
+        return {"posterior_mean": mean, "uncertainty": uncertainty, "template_uncertainty": template_uncertainty,
+                "sample_std": sample_std, "empirical_se": empirical_se,
+                "uncertainty_method": uncertainty_method, "n_customers": total,
                 "estimated_net": mean * candidate["arpu_sum"] - CHANNEL_COSTS[channel] * candidate["audience_size"],
                 "conservative_net": lower * candidate["arpu_sum"] - CHANNEL_COSTS[channel] * candidate["audience_size"],
                 "repeats": len(rows)}
@@ -194,9 +224,71 @@ class Agent:
                 seen.add(candidate["segment_key"])
         return first + rest
 
+    def _balanced_shortlist(self, candidates):
+        """Choose 3/3/2 first, then round-robin the baskets up to 24 IDs."""
+        ordered = list(candidates)
+        revenue = sorted(ordered, key=lambda item: (-item["arpu_sum"], item["candidate_id"]))
+        positive = sorted((item for item in ordered if item["prior_lift_ratio"] > 0),
+                          key=lambda item: (-item["prior_lift_ratio"], -item["prior_n"], item["candidate_id"]))
+        selected, seen, transitions = [], set(), set()
+        self._exploration_categories = {}
+
+        def add(category):
+            pool = positive if category == "history" else revenue if category != "ranking" else ordered
+            for item in pool:
+                cid = item["candidate_id"]
+                transition = (str(item.get("filters", {}).get("filter_current_tariff", "")),
+                              str(item.get("target_tariff", "")))
+                if cid in seen or (category == "transition" and transition in transitions):
+                    continue
+                selected.append(item)
+                seen.add(cid)
+                self._exploration_categories[cid] = category
+                if category == "transition":
+                    transitions.add(transition)
+                return True
+            return False
+
+        for category, quota in (("revenue", 3), ("transition", 3), ("history", 2)):
+            for _ in range(quota):
+                if not add(category):
+                    break
+        while len(selected) < 8 and add("ranking"):
+            pass
+        while len(selected) < 24:
+            added = False
+            for category in ("revenue", "transition", "history"):
+                if len(selected) < 24:
+                    added = add(category) or added
+            if not added and not add("ranking"):
+                break
+        return selected
+
+    def _respect_initial_quota(self, ordered, candidates):
+        """Keep advisor ordering while retaining the balanced 3/3/2 opening."""
+        if self.exploration_policy != "balanced":
+            return ordered
+        quota = {"revenue": 3, "transition": 3, "history": 2}
+        selected = []
+        used = set()
+        for category, count in quota.items():
+            for item in ordered:
+                cid = item["candidate_id"]
+                if cid in used or self._exploration_categories.get(cid) != category:
+                    continue
+                selected.append(item)
+                used.add(cid)
+                if sum(1 for item2 in selected if self._exploration_categories.get(item2["candidate_id"]) == category) >= count:
+                    break
+        for item in ordered:
+            if item["candidate_id"] not in used:
+                selected.append(item)
+        return selected
+
     def _advice(self, advisor, candidates, observations, env, phase, channel, events):
         payload = [{key: value for key, value in item.items() if key not in {"members", "segment_key"}} |
-                   self._estimate(item, observations, channel) | {"channel": channel} for item in candidates[:24]]
+                   self._estimate(item, observations, channel, self.uncertainty_mode) | {"channel": channel}
+                   for item in candidates[:24]]
         try:
             result = advisor.recommend(payload, observations, self._resources(env), phase)
             selected = result["candidate_ids"]
@@ -207,10 +299,11 @@ class Agent:
                 order = {cid: index for index, cid in enumerate(selected)}
                 events.append({"role": "advisor", "phase": phase, "status": "completed", "candidate_ids": selected,
                                "summary": str(result.get("summary", ""))[:500]})
-                return sorted(candidates, key=lambda item: order.get(item["candidate_id"], len(selected)))
+                advised = sorted(candidates, key=lambda item: order.get(item["candidate_id"], len(selected)))
+                return self._respect_initial_quota(advised, candidates)
         except Exception:
             events.append({"role": "advisor", "phase": phase, "status": "fallback"})
-        return candidates
+        return self._respect_initial_quota(candidates, candidates)
 
     def _run_pilot(self, env, candidate, channel, sample, observations, events, warnings, action):
         before = self._resources(env)
@@ -254,7 +347,7 @@ class Agent:
             spent = max(0, initial["remaining_budget"] - resources["remaining_budget"])
             proposals = []
             for item in candidates:
-                base = self._estimate(item, observations, scout)
+                base = self._estimate(item, observations, scout, self.uncertainty_mode)
                 if base["repeats"] < 2 or base["conservative_net"] <= 0 or item["members"] & promoted_members:
                     continue
                 sample = min(200, item["audience_size"])
@@ -350,6 +443,77 @@ class Agent:
             "improved": selected_score > greedy_score + 1e-9,
         }
 
+    def _selection_diagnostics(self, candidates, observations, selected_options, campaigns,
+                               allocation, budget, contacts):
+        completed = [row for row in observations if row.get("status") == "completed"]
+        groups = {}
+        for index, row in enumerate(observations):
+            if row.get("status") != "completed":
+                continue
+            key = (row.get("candidate_id"), row.get("channel"))
+            groups.setdefault(key, []).append((index, row))
+        selected_keys = {(item[1]["candidate_id"], item[2]) for item in selected_options}
+        fallback_keys = set()
+        for allocation_row, campaign in zip(allocation, campaigns):
+            if campaign.get("campaign_name", "").startswith("fallback_"):
+                fallback_keys.add((allocation_row.get("candidate_id"), allocation_row.get("channel")))
+        variants = []
+        reason_counts = {reason: 0 for reason in (
+            "selected", "mandatory_fallback", "insufficient_pilots", "nonpositive_estimate",
+            "overlap", "budget", "contacts", "not_selected")}
+        candidate_by_id = {item["candidate_id"]: item for item in candidates}
+        used_members = set()
+        selected_ids = set()
+        for score, item, channel, estimate, _, _ in selected_options:
+            selected_ids.add(item["candidate_id"])
+            used_members.update(item.get("members", frozenset()))
+        for key, rows in groups.items():
+            cid, channel = key
+            item = candidate_by_id.get(cid)
+            if item is None:
+                continue
+            estimate = self._estimate(item, observations, channel, self.uncertainty_mode)
+            is_selected = key in selected_keys
+            if is_selected:
+                reason = "selected"
+            elif key in fallback_keys:
+                reason = "mandatory_fallback"
+            elif len(rows) < 2:
+                reason = "insufficient_pilots"
+            elif estimate["conservative_net"] <= 0:
+                reason = "nonpositive_estimate"
+            elif item.get("members", frozenset()) & used_members:
+                reason = "overlap"
+            elif CHANNEL_COSTS[channel] * item["audience_size"] > budget:
+                reason = "budget"
+            elif item["audience_size"] > contacts:
+                reason = "contacts"
+            else:
+                reason = "not_selected"
+            reason_counts[reason] += 1
+            variants.append({
+                "candidate_id": cid, "channel": channel, "repeats": len(rows),
+                "conservative_net": finite(estimate["conservative_net"]),
+                "selected": is_selected or key in fallback_keys, "reason": reason,
+                "pilot_refs": [f"pilots.{index}" for index, _ in rows],
+            })
+        variants.sort(key=lambda row: (row["pilot_refs"][0] if row["pilot_refs"] else "", row["candidate_id"], row["channel"]))
+        tested_ids = {row["candidate_id"] for row in completed}
+        tested_variants = {(row["candidate_id"], row["channel"]) for row in completed}
+        confirmed = {key for key, rows in groups.items() if len(rows) >= 2}
+        return {
+            "generated_candidates": len(candidates),
+            "tested_candidates": len(tested_ids),
+            "tested_variants": len(tested_variants),
+            "confirmed_variants": len(confirmed),
+            "selected_variants": len(selected_keys | fallback_keys),
+            "unexplored_candidates": max(0, len(candidates) - len(tested_ids)),
+            "reason_counts": {key: value for key, value in reason_counts.items() if value},
+            "variants": variants[:20],
+            "strategy_config": {"exploration_policy": self.exploration_policy,
+                                "uncertainty_mode": self.uncertainty_mode},
+        }
+
     def act(self, env):
         started = time.monotonic()
         warnings, observations, events = [], [], []
@@ -366,7 +530,7 @@ class Agent:
         # Limit the worst-case scout spend before choosing its documented signal
         # strength. This permits inexpensive SMS where affordable while keeping
         # advertising/calls for measured promotion rather than blind exploration.
-        scout_limit = 16 if len(channels) > 1 else 20
+        scout_limit = 16 if len(channels) > 1 or self.exploration_policy == "balanced" else 20
         scout_slots = max(1, min(scout_limit, int(env.pilots_left)))
         scout_budget = 0.15 * self._resources(env)["remaining_budget"]
         affordable = [channel for channel in channels
@@ -376,14 +540,24 @@ class Agent:
         candidates, source = self._candidates(profile, tariffs, warnings)
         candidates = self._diverse(candidates)
         events.append({"role": "analyst", "status": "completed", "source": source, "candidate_count": len(candidates)})
-        initial = self._diverse(self._advice(advisor, candidates, observations, env, "initial", scout, events))
+        shortlist = (self._balanced_shortlist(candidates)
+                     if self.exploration_policy == "balanced" else candidates)
+        initial_advice = self._advice(advisor, shortlist, observations, env, "initial", scout, events)
+        initial = (initial_advice if self.exploration_policy == "balanced"
+                   else self._diverse(initial_advice))
         attempts, failed, feedback_order = {}, set(), {}
+        new_scouted = set()
+        balanced_reservations = {}
         # Reserve at most four pilot slots for checking profitable paid channels.
         for step in range(min(scout_limit, int(env.pilots_left))):
             if time.monotonic() - started > 220 or int(env.pilots_left) <= 0:
                 break
             if step == 8:
-                pool = sorted(candidates, key=lambda item: self._estimate(item, observations, scout)["estimated_net"], reverse=True)
+                feedback_pool = (self._balanced_shortlist(candidates)
+                                 if self.exploration_policy == "balanced" else candidates)
+                pool = sorted(feedback_pool,
+                              key=lambda item: self._estimate(item, observations, scout, self.uncertainty_mode)["estimated_net"],
+                              reverse=True)
                 revised = self._advice(advisor, pool, observations, env, "feedback", scout, events)
                 feedback_order = {item["candidate_id"]: index for index, item in enumerate(revised)}
             available = [item for item in initial if attempts.get(item["candidate_id"], 0) < 3 and item["candidate_id"] not in failed]
@@ -391,7 +565,7 @@ class Agent:
                 available = [item for item in available if not attempts.get(item["candidate_id"])]
             else:
                 def pilot_priority(item):
-                    estimate = self._estimate(item, observations, scout)
+                    estimate = self._estimate(item, observations, scout, self.uncertainty_mode)
                     optimism = estimate["posterior_mean"] + 0.25 * estimate["uncertainty"]
                     value = optimism * item["arpu_sum"] - CHANNEL_COSTS[scout] * item["audience_size"]
                     if not estimate["repeats"]:
@@ -399,18 +573,51 @@ class Agent:
                     preference = 1.0 + 0.10 / (1 + feedback_order.get(item["candidate_id"], 24))
                     return value * preference / math.sqrt(1 + estimate["repeats"])
                 available.sort(key=pilot_priority, reverse=True)
-                # Prioritize confirmation before more history-driven exploration.
-                # Otherwise optimistic historical pairs crowd out real feedback.
-                confirmation = [item for item in available
-                                if self._estimate(item, observations, scout)["repeats"]
-                                and pilot_priority(item) > 0]
-                if confirmation:
-                    available = confirmation
-                elif any(self._estimate(item, observations, scout)["repeats"] >= 2
-                         and self._estimate(item, observations, scout)["conservative_net"] > 0 for item in candidates):
-                    break
+                if self.exploration_policy == "balanced":
+                    # Finish the reserved new arm before opening another. The
+                    # reservation includes a second pilot slot as well as money
+                    # and contacts; negative first observations release it.
+                    pending = []
+                    for item in available:
+                        cid = item["candidate_id"]
+                        if cid not in balanced_reservations:
+                            continue
+                        estimate = self._estimate(item, observations, scout, self.uncertainty_mode)
+                        upper_net = ((estimate["posterior_mean"] + estimate["uncertainty"]) * item["arpu_sum"]
+                                     - CHANNEL_COSTS[scout] * item["audience_size"])
+                        if estimate["repeats"] == 1 and upper_net > 0:
+                            pending.append(item)
+                        else:
+                            balanced_reservations.pop(cid, None)
+                    confirmations = [item for item in available
+                                     if self._estimate(item, observations, scout, self.uncertainty_mode)["repeats"]
+                                     and pilot_priority(item) > 0]
+                    new_pairs = []
+                    if (not pending and len(new_scouted) < 2 and scout_limit - step >= 2
+                            and int(env.pilots_left) >= 2 and time.monotonic() - started < 190):
+                        resources_now = self._resources(env)
+                        minimum_final = min((item["audience_size"] for item in candidates), default=0)
+                        final_cost = minimum_final * min(CHANNEL_COSTS[channel] for channel in channels)
+                        for item in available:
+                            if attempts.get(item["candidate_id"]):
+                                continue
+                            pair_size = min(item["audience_size"], 150) + min(item["audience_size"], 200)
+                            if (pair_size + minimum_final <= resources_now["remaining_contacts"]
+                                    and pair_size * CHANNEL_COSTS[scout] + final_cost <= resources_now["remaining_budget"]):
+                                new_pairs.append(item)
+                    available = pending or new_pairs or confirmations
                 else:
-                    available = [item for item in available if not attempts.get(item["candidate_id"])]
+                    # Preserve the baseline confirmation ordering exactly.
+                    confirmation = [item for item in available
+                                    if self._estimate(item, observations, scout, self.uncertainty_mode)["repeats"]
+                                    and pilot_priority(item) > 0]
+                    if confirmation:
+                        available = confirmation
+                    elif any(self._estimate(item, observations, scout, self.uncertainty_mode)["repeats"] >= 2
+                             and self._estimate(item, observations, scout, self.uncertainty_mode)["conservative_net"] > 0 for item in candidates):
+                        break
+                    else:
+                        available = [item for item in available if not attempts.get(item["candidate_id"])]
             chosen = None
             resources = self._resources(env)
             reserve_contacts = min((item["audience_size"] for item in candidates), default=0)
@@ -420,17 +627,48 @@ class Agent:
                 sample = min(item["audience_size"], 150 if previous == 0 else 200)
                 if sample < 10 or sample + reserve_contacts > resources["remaining_contacts"]:
                     continue
-                if sample * CHANNEL_COSTS[scout] + reserve_cost > resources["remaining_budget"]:
+                other_reserved_contacts = sum(value[0] for key, value in balanced_reservations.items()
+                                              if key != item["candidate_id"])
+                other_reserved_budget = sum(value[1] for key, value in balanced_reservations.items()
+                                            if key != item["candidate_id"])
+                required_sample = sample
+                required_cost = sample * CHANNEL_COSTS[scout]
+                if (self.exploration_policy == "balanced" and step >= 8 and previous == 0
+                        and len(new_scouted) < 2):
+                    second_sample = min(item["audience_size"], 200)
+                    required_sample += second_sample
+                    required_cost += second_sample * CHANNEL_COSTS[scout]
+                if (required_sample + reserve_contacts + other_reserved_contacts
+                        > resources["remaining_contacts"]):
                     continue
+                if (required_cost + reserve_cost + other_reserved_budget
+                        > resources["remaining_budget"]):
+                    continue
+                if (self.exploration_policy == "balanced" and previous == 1
+                        and item["candidate_id"] in balanced_reservations):
+                    estimate = self._estimate(item, observations, scout, self.uncertainty_mode)
+                    upper_net = ((estimate["posterior_mean"] + estimate["uncertainty"]) * item["arpu_sum"]
+                                 - CHANNEL_COSTS[scout] * item["audience_size"])
+                    if upper_net <= 0:
+                        balanced_reservations.pop(item["candidate_id"], None)
+                        continue
                 chosen = item
                 break
             if chosen is None:
                 break
             cid = chosen["candidate_id"]
+            if self.exploration_policy == "balanced" and step >= 8 and attempts.get(cid, 0) == 0:
+                new_scouted.add(cid)
             attempts[cid] = attempts.get(cid, 0) + 1
+            if self.exploration_policy == "balanced" and attempts[cid] == 1 and step >= 8:
+                second_sample = min(chosen["audience_size"], 200)
+                balanced_reservations[cid] = (second_sample, second_sample * CHANNEL_COSTS[scout])
+            elif self.exploration_policy == "balanced" and attempts[cid] > 1:
+                balanced_reservations.pop(cid, None)
             if not self._run_pilot(env, chosen, scout, sample, observations, events, warnings,
                                    "confirm" if attempts[cid] > 1 else "explore"):
                 failed.add(cid)
+                balanced_reservations.pop(cid, None)
 
         self._promote_channels(env, candidates, channels, scout, observations, events, warnings, started)
 
@@ -439,7 +677,7 @@ class Agent:
         options = []
         for item in candidates:
             for channel in channels:
-                estimate = self._estimate(item, observations, channel)
+                estimate = self._estimate(item, observations, channel, self.uncertainty_mode)
                 if estimate["repeats"]:
                     options.append((estimate["conservative_net"], item, channel, estimate))
         options.sort(key=lambda option: option[0], reverse=True)
@@ -472,11 +710,11 @@ class Agent:
             cheapest = min(channels, key=lambda channel: CHANNEL_COSTS[channel])
             # Minimum one campaign is mandatory; report this explicitly as fallback.
             for pool in (candidates,):
-                ranked = sorted(pool, key=lambda item: self._estimate(item, observations, cheapest)["conservative_net"], reverse=True)
+                ranked = sorted(pool, key=lambda item: self._estimate(item, observations, cheapest, self.uncertainty_mode)["conservative_net"], reverse=True)
                 for item in ranked:
                     cost = CHANNEL_COSTS[cheapest] * item["audience_size"]
                     if item["audience_size"] <= contacts and cost <= budget:
-                        budget -= add_campaign(item, cheapest, self._estimate(item, observations, cheapest), fallback=True)
+                        budget -= add_campaign(item, cheapest, self._estimate(item, observations, cheapest, self.uncertainty_mode), fallback=True)
                         contacts -= item["audience_size"]
                         warnings.append("unobserved_fallback")
                         break
@@ -485,13 +723,20 @@ class Agent:
         events.append({"role": "allocator", "status": "completed", "campaign_count": len(campaigns)})
         self.last_report = {
             "schema_version": "1.0", "engine": "adaptive-openai" if any(event["status"] == "completed" for event in advisor.events) else "adaptive-offline",
+            "strategy_config": {"exploration_policy": self.exploration_policy,
+                                "uncertainty_mode": self.uncertainty_mode},
             "candidate_source": source, "candidate_count": len(candidates), "scout_channel": scout,
             "resource_stage": "after_pilots_before_final_campaigns", "resources": resources,
             "planned_resources": {"remaining_budget": budget, "remaining_contacts": contacts},
             "campaigns": campaigns, "allocation": allocation, "pilots": observations,
             "portfolio_selection": portfolio_selection,
             "events": events, "advisor": advisor.events, "warnings": sorted(set(warnings)),
-            "uncertainty_note": "Approximate planning margin from public template; not a calibrated confidence interval.",
+            "uncertainty_note": ("Heuristic margin uses the template floor and empirical repeat variation; "
+                                 "not a calibrated confidence interval."
+                                 if self.uncertainty_mode == "empirical" else
+                                 "Approximate planning margin from public template; not a calibrated confidence interval."),
             "elapsed_seconds": round(time.monotonic() - started, 3),
         }
+        self.last_report["selection_diagnostics"] = self._selection_diagnostics(
+            candidates, observations, selected_options, campaigns, allocation, budget, contacts)
         return campaigns
