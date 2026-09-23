@@ -175,6 +175,15 @@ Standalone для сдачи создаёт scripts/package_submission.py в out
 
 ## Диагностика качества — совместимое расширение report1.0
 
-Контрактнеобязательныхselection_diagnostics,forecast_summary,strategy_configиallocation.sample_std/empirical_se/template_uncertainty/uncertainty_methodописанвQUALITY_STAGE.md. Exporterпроверяетсчётчикипозавершённымпилотамивозвращённомуплану. forecast_summary—толькофинальныекaмпании;evaluation.scope=pilots_and_final_deduplicated. Ихразностьнеявляетсяошибкойпрогноза. Q&Aиспользуетчисловуюсводкуизэтихжеполей;OpenAIможетдобавитькачественныйкомментарий. Старыеотчётыбезновыхполейдопустимы.
+Контракт необязательных selection_diagnostics, forecast_summary, strategy_config
+и allocation.sample_std / empirical_se / template_uncertainty / uncertainty_method
+описан в QUALITY_STAGE.md. Exporter проверяет счётчики по завершённым пилотам и
+возвращённому плану. forecast_summary — только финальные кампании;
+evaluation.scope=pilots_and_final_deduplicated. Их разность не является ошибкой
+прогноза. Q&A использует числовую сводку из этих же полей; OpenAI получает её
+источники и добавляет качественный комментарий. Старые отчёты без новых полей допустимы.
 
-Agent()сохраняетbaseline/template. Keywordпараметрыexploration_policy=balancedиuncertainty_mode=empiricalнужныдлявоспроизводимогоисследования;послеотрицательныхdev/holdoutрезультатовониневключаютсявобычномзапуске. Кандидаты/данные/Agent.act/CSV/HTTPзапросынеизменны. Результаты—QUALITY_RESULTS.md.
+Agent() сохраняет baseline/template. Keyword-параметры exploration_policy=balanced
+и uncertainty_mode=empirical предназначены для воспроизводимого исследования.
+После отрицательных dev/holdout результатов они не включаются в обычном запуске.
+Кандидаты, данные, Agent.act, CSV и HTTP-запросы неизменны. Результаты — QUALITY_RESULTS.md.

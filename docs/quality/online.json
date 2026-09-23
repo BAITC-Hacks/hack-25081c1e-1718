@@ -1,0 +1,1593 @@
+{
+  "kind": "separate_exploratory_online_pairs",
+  "seeds": [
+    120,
+    121,
+    122
+  ],
+  "max_advisor_requests": 6,
+  "model": "gpt-4.1-mini-2025-04-14",
+  "records": [
+    {
+      "seed": 120,
+      "mode": "offline",
+      "status": "ok",
+      "run_id": "1cff426d033ca70394e2ea34bfc69e3f",
+      "report_id": "31b290b8d4b60de6cef05eac8435edab",
+      "net_arpu_gain": 706242.2795109157,
+      "elapsed_seconds": 4.061999999999898,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 120,
+        "requested_mode": "offline",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "1cff426d033ca70394e2ea34bfc69e3f",
+        "mode": "adaptive-offline"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 4,
+        "total_contacts": 2098,
+        "total_cost": 18166.0,
+        "unique_contacts": 2098,
+        "available_budget": 71200.0,
+        "available_contacts": 11400.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 543,
+            "cost": 11946.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 535,
+            "cost": 2140.0,
+            "target": "tariff_12",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 317,
+            "cost": 1268.0,
+            "target": "tariff_12",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 3,
+            "audience": 703,
+            "cost": 2812.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 4,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 689689.9558089083,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71200.0,
+        "remaining_contacts": 11400,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 53034.0,
+        "remaining_contacts": 9302
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        },
+        {
+          "phase": "feedback",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 8,
+        "selected_variants": 4,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 4,
+          "insufficient_pilots": 2,
+          "nonpositive_estimate": 3,
+          "overlap": 1
+        },
+        "variants": [
+          {
+            "candidate_id": "c_1fe5f7e186f67b",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -395440.8119133872,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.0",
+              "pilots.8"
+            ]
+          },
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 44432.93163844995,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.15"
+            ]
+          },
+          {
+            "candidate_id": "c_442475bbcb8f38",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": -68411.02840898478,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 384762.1858142508,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_442475bbcb8f38",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 174549.80224277667,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.2",
+              "pilots.10",
+              "pilots.12"
+            ]
+          },
+          {
+            "candidate_id": "c_f508810ecc3fc7",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -928865.931130985,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.3"
+            ]
+          },
+          {
+            "candidate_id": "c_83c11cde82798e",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -179914.67496930336,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.4",
+              "pilots.9"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 148594.0866402193,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.5",
+              "pilots.13"
+            ]
+          },
+          {
+            "candidate_id": "c_3b8714bfd0dba6",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -534052.3141719439,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.6"
+            ]
+          },
+          {
+            "candidate_id": "c_29ca789e5911ac",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 85945.03611343095,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.11",
+              "pilots.14"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 4,
+        "estimated_net": 1106393.6672591146,
+        "conservative_net": 689689.9558089083,
+        "communication_cost": 18166.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    },
+    {
+      "seed": 120,
+      "mode": "openai",
+      "status": "ok",
+      "run_id": "5a319825fb733d13070429080bb10b88",
+      "report_id": "a750d9da279e6c3bb93b89cb764c5a05",
+      "net_arpu_gain": 1402248.6303975345,
+      "elapsed_seconds": 10.09400000000096,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 120,
+        "requested_mode": "openai_with_fallback",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "5a319825fb733d13070429080bb10b88",
+        "mode": "adaptive-openai"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 5,
+        "total_contacts": 2061,
+        "total_cost": 21924.0,
+        "unique_contacts": 2061,
+        "available_budget": 71252.0,
+        "available_contacts": 11413.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 543,
+            "cost": 11946.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 217,
+            "cost": 4774.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 187,
+            "cost": 748.0,
+            "target": "tariff_8",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 3,
+            "audience": 411,
+            "cost": 1644.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 4,
+            "audience": 703,
+            "cost": 2812.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 5,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 955166.5654642615,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71252.0,
+        "remaining_contacts": 11413,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 49328.0,
+        "remaining_contacts": 9352
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 10885,
+            "output_tokens": 225,
+            "total_tokens": 11110
+          }
+        },
+        {
+          "phase": "feedback",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 11577,
+            "output_tokens": 221,
+            "total_tokens": 11798
+          }
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 7,
+        "selected_variants": 5,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 5,
+          "insufficient_pilots": 3,
+          "overlap": 2
+        },
+        "variants": [
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 68211.7482316423,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.0",
+              "pilots.8"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 309952.89997452206,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.9",
+              "pilots.12"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 390144.9813278562,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_325202b8257296",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 219336.2987683952,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_266d2785cf49d8",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 134930.51103001123,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.2",
+              "pilots.11",
+              "pilots.13"
+            ]
+          },
+          {
+            "candidate_id": "c_a3f6bdeddb57bc",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -65502.7075933679,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.3"
+            ]
+          },
+          {
+            "candidate_id": "c_325202b8257296",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 186546.30516436207,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.4",
+              "pilots.10",
+              "pilots.15"
+            ]
+          },
+          {
+            "candidate_id": "c_ebd2845ab5df34",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": 57265.98785281789,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.5"
+            ]
+          },
+          {
+            "candidate_id": "c_d2c4bb7eb14ac9",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": 57690.835271260075,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.6"
+            ]
+          },
+          {
+            "candidate_id": "c_c3621ed564ab8e",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 142543.02610635656,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.14"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 5,
+        "estimated_net": 1275606.6406571022,
+        "conservative_net": 955166.5654642615,
+        "communication_cost": 21924.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    },
+    {
+      "seed": 121,
+      "mode": "offline",
+      "status": "ok",
+      "run_id": "cbfee10356544d278b291743c980a5af",
+      "report_id": "c36731510058a9dc0e9e7ba245092f45",
+      "net_arpu_gain": 677822.4274843901,
+      "elapsed_seconds": 4.04700000000048,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 121,
+        "requested_mode": "offline",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "cbfee10356544d278b291743c980a5af",
+        "mode": "adaptive-offline"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 3,
+        "total_contacts": 1781,
+        "total_cost": 7124.0,
+        "unique_contacts": 1781,
+        "available_budget": 71200.0,
+        "available_contacts": 11400.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 543,
+            "cost": 2172.0,
+            "target": "tariff_8",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 535,
+            "cost": 2140.0,
+            "target": "tariff_12",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 703,
+            "cost": 2812.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 3,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 498736.40546215564,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71200.0,
+        "remaining_contacts": 11400,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 64076.0,
+        "remaining_contacts": 9619
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        },
+        {
+          "phase": "feedback",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 7,
+        "selected_variants": 3,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 3,
+          "insufficient_pilots": 3,
+          "nonpositive_estimate": 3,
+          "overlap": 1
+        },
+        "variants": [
+          {
+            "candidate_id": "c_1fe5f7e186f67b",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -1004915.7912470474,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.0"
+            ]
+          },
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 74684.10318294198,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.13",
+              "pilots.14"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 331401.6820997068,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_442475bbcb8f38",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": -124136.17963927041,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_442475bbcb8f38",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 87999.11239535217,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.2",
+              "pilots.9",
+              "pilots.12"
+            ]
+          },
+          {
+            "candidate_id": "c_f508810ecc3fc7",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -724481.4441553379,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.3",
+              "pilots.10"
+            ]
+          },
+          {
+            "candidate_id": "c_83c11cde82798e",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -595995.4032489046,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.4"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 336053.1898838615,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.5",
+              "pilots.8",
+              "pilots.11"
+            ]
+          },
+          {
+            "candidate_id": "c_3b8714bfd0dba6",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -539877.1621539019,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.6"
+            ]
+          },
+          {
+            "candidate_id": "c_29ca789e5911ac",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -76620.35681902913,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.15"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 3,
+        "estimated_net": 792690.1174932842,
+        "conservative_net": 498736.4054621557,
+        "communication_cost": 7124.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    },
+    {
+      "seed": 121,
+      "mode": "openai",
+      "status": "ok",
+      "run_id": "ebdff411bd2f9fcd745a1c476bbb38ba",
+      "report_id": "a89c85ae57216d7d2344caa8116d69f3",
+      "net_arpu_gain": 839423.2021065482,
+      "elapsed_seconds": 10.093999999999141,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 121,
+        "requested_mode": "openai_with_fallback",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "ebdff411bd2f9fcd745a1c476bbb38ba",
+        "mode": "adaptive-openai"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 4,
+        "total_contacts": 1396,
+        "total_cost": 18724.0,
+        "unique_contacts": 1396,
+        "available_budget": 71876.0,
+        "available_contacts": 11452.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 543,
+            "cost": 11946.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 187,
+            "cost": 4114.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 411,
+            "cost": 1644.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 3,
+            "audience": 255,
+            "cost": 1020.0,
+            "target": "tariff_12",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 4,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 609042.824653144,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71876.0,
+        "remaining_contacts": 11452,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 53152.0,
+        "remaining_contacts": 10056
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 10885,
+            "output_tokens": 201,
+            "total_tokens": 11086
+          }
+        },
+        {
+          "phase": "feedback",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 11590,
+            "output_tokens": 153,
+            "total_tokens": 11743
+          }
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 7,
+        "selected_variants": 4,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 4,
+          "insufficient_pilots": 3,
+          "nonpositive_estimate": 1,
+          "overlap": 2
+        },
+        "variants": [
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -98068.24200523,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.0"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 248804.86330930263,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.8",
+              "pilots.12"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 331401.6820997068,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_c3621ed564ab8e",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 157939.33688015843,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_266d2785cf49d8",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 112391.57686186445,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.2",
+              "pilots.11"
+            ]
+          },
+          {
+            "candidate_id": "c_3b8714bfd0dba6",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -528776.3698056649,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.3",
+              "pilots.10"
+            ]
+          },
+          {
+            "candidate_id": "c_29ca789e5911ac",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -188253.67501200034,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.4"
+            ]
+          },
+          {
+            "candidate_id": "c_a121b8e9dcda3c",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 7310.228811414352,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.5",
+              "pilots.9",
+              "pilots.14"
+            ]
+          },
+          {
+            "candidate_id": "c_7f8af92ea2cd98",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -157778.72655589657,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.6"
+            ]
+          },
+          {
+            "candidate_id": "c_c3621ed564ab8e",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 146721.59927613067,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.13",
+              "pilots.15"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 4,
+        "estimated_net": 853002.1086869765,
+        "conservative_net": 609042.824653144,
+        "communication_cost": 18724.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    },
+    {
+      "seed": 122,
+      "mode": "offline",
+      "status": "ok",
+      "run_id": "049ba3671c16f97157112a985bd9c942",
+      "report_id": "3a3d4a70e36de2d07ea40ec9f4c5e8e0",
+      "net_arpu_gain": 505896.1129319903,
+      "elapsed_seconds": 4.0460000000002765,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 122,
+        "requested_mode": "offline",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "049ba3671c16f97157112a985bd9c942",
+        "mode": "adaptive-offline"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 3,
+        "total_contacts": 2288,
+        "total_cost": 9152.0,
+        "unique_contacts": 2288,
+        "available_budget": 71200.0,
+        "available_contacts": 11400.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 760,
+            "cost": 3040.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 543,
+            "cost": 2172.0,
+            "target": "tariff_8",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 985,
+            "cost": 3940.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 3,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 385078.76009007473,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71200.0,
+        "remaining_contacts": 11400,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 62048.0,
+        "remaining_contacts": 9112
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        },
+        {
+          "phase": "feedback",
+          "status": "skipped",
+          "reason": "offline_mode",
+          "model": "gpt-4.1-mini-2025-04-14"
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 7,
+        "selected_variants": 3,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 3,
+          "insufficient_pilots": 3,
+          "nonpositive_estimate": 4
+        },
+        "variants": [
+          {
+            "candidate_id": "c_1fe5f7e186f67b",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -927951.3689750457,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.0"
+            ]
+          },
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -36652.54441792338,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.10"
+            ]
+          },
+          {
+            "candidate_id": "c_3b8714bfd0dba6",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": -510894.54662273295,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_f508810ecc3fc7",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": -101240.34917608417,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_442475bbcb8f38",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -523297.35382210196,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.2"
+            ]
+          },
+          {
+            "candidate_id": "c_f508810ecc3fc7",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 12734.237100442566,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.3",
+              "pilots.14",
+              "pilots.15"
+            ]
+          },
+          {
+            "candidate_id": "c_83c11cde82798e",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -556255.551815729,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.4"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 149140.07751441433,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.5",
+              "pilots.8",
+              "pilots.9"
+            ]
+          },
+          {
+            "candidate_id": "c_3b8714bfd0dba6",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 223204.44547521783,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.6",
+              "pilots.11",
+              "pilots.12"
+            ]
+          },
+          {
+            "candidate_id": "c_29ca789e5911ac",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": -176427.04399225357,
+            "selected": false,
+            "reason": "nonpositive_estimate",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.13"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 3,
+        "estimated_net": 868802.9332357481,
+        "conservative_net": 385078.76009007473,
+        "communication_cost": 9152.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    },
+    {
+      "seed": 122,
+      "mode": "openai",
+      "status": "ok",
+      "run_id": "fd0111bdb2ad6562252032d3caa283c4",
+      "report_id": "fc450d2a80da3c7f43a15d9c699598d0",
+      "net_arpu_gain": 1356505.7864083257,
+      "elapsed_seconds": 14.110000000000582,
+      "strategy_config": {
+        "exploration_policy": "baseline",
+        "uncertainty_mode": "template"
+      },
+      "provenance": {
+        "source_git_sha": "33a7152533ef306ea22f96aa4b6f069caf1cf399",
+        "dirty": false,
+        "seed": 122,
+        "requested_mode": "openai_with_fallback",
+        "controller_sha256": "28013095c2283e84d807d26f48b6551cbbe471e8ae369dcf6622cc9f802e1a23",
+        "candidate_sha256": "66258d72f1e3fc570b5f070b459cdbf63f90d88718b4722d10cf57c52ecab0ca",
+        "advisor_sha256": "1973685aa6d44711584d9cd0f3593007179048b5765ba5230366b092b72b8028",
+        "run_id": "fd0111bdb2ad6562252032d3caa283c4",
+        "mode": "adaptive-openai"
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "campaign_count": 5,
+        "total_contacts": 1859,
+        "total_cost": 20972.0,
+        "unique_contacts": 1859,
+        "available_budget": 71304.0,
+        "available_contacts": 11426.0,
+        "campaigns": [
+          {
+            "index": 0,
+            "audience": 543,
+            "cost": 11946.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 1,
+            "audience": 209,
+            "cost": 4598.0,
+            "target": "tariff_8",
+            "channel": "digital_ads",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 2,
+            "audience": 187,
+            "cost": 748.0,
+            "target": "tariff_8",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 3,
+            "audience": 217,
+            "cost": 868.0,
+            "target": "tariff_8",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          },
+          {
+            "index": 4,
+            "audience": 703,
+            "cost": 2812.0,
+            "target": "tariff_10",
+            "channel": "sms",
+            "overlap_with_previous": 0
+          }
+        ],
+        "portfolio": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "confirmed_campaigns": 5,
+          "fallback_campaigns": 0,
+          "selected_conservative_net": 715325.14817484,
+          "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"
+        },
+        "selection_diagnostics": {
+          "checked": true,
+          "valid": true,
+          "errors": [],
+          "source": "completed_report_records_and_returned_plan"
+        },
+        "pilot_evidence": {
+          "reported_attempts": 20,
+          "reported_completed": 20,
+          "public_pilots": 20,
+          "record_source": "agent_report"
+        }
+      },
+      "resources": {
+        "remaining_budget": 71304.0,
+        "remaining_contacts": 11426,
+        "pilots_left": 0
+      },
+      "planned_resources": {
+        "remaining_budget": 50332.0,
+        "remaining_contacts": 9567
+      },
+      "advisor": [
+        {
+          "phase": "initial",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 10885,
+            "output_tokens": 221,
+            "total_tokens": 11106
+          }
+        },
+        {
+          "phase": "feedback",
+          "status": "completed",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "usage": {
+            "input_tokens": 11577,
+            "output_tokens": 195,
+            "total_tokens": 11772
+          }
+        }
+      ],
+      "selection_diagnostics": {
+        "generated_candidates": 299,
+        "tested_candidates": 8,
+        "tested_variants": 10,
+        "confirmed_variants": 7,
+        "selected_variants": 5,
+        "unexplored_candidates": 291,
+        "reason_counts": {
+          "selected": 5,
+          "insufficient_pilots": 3,
+          "overlap": 2
+        },
+        "variants": [
+          {
+            "candidate_id": "c_28037c7d151259",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 47890.96422105553,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.0",
+              "pilots.15"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 176323.24943029595,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.1",
+              "pilots.8",
+              "pilots.9"
+            ]
+          },
+          {
+            "candidate_id": "c_95e4a9c341c532",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 249443.09032260536,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.16",
+              "pilots.17"
+            ]
+          },
+          {
+            "candidate_id": "c_d2c4bb7eb14ac9",
+            "channel": "digital_ads",
+            "repeats": 2,
+            "conservative_net": 180056.9483402273,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.18",
+              "pilots.19"
+            ]
+          },
+          {
+            "candidate_id": "c_266d2785cf49d8",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -108793.48872186073,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.2"
+            ]
+          },
+          {
+            "candidate_id": "c_a3f6bdeddb57bc",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": -2290.757260617417,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.3"
+            ]
+          },
+          {
+            "candidate_id": "c_325202b8257296",
+            "channel": "sms",
+            "repeats": 2,
+            "conservative_net": 101891.72964490193,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.4",
+              "pilots.10"
+            ]
+          },
+          {
+            "candidate_id": "c_ebd2845ab5df34",
+            "channel": "sms",
+            "repeats": 1,
+            "conservative_net": 65571.69930110597,
+            "selected": false,
+            "reason": "insufficient_pilots",
+            "pilot_refs": [
+              "pilots.5"
+            ]
+          },
+          {
+            "candidate_id": "c_d2c4bb7eb14ac9",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 179057.43168021727,
+            "selected": false,
+            "reason": "overlap",
+            "pilot_refs": [
+              "pilots.6",
+              "pilots.11",
+              "pilots.14"
+            ]
+          },
+          {
+            "candidate_id": "c_c3621ed564ab8e",
+            "channel": "sms",
+            "repeats": 3,
+            "conservative_net": 136042.41564604983,
+            "selected": true,
+            "reason": "selected",
+            "pilot_refs": [
+              "pilots.7",
+              "pilots.12",
+              "pilots.13"
+            ]
+          }
+        ],
+        "strategy_config": {
+          "exploration_policy": "baseline",
+          "uncertainty_mode": "template"
+        }
+      },
+      "forecast_summary": {
+        "scope": "final_campaigns_only",
+        "campaign_count": 5,
+        "estimated_net": 1012373.3222548756,
+        "conservative_net": 715325.14817484,
+        "communication_cost": 20972.0,
+        "comparison_to_evaluation": "not_comparable"
+      }
+    }
+  ]
+}
