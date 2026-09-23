@@ -156,7 +156,7 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
 .answer-heading{display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--border);padding-bottom:20px}.answer-heading h2{font-size:16px}.answer-mark{display:grid;place-items:center;background:var(--sidebar);color:var(--accent);width:36px;height:36px;border-radius:9px}
 .agent-answer{padding:24px 0;font-size:14px;line-height:1.8;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
 .evidence-area{border-top:1px solid var(--border);padding-top:20px}.evidence-area h3{font-size:12px;color:var(--muted);font-weight:550;margin-bottom:12px}
-.agent-evidence{display:flex;flex-wrap:wrap;gap:8px}.agent-evidence:empty::after{content:"Ссылки появятся вместе с ответом.";font-size:12px;color:var(--muted)}
+.agent-evidence{display:flex;flex-wrap:wrap;gap:8px}
 .evidence-highlight{outline:3px solid var(--focus)!important;outline-offset:3px}
 .page-footer{display:flex;gap:16px;justify-content:space-between;border-top:1px solid var(--border);padding:24px 0;margin-top:40px;font-size:12px;color:var(--muted)}
 .page-footer>span:first-child{font-weight:550}.page-footer>span:first-child>span{padding:0 8px;color:var(--muted)}
@@ -538,4 +538,19 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
   .chat-surface{scroll-margin-bottom:calc(var(--mobile-nav-space) + 16px)}
   .composer-input>textarea{scroll-margin-bottom:calc(var(--mobile-nav-space) + 96px)}
   .page-footer{padding-bottom:8px}
+}
+
+/* Both language names stay native; translated labels may wrap naturally. */
+.language-control{margin-left:auto;flex-shrink:0}
+#language-select{display:block;min-height:40px;width:120px;padding:8px 10px;font-size:12px;font-weight:500;background:var(--surface);cursor:pointer}
+#language-select:hover{border-color:#778896}
+.topbar>.button{margin-left:0}
+.page-heading h1>.i18n-text{display:inline;color:inherit}
+.result-resource-table thead th>.i18n-text{display:inline;font-size:inherit;font-weight:inherit;color:inherit;margin:0}
+@media(max-width:600px){
+  .topbar{flex-wrap:wrap;gap:4px 12px;padding-top:10px;padding-bottom:8px}
+  .topbar>.workspace-label{flex-basis:100%;min-height:20px;line-height:1.4}
+  .topbar>.language-control{margin-left:0}
+  .topbar>.button{margin-left:auto;min-height:44px}
+  #language-select{min-height:44px;width:120px}
 }

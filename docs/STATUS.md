@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: Tariflow UI9d748c7 принят Димой; favicon38c673a и очистка навигацииd8931c3 опубликованы. По запросу пользователя удалена подсказка Enter/Shift+Enter, счётчик сохранён справа; браузер375/768/1440 и ARIA проверены. Подтянут e8353df; backend, кандидаты и данные в этой правке не менялись.
-- Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis не меняются в этом этапе.
-- Next: Правка подписей публикуется отдельным законченным checkpoint. Далее согласованный этап диагностики качества по docs/QUALITY_STAGE.md в своей зоне, отдельный от этой правки. Сверка GitHub каждые4активные минуты.
-- Blockers: В зоне Азима нет. Чистыйrelease и независимая проверка остаются у Димы; UIQA не является обещанием реальной прибыли или судейского результата.
+- Current: По прямому запросу пользователя готов RU/KK Tariflow: переключатель, полный UI, тарифы/сегменты/ошибки и интеграция согласованного языка чата. Принят backend161473c.33Node,6chatfixtures,375/768/1440 и реальныйKKofflineответ с собственнымиpilots17/18 PASS.
+- Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis и данные заморожены.
+- Next: Диме исправить конкретные KK routing/терминологию поQUESTIONS16:38; Азиму проверить интеграцию. Затем отдельный QUALITY_STAGE UI по согласованным полям. Сверка GitHub каждые4активные минуты.
+- Blockers: UI готов; перед полным закрытием двуязычного сценария ждём исправления вопросов о рисках/сынақ/байланысу в зонеДимы. Финальныйrelease остаётся уДимы. Экономическийgate не пройден, baseline сохраняется.

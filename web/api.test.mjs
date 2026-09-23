@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ApiError, createApiClient } from "./api.mjs";
+import { setLanguage } from "./i18n.mjs";
 
 const health = (token = "session-token") => ({
   api_version: "1.0", status: "ok", csrf_token: token,
@@ -150,4 +151,45 @@ test("network failure becomes a safe ApiError and concurrent health checks share
   const values = await Promise.all([client.health(), client.health()]);
   assert.deepEqual(values[0], values[1]);
   assert.equal(calls.length, 1);
+});
+
+test("chat language is sent only after the server advertises it; legacy RU keeps its exact payload", async () => {
+  const legacy = clientFor([json(health()), json(chat())]);
+  await legacy.client.chat({report_id:"snapshot-A", message:"Вопрос", language:"ru"});
+  assert.deepEqual(JSON.parse(legacy.calls[1].init.body), {report_id:"snapshot-A", message:"Вопрос"});
+  const bilingualHealth = {...health(), capabilities:{run:true, chat:true, chat_languages:["ru","kk"]}};
+  const bilingual = clientFor([json(bilingualHealth), json(chat({answer:"Есеп бойынша жауап.", language:"kk"}))]);
+  const response = await bilingual.client.chat({report_id:"snapshot-A", message:"Сұрақ", language:"kk"});
+  assert.equal(response.language,"kk");
+  assert.equal(response.answer,"Есеп бойынша жауап.");
+  assert.deepEqual(JSON.parse(bilingual.calls[1].init.body), {report_id:"snapshot-A", message:"Сұрақ", language:"kk"});
+  const unsupported = clientFor([json(health())]);
+  await assert.rejects(unsupported.client.chat({report_id:"snapshot-A",message:"Сұрақ",language:"kk"}),expectCode("language_unavailable"));
+  assert.equal(unsupported.calls.filter(call=>call.init.method==="POST").length,0);
+});
+
+test("language schema permits legacy/future capabilities but rejects malformed capabilities and answer language", async () => {
+  for (const languages of ["ru,kk", ["ru",42], ["ru","ru"], ["invalid language"], Array(17).fill("ru")]) {
+    const {client} = clientFor([json({...health(),capabilities:{run:true,chat:true,chat_languages:languages}})]);
+    await assert.rejects(client.health(),expectCode("invalid_response"));
+  }
+  const future = clientFor([json({...health(),capabilities:{run:true,chat:true,chat_languages:["ru","kk","en"]}})]);
+  assert.deepEqual((await future.client.health()).capabilities.chat_languages,["ru","kk","en"]);
+  const malformed = clientFor([json(health()),json(chat({language:"pretend-kazakh"}))]);
+  await assert.rejects(malformed.client.chat({report_id:"snapshot-A",message:"Вопрос"}),expectCode("invalid_response"));
+  const badInput = clientFor([]);
+  await assert.rejects(badInput.client.chat({report_id:"snapshot-A",message:"Вопрос",language:"en"}),expectCode("invalid_input"));
+  assert.equal(badInput.calls.length,0);
+});
+
+test("local API errors follow KK/RU while raw server messages remain unmodified", async () => {
+  try {
+    setLanguage("kk");
+    const badInput = clientFor([]);
+    await assert.rejects(badInput.client.run(""), error => error instanceof ApiError && error.message === "Іске қосу идентификаторы дұрыс емес." && error.source === "Некорректный идентификатор запуска.");
+    const failure = clientFor([json({error:{code:"no_report",message:"Оригинальное сообщение сервера."}},404)]);
+    await assert.rejects(failure.client.report(), error => error.message === "Оригинальное сообщение сервера." && error.serverMessage === true);
+  } finally {setLanguage("ru");}
+  const badInput = clientFor([]);
+  await assert.rejects(badInput.client.run(""), error => error.message === "Некорректный идентификатор запуска.");
 });

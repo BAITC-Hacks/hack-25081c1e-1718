@@ -1,3 +1,117 @@
+import {t, registerMessages, getLanguage, getLocale, initializeLanguage, setLocalizedText, setLocalizedAttribute, localizedError} from "./i18n.mjs";
+
+registerMessages({
+  "Обзор": "Шолу",
+  "Кампании": "Науқандар",
+  "Пилоты": "Сынақтар",
+  "Спросить агента": "Агенттен сұрау",
+  "О результате": "Нәтиже туралы",
+  "ден. ед.": "ақша бірл.",
+  "{n} условных денежных единиц": "{n} шартты ақша бірлігі",
+  "{value} (формат времени не распознан)": "{value} (уақыт пішімі танылмады)",
+  "Без дополнительных фильтров": "Қосымша сүзгілерсіз",
+  "Сейчас": "Қазір",
+  "Предложить": "Ұсыну",
+  "Основания и оценки": "Негіздеме және бағалау нәтижелері",
+  "Название кампании": "Науқан атауы",
+  "Предложение · {name}": "Ұсыныс · {name}",
+  "Сейчас · {name}": "Қазір · {name}",
+  "Ожидаемое изменение дохода с абонента": "Абоненттен түсетін кірістің күтілетін өзгерісі",
+  "Поправка на возможную ошибку оценки": "Бағалаудағы ықтимал қатеге түзету",
+  "{n} п. п.": "{n} пайыздық тармақ",
+  "Контактов в наблюдениях": "Сынақтардағы байланысу саны",
+  "Количество пилотов по гипотезе": "Жорамал бойынша сынақтар саны",
+  "Распределение": "Бөлу",
+  "Нет однозначно связанных оценок этой кампании в отчёте.": "Есепте осы науқанға нақты тиесілі бағалау нәтижелері жоқ.",
+  "Наблюдения этого канала:": "Осы арнаның сынақтары:",
+  "Нет завершённых пилотов этой гипотезы и канала в отчёте.": "Есепте осы жорамал мен арна бойынша аяқталған сынақтар жоқ.",
+  "Пилот {n}": "Сынақ {n}",
+  "Кампания {n}": "Науқан {n}",
+  "Открыть кампанию {n}: {current} → {target}, {channel}": "{n}-науқанды ашу: {current} → {target}, {channel}",
+  "Все абоненты на текущем тарифе": "Қазіргі тарифтегі барлық абонент",
+  "проверок на небольшой группе: {n}": "шағын топтағы сынақтар: {n}",
+  "нет связанных проверок": "байланыстырылған сынақтар жоқ",
+  "прогноз с поправкой на риск": "тәуекел ескерілген болжам",
+  "План кампаний не сформирован": "Науқандар жоспары құрылмаған",
+  "Прогон не готов к отправке. Проверьте предупреждения и наблюдения пилотов.": "Есептеу нәтижесі жіберуге дайын емес. Ескертулер мен сынақ нәтижелерін тексеріңіз.",
+  "В отчёте нет финального плана.": "Есепте түпкілікті жоспар жоқ.",
+  "Фактический чистый прирост этого прогона отрицательный.": "Бұл есептеудегі шығындар шегерілгеннен кейінгі нақты өсім теріс.",
+  "Итог расчёта недоступен.": "Есептеу нәтижесі қолжетімсіз.",
+  "Для части кампаний нет однозначно связанных плановых оценок.": "Кейбір науқандарға қатысты жоспарлы көрсеткіштерді нақты сәйкестендіру мүмкін емес.",
+  "Агент не записал предупреждений. Это не гарантия положительного эффекта.": "Агент ескертулерді тіркемеген. Бұл оң нәтижеге кепілдік бермейді.",
+  "Плановые оценки приблизительны. Результат пилота не гарантирует эффект всей кампании.": "Жоспар көрсеткіштері шамамен бағаланған. Сынақ нәтижесі бүкіл науқанның әсеріне кепілдік бермейді.",
+  "Прогноз дохода после расходов": "Шығындар шегерілгеннен кейінгі кіріс болжамы",
+  "Прогноз с поправкой на риск: {value}": "Тәуекел ескерілген болжам: {value}",
+  "Аудитория": "Аудитория",
+  "Плановый охват": "Жоспарланған қамту",
+  "{n} абонентов": "{n} абонент",
+  "Расходы на коммуникацию": "Байланысу шығындары",
+  "Обсудить с агентом": "Агентпен талқылау",
+  "Обсудить кампанию {n} с агентом": "{n}-науқанды агентпен талқылау",
+  "Почему выбрана кампания {n} и какие пилоты подтверждают её?": "{n}-науқан неге таңдалды және оны қандай сынақтар растайды?",
+  "Показано {shown} из {total}": "Көрсетілгені: {shown} / {total}",
+  "По этим условиям кампаний нет": "Бұл шарттарға сәйкес науқандар жоқ",
+  "Измените запрос или выберите другой канал. Полный план доступен в экспорте.": "Сұрауды өзгертіңіз немесе басқа арнаны таңдаңыз. Толық жоспарды экспорттауға болады.",
+  "В отчёте нет финальных кампаний. Прогон не готов к отправке: проверьте предупреждения и результаты пилотов.": "Есепте түпкілікті науқандар жоқ. Есептеу нәтижесі жіберуге дайын емес: ескертулер мен сынақ нәтижелерін тексеріңіз.",
+  "Ресурсы после пилота": "Сынақтан кейінгі ресурстар",
+  "Бюджет": "Бюджет",
+  "Контакты": "Байланысу саны",
+  "Наблюдённый суммарный эффект": "Сынақта байқалған жиынтық әсер",
+  "Гипотеза": "Тексерілетін жорамал",
+  "Предложение: {tariff}": "Ұсыныс: {tariff}",
+  "Запрошено: {n}": "Сұралғаны: {n}",
+  "к ARPU": "ARPU-ға қатысты",
+  "Пилот {n}: {value}": "Сынақ {n}: {value}",
+  "Агент не записал предупреждений в этот отчёт.": "Агент бұл есепке ескерту тіркемеген.",
+  "Предупреждения не переданы в отчёте.": "Есепте ескертулер берілмеген.",
+  "Нет финальных кампаний: результат прогона неполный.": "Түпкілікті науқандар жоқ: есептеу нәтижесі толық емес.",
+  "В отчёте больше 10 кампаний. Проверьте допустимый размер финального плана.": "Есепте 10-нан астам науқан бар. Түпкілікті жоспардағы рұқсат етілген науқандар санын тексеріңіз.",
+  "Итог расчёта недоступен. Прогнозы кампаний не заменяют его.": "Есептеу нәтижесі қолжетімсіз. Науқандар болжамдары оның орнын алмастырмайды.",
+  "Остатки после финального плана не переданы; лимиты этого этапа нельзя оценить по отчёту.": "Түпкілікті жоспардан кейінгі қалдықтар берілмеген; осы кезеңдегі лимиттерді есеп бойынша бағалау мүмкін емес.",
+  "В отчёте есть отрицательный остаток ресурсов. Проверьте соблюдение лимитов перед использованием плана.": "Есепте ресурстардың теріс қалдығы бар. Жоспарды пайдаланбас бұрын лимиттердің сақталуын тексеріңіз.",
+  "Расходы включают повторные контакты. Охваты отдельных кампаний нельзя считать уникальной аудиторией всего плана.": "Шығындарға қайталап хабарласу да кіреді. Әр науқанның қамтуын қосып, жоспардағы қайталанбайтын абоненттер санын анықтауға болмайды.",
+  "Оценка неопределённости не передана. Не интерпретируйте пилотный эффект как гарантированный результат.": "Белгісіздік бағасы берілмеген. Сынақтағы әсерді кепілдендірілген нәтиже деп қабылдамаңыз.",
+  "Модель: {name}": "Модель: {name}",
+  "Пояснение агента": "Агенттің түсіндірмесі",
+  "В этом отчёте нет статусов или пояснений советника.": "Бұл есепте кеңесшінің күйлері мен түсіндірмелері жоқ.",
+  "Отчёт не выбран": "Есеп таңдалмаған",
+  "Нет отчёта": "Есеп жоқ",
+  "Проверьте ограничения": "Шектеулерді тексеріңіз",
+  "План готов к проверке": "Жоспар тексеруге дайын",
+  "Текущий прогон": "Ағымдағы есептеу",
+  "Сохранённый прогон": "Сақталған есептеу нәтижесі",
+  "Сохранённый снимок сервера": "Серверде сақталған есеп",
+  "Сохранённый файл · report.json": "Сақталған файл · report.json",
+  "Импорт · {name}": "Импорт · {name}",
+  "Результаты анализа": "Талдау нәтижелері",
+  "План не сформирован": "Жоспар құрылмаған",
+  "Итог расчёта, рекомендованные кампании и доступные ресурсы.": "Есептеу нәтижесі, ұсынылған науқандар және қолжетімді ресурстар.",
+  "План сформирован": "Жоспар құрылды",
+  "Итог расчёта": "Есептеу нәтижесі",
+  "Итог расчёта недоступен": "Есептеу нәтижесі қолжетімсіз",
+  "Завершено: {completed} · ошибок: {failed}": "Аяқталғаны: {completed} · қателер: {failed}",
+  " · другой/неизвестный статус: {n}": " · басқа/белгісіз күй: {n}",
+  "План пока не загружен": "Жоспар әлі жүктелмеген",
+  "Запустите анализ или откройте готовый report.json, чтобы изучить рекомендации.": "Ұсынымдарды көру үшін талдауды бастаңыз немесе дайын report.json файлын ашыңыз.",
+  "Отчёт не загружен": "Есеп жүктелмеген",
+  "Тарифные кампании": "Тарифтік науқандар",
+  "Запустите анализ аудитории или откройте сохранённый план.": "Аудиторияны талдауды бастаңыз немесе сақталған жоспарды ашыңыз.",
+  "Откройте отчёт, чтобы увидеть ограничения фактического прогона.": "Осы есептеудің шектеулерін көру үшін есепті ашыңыз.",
+  "Отчёт пока не загружен.": "Есеп әлі жүктелмеген.",
+  "Неопределённость — приблизительный запас для планирования, а не доверительный интервал.": "Белгісіздік көрсеткіші — жоспарлауда қолданылатын шамамен түзету. Бұл сенімділік аралығы емес.",
+  "Читаем отчёт…": "Есеп оқылып жатыр…",
+  "Проверяем версию и структуру данных.": "Деректердің нұсқасы мен құрылымы тексеріліп жатыр.",
+  "Файл больше 10 МБ. Выберите меньший отчёт.": "Файл көлемі 10 МБ-тан асады. Көлемі кішірек есепті таңдаңыз.",
+  "Отчёт загружен": "Есеп жүктелді",
+  "Открыт сохранённый прогон. Новый расчёт и рассылки не запускаются.": "Сақталған есептеу нәтижесі ашылды. Жаңа есептеу мен хабарлама тарату басталмайды.",
+  "Не удалось открыть отчёт": "Есепті ашу мүмкін болмады",
+  "Выберите корректный report.json и повторите попытку.": "Дұрыс report.json файлын таңдап, қайталап көріңіз.",
+  "Сохранённый report.json не найден рядом со страницей. Откройте файл отчёта кнопкой «Открыть отчёт».": "Сақталған report.json файлы бетпен бір қалтадан табылмады. Есеп файлын «Есепті ашу» түймесі арқылы ашыңыз.",
+  "Не удалось загрузить сохранённый отчёт за 10 секунд. Откройте файл вручную.": "Сақталған есепті 10 секунд ішінде жүктеу мүмкін болмады. Файлды қолмен ашыңыз.",
+  "Сохранённый отчёт недоступен. Откройте файл вручную или запустите локальный веб-сервер по README.": "Сақталған есеп қолжетімсіз. Файлды қолмен ашыңыз немесе README бойынша жергілікті веб-серверді іске қосыңыз.",
+  "Пояснение из отчёта (исходный текст)": "Есептегі түсіндірме (түпнұсқа мәтін)"
+});
+
 import {
   MAX_FILE_BYTES, MISSING, FILTER_LABELS, parseReport, validateReport, number, money, ratio,
   isNumber, displayText, findAllocation, campaignMatches, campaignsToCsv, translate, channelLabel,
@@ -6,17 +120,24 @@ import {
 
 const $ = (id) => document.getElementById(id);
 let currentReport = null;
+let currentSource = "";
 let loading = false;
 const VIEW_LABELS = { overview: "Обзор", campaigns: "Кампании", pilots: "Пилоты", ask: "Спросить агента", limitations: "О результате" };
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
+  if (text !== undefined) setLocalizedText(node, text);
   return node;
 }
 
-function setText(id, text) { $(id).textContent = text; }
+function setText(id, text, params = {}) { setLocalizedText($(id), text, params); }
+function rawElement(tag, className, value) {
+  const node = element(tag, className);
+  node.textContent = value;
+  return node;
+}
+function setRawText(id, value) { setLocalizedText($(id), "{value}", {value}); }
 
 function setMoneyValue(id, value) {
   const node = $(id);
@@ -24,7 +145,7 @@ function setMoneyValue(id, value) {
   node.removeAttribute("aria-label");
   if (!isNumber(value)) { node.textContent = MISSING; return; }
   node.append(element("span", "money-number", number(value)), document.createTextNode(" "), element("span", "money-unit", "ден. ед."));
-  node.setAttribute("aria-label", `${number(value)} условных денежных единиц`);
+  setLocalizedAttribute(node, "aria-label", "{n} условных денежных единиц", {n:number(value)});
 }
 
 function prepareQuestion(question) {
@@ -129,8 +250,8 @@ function setReportVisible(value) {
 function formatDate(value) {
   if (typeof value !== "string" || !value.trim()) return MISSING;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return `${value} (формат времени не распознан)`;
-  return new Intl.DateTimeFormat("ru-RU", {
+  if (Number.isNaN(date.getTime())) return t("{value} (формат времени не распознан)", {value});
+  return new Intl.DateTimeFormat(getLocale(), {
     day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short",
   }).format(date);
 }
@@ -193,21 +314,21 @@ function campaignDetails(campaign, allocation) {
   const details = element("details", "row-details");
   details.append(element("summary", "", "Основания и оценки"));
   const dl = element("dl");
-  addDefinition(dl, "Название кампании", displayText(campaign.campaign_name));
+  dl.append(element("dt", "", "Название кампании"), rawElement("dd", "", displayText(campaign.campaign_name)));
   for (const code of tariffCodes(campaign.target_tariff)) {
     const info = tariffInfo(code);
-    addDefinition(dl, `Предложение · ${info.name}`, info.description);
+    addDefinition(dl, t("Предложение · {name}", {name:info.name}), info.description);
   }
   for (const code of tariffCodes(campaign.filter_current_tariff)) {
     const info = tariffInfo(code);
-    addDefinition(dl, `Сейчас · ${info.name}`, info.description);
+    addDefinition(dl, t("Сейчас · {name}", {name:info.name}), info.description);
   }
   for (const key of Object.keys(FILTER_LABELS)) {
     if (key !== "filter_current_tariff" && campaign[key]) { const info = segmentInfo(key, campaign[key]); addDefinition(dl, info.label, info.description); }
   }
   if (allocation) {
     addDefinition(dl, "Ожидаемое изменение дохода с абонента", ratio(allocation.posterior_mean));
-    addDefinition(dl, "Поправка на возможную ошибку оценки", isNumber(allocation.uncertainty) ? `${number(allocation.uncertainty * 100, 2)} п. п.` : MISSING);
+    addDefinition(dl, "Поправка на возможную ошибку оценки", isNumber(allocation.uncertainty) ? t("{n} п. п.", {n:number(allocation.uncertainty * 100, 2)}) : MISSING);
     addDefinition(dl, "Контактов в наблюдениях", number(allocation.n_customers));
     addDefinition(dl, "Количество пилотов по гипотезе", number(allocation.repeats));
   } else {
@@ -215,7 +336,10 @@ function campaignDetails(campaign, allocation) {
   }
   details.append(dl);
   const rationale = campaign.rationale || allocation?.rationale;
-  if (rationale) details.append(element("p", "", rationale));
+  if (rationale) {
+    details.append(element("p", "small-note", "Пояснение из отчёта (исходный текст)"));
+    const original = element("p"); original.textContent = rationale; details.append(original);
+  }
   return details;
 }
 
@@ -239,7 +363,7 @@ function campaignEvidence(campaign) {
   const indices = campaignPilotIndices(campaign);
   box.append(element("span", "", indices.length ? "Наблюдения этого канала:" : "Нет завершённых пилотов этой гипотезы и канала в отчёте."));
   indices.forEach((index) => {
-    const link = element("button", "evidence-link", `Пилот ${index + 1}`);
+    const link = element("button", "evidence-link", t("Пилот {n}", {n:index + 1}));
     link.type = "button";
     link.addEventListener("click", () => focusEvidence(`pilots[${index}]`));
     box.append(link);
@@ -262,16 +386,16 @@ function renderOverview(report) {
   ranked.forEach(({ campaign, index, allocation }) => {
     const card = element("button", "recommendation-card");
     card.type = "button";
-    card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${tariffLabel(campaign.filter_current_tariff)} → ${tariffLabel(campaign.target_tariff)}, ${channelLabel(campaign.channel)}`);
+    card.setAttribute("aria-label", t("Открыть кампанию {n}: {current} → {target}, {channel}", {n:index+1, current:tariffLabel(campaign.filter_current_tariff), target:tariffLabel(campaign.target_tariff), channel:channelLabel(campaign.channel)}));
     const text = element("span", "recommendation-text");
-    text.append(element("span", "recommendation-label", `Кампания ${String(index + 1).padStart(2, "0")}`));
+    text.append(element("span", "recommendation-label", t("Кампания {n}", {n:String(index + 1).padStart(2, "0")})));
     text.append(tariffTransition(campaign));
     const segment = Object.entries(FILTER_LABELS)
       .filter(([key]) => key !== "filter_current_tariff" && campaign[key])
       .map(([key]) => segmentInfo(key, campaign[key]).label).join(" · ");
     text.append(element("span", "recommendation-segment", segment || "Все абоненты на текущем тарифе"));
     const evidence = campaignPilotIndices(campaign).length;
-    text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `проверок на небольшой группе: ${number(evidence)}` : "нет связанных проверок"}`));
+    text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? t("проверок на небольшой группе: {n}", {n:number(evidence)}) : t("нет связанных проверок")}`));
     const effect = element("span", "recommendation-effect");
     effect.append(element("strong", effectClass(allocation?.conservative_net), money(allocation?.conservative_net)), element("span", "", "прогноз с поправкой на риск"));
     card.append(text, effect);
@@ -310,12 +434,12 @@ function renderCampaigns() {
     row.tabIndex = -1;
     const header = element("div", "campaign-card-header");
     const heading = element("div", "campaign-card-heading");
-    heading.append(element("h2", "", `Кампания ${String(index + 1).padStart(2, "0")}`),
+    heading.append(element("h2", "", t("Кампания {n}", {n:String(index + 1).padStart(2, "0")})),
       tariffTransition(campaign),
-      element("span", "channel-chip", channelLabel(campaign.channel)));
+      rawElement("span", "channel-chip", channelLabel(campaign.channel)));
     const effect = element("div", "campaign-effect");
     effect.append(element("span", "", "Прогноз дохода после расходов"), element("strong", effectClass(allocation?.estimated_net), money(allocation?.estimated_net)),
-      element("span", "effect-secondary", `Прогноз с поправкой на риск: ${money(allocation?.conservative_net)}`));
+      element("span", "effect-secondary", t("Прогноз с поправкой на риск: {value}", {value:money(allocation?.conservative_net)})));
     header.append(heading, effect);
     const facts = element("div", "campaign-facts");
     const segment = element("div");
@@ -330,7 +454,7 @@ function renderCampaigns() {
     if (!tags.childElementCount) tags.append(element("span", "small-note", "Без дополнительных фильтров"));
     segment.append(tags);
     const reach = element("div");
-    reach.append(element("span", "campaign-fact-label", "Плановый охват"), element("strong", "", `${number(allocation?.audience_size)}${isNumber(allocation?.audience_size) ? " контактов" : ""}`));
+    reach.append(element("span", "campaign-fact-label", "Плановый охват"), element("strong", "", isNumber(allocation?.audience_size) ? t("{n} абонентов", {n:number(allocation.audience_size)}) : MISSING));
     const cost = element("div");
     cost.append(element("span", "campaign-fact-label", "Расходы на коммуникацию"), element("strong", "", money(allocation?.communication_cost)));
     facts.append(segment, reach, cost);
@@ -338,14 +462,14 @@ function renderCampaigns() {
     const actions = element("div", "campaign-actions");
     const ask = element("button", "button button-secondary ask-campaign", "Обсудить с агентом");
     ask.type = "button";
-    ask.setAttribute("aria-label", `Обсудить кампанию ${index + 1} с агентом`);
+    ask.setAttribute("aria-label", t("Обсудить кампанию {n} с агентом", {n:index + 1}));
     ask.prepend(icon("chat"));
-    ask.addEventListener("click", () => prepareQuestion(`Почему выбрана кампания ${index + 1} и какие пилоты подтверждают её?`));
+    ask.addEventListener("click", () => prepareQuestion(t("Почему выбрана кампания {n} и какие пилоты подтверждают её?", {n:index + 1})));
     actions.append(ask);
     row.append(actions);
     rows.append(row);
   });
-  setText("campaign-result-count", `Показано ${number(campaigns.length)} из ${number(currentReport.campaigns.length)}`);
+  setText("campaign-result-count", t("Показано {shown} из {total}", {shown:number(campaigns.length), total:number(currentReport.campaigns.length)}));
   $("campaign-cards").hidden = campaigns.length === 0;
   $("campaign-empty").hidden = campaigns.length !== 0;
   setText("campaign-empty-title", currentReport.campaigns.length ? "По этим условиям кампаний нет" : "План кампаний не сформирован");
@@ -361,7 +485,7 @@ function pilotDetails(pilot) {
   addDefinition(dl, "Бюджет", money(pilot.remaining_budget));
   addDefinition(dl, "Контакты", number(pilot.remaining_contacts));
   addDefinition(dl, "Наблюдённый суммарный эффект", money(pilot.observed_lift_total));
-  addDefinition(dl, "Гипотеза", displayText(pilot.candidate_id));
+  dl.append(element("dt", "", "Гипотеза"), rawElement("dd", "", displayText(pilot.candidate_id)));
   details.append(dl);
   return details;
 }
@@ -378,15 +502,15 @@ function renderPilots() {
     row.tabIndex = -1;
     const segment = element("td", "segment-cell");
     segment.append(makeSegment(pilot.filters ?? {}));
-    segment.append(element("div", "cell-subtext", `Предложение: ${tariffLabel(pilot.target_tariff)}`));
+    segment.append(element("div", "cell-subtext", t("Предложение: {tariff}", {tariff:tariffLabel(pilot.target_tariff)})));
     segment.append(pilotDetails(pilot));
     const channel = element("td");
-    channel.append(element("span", "channel-chip", channelLabel(pilot.channel)));
+    channel.append(rawElement("span", "channel-chip", channelLabel(pilot.channel)));
     const state = element("td");
     const badge = pilot.status === "completed" ? "badge-success" : pilot.status === "failed" ? "badge-error" : "badge-neutral";
-    state.append(element("span", `badge ${badge}`, translate(pilot.status)));
+    state.append(rawElement("span", `badge ${badge}`, translate(pilot.status)));
     row.append(element("td", "", String(index + 1)), segment, channel,
-      numericCell(number(pilot.n_customers), `Запрошено: ${number(pilot.requested_n)}`),
+      numericCell(number(pilot.n_customers), t("Запрошено: {n}", {n:number(pilot.requested_n)})),
       numericCell(ratio(pilot.observed_lift_ratio), "к ARPU", effectClass(pilot.observed_lift_ratio)),
       numericCell(money(pilot.cost)), state);
     rows.append(row);
@@ -406,7 +530,7 @@ function renderPilotChart(report) {
   const maximum = Math.max(...known.map((pilot) => Math.abs(pilot.observed_lift_ratio)), .00001);
   report.pilots.forEach((pilot, index) => {
     const slot = element("div", "pilot-bar-slot");
-    slot.title = `Пилот ${index + 1}: ${ratio(pilot.observed_lift_ratio)}`;
+    slot.title = t("Пилот {n}: {value}", {n:index+1, value:ratio(pilot.observed_lift_ratio)});
     if (isNumber(pilot.observed_lift_ratio)) {
       const value = pilot.observed_lift_ratio;
       const bar = element("span", `pilot-bar${value < 0 ? " pilot-bar-negative" : ""}${value === 0 ? " pilot-bar-zero" : ""}`);
@@ -432,7 +556,7 @@ function renderLimits(report) {
   const list = $("warnings-list");
   list.replaceChildren();
   const warnings = report.warnings ?? [];
-  if (warnings.length) warnings.forEach((warning) => list.append(element("li", "warning", translate(warning))));
+  if (warnings.length) warnings.forEach((warning) => list.append(rawElement("li", "warning", translate(warning))));
   else list.append(element("li", "", Array.isArray(report.warnings) ? "Агент не записал предупреждений в этот отчёт." : "Предупреждения не переданы в отчёте."));
   if (report.campaigns.length === 0) list.append(element("li", "warning", "Нет финальных кампаний: результат прогона неполный."));
   if (report.campaigns.length > 10) list.append(element("li", "warning", "В отчёте больше 10 кампаний. Проверьте допустимый размер финального плана."));
@@ -441,31 +565,35 @@ function renderLimits(report) {
   const negativeResources = [report.resources, report.planned_resources].some((resources) => resources && ["remaining_budget", "remaining_contacts", "pilots_left"].some((key) => isNumber(resources[key]) && resources[key] < 0));
   if (negativeResources) list.append(element("li", "warning", "В отчёте есть отрицательный остаток ресурсов. Проверьте соблюдение лимитов перед использованием плана."));
   list.append(element("li", "", "Расходы включают повторные контакты. Охваты отдельных кампаний нельзя считать уникальной аудиторией всего плана."));
-  setText("uncertainty-note", report.uncertainty_note ? translate(report.uncertainty_note) : "Оценка неопределённости не передана. Не интерпретируйте пилотный эффект как гарантированный результат.");
+  setRawText("uncertainty-note", report.uncertainty_note ? translate(report.uncertainty_note) : t("Оценка неопределённости не передана. Не интерпретируйте пилотный эффект как гарантированный результат."));
 
   const advisor = $("advisor-content");
   advisor.replaceChildren();
   (report.advisor ?? []).forEach((entry) => {
     const block = element("article", "advisor-entry");
     block.append(element("h3", "", `${translate(entry.phase)} · ${translate(entry.status)}`));
-    if (entry.reason) block.append(element("p", "", translate(entry.reason)));
-    if (entry.model) block.append(element("p", "", `Модель: ${entry.model}`));
-    if (entry.summary) block.append(element("p", "", entry.summary));
+    if (entry.reason) block.append(rawElement("p", "", translate(entry.reason)));
+    if (entry.model) block.append(element("p", "", t("Модель: {name}", {name:entry.model})));
+    if (entry.summary) { const original = element("p"); original.textContent = entry.summary; block.append(element("p", "small-note", "Пояснение из отчёта (исходный текст)"), original); }
     advisor.append(block);
   });
   (report.events ?? []).filter((event) => event.summary).forEach((event) => {
     const block = element("article", "advisor-entry");
-    block.append(element("h3", "", event.phase ? translate(event.phase) : "Пояснение агента"), element("p", "", event.summary));
+    block.append(element("h3", "", event.phase ? translate(event.phase) : "Пояснение агента"), element("p", "small-note", "Пояснение из отчёта (исходный текст)"), Object.assign(element("p"), {textContent:event.summary}));
     advisor.append(block);
   });
   if (!advisor.childElementCount) advisor.append(element("p", "advisor-entry", "В этом отчёте нет статусов или пояснений советника."));
 }
 
+function formatSource(source) {
+  return source.startsWith("Импорт · ") ? t("Импорт · {name}", {name:source.slice(9)}) : t(source);
+}
+
 function renderResultSummary(report, source = "") {
-  setText("result-source", report ? source : "Отчёт не выбран");
+  setText("result-source", report ? formatSource(source) : "Отчёт не выбран");
   setText("result-seed", report ? number(report.seed) : MISSING);
   setText("result-time", report ? formatDate(report.generated_at) : MISSING);
-  setText("result-engine", report ? report.engine : MISSING);
+  setRawText("result-engine", report ? report.engine : MISSING);
   setText("result-budget-pilots", money(report?.resources?.remaining_budget));
   setText("result-budget-planned", money(report?.planned_resources?.remaining_budget));
   setText("result-contacts-pilots", number(report?.resources?.remaining_contacts));
@@ -475,27 +603,29 @@ function renderResultSummary(report, source = "") {
   setText("result-verdict", !report ? "Нет отчёта" : needsReview ? "Проверьте ограничения" : "План готов к проверке");
 }
 
-function renderReport(report, source) {
+function renderReport(report, source, preserveFilters = false) {
   currentReport = report;
+  currentSource = source;
+  const filters = {query: $("campaign-search").value, channel: $("campaign-channel").value, status: $("pilot-status").value};
   setText("run-badge", source === "Текущий прогон" ? "Текущий прогон" : "Сохранённый прогон");
   $("run-badge").className = "badge badge-neutral";
-  setText("meta-source", source);
+  setText("meta-source", formatSource(source));
   setText("meta-seed", number(report.seed));
   setText("meta-time", formatDate(report.generated_at));
-  setText("meta-engine", report.engine);
+  setRawText("meta-engine", report.engine);
   setText("overview-title", report.campaigns.length ? "Результаты анализа" : "План не сформирован");
   setText("overview-description", "Итог расчёта, рекомендованные кампании и доступные ресурсы.");
   setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
   setMoneyValue("metric-net", report.evaluation?.net_arpu_gain);
-  setText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
-    ? (report.evaluation?.status ? translate(report.evaluation.status) : "Итог расчёта")
-    : "Итог расчёта недоступен");
+  setRawText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
+    ? (report.evaluation?.status ? translate(report.evaluation.status) : t("Итог расчёта"))
+    : t("Итог расчёта недоступен"));
   setText("metric-campaigns", number(report.campaigns.length));
   setText("metric-pilots", number(report.pilots.length));
   const completed = report.pilots.filter((pilot) => pilot.status === "completed").length;
   const failed = report.pilots.filter((pilot) => pilot.status === "failed").length;
   const unknown = report.pilots.length - completed - failed;
-  setText("pilot-completion", `Завершено: ${number(completed)} · ошибок: ${number(failed)}${unknown ? ` · другой/неизвестный статус: ${number(unknown)}` : ""}`);
+  setText("pilot-completion", t("Завершено: {completed} · ошибок: {failed}", {completed:number(completed), failed:number(failed)}) + (unknown ? t(" · другой/неизвестный статус: {n}", {n:number(unknown)}) : ""));
   setText("metric-pilots-left", number(report.resources.pilots_left));
   setText("budget-pilots", money(report.resources.remaining_budget));
   setText("contacts-pilots", number(report.resources.remaining_contacts));
@@ -508,6 +638,11 @@ function renderReport(report, source) {
   $("campaign-search").value = "";
   fillSelect("campaign-channel", report.campaigns.map((campaign) => campaign.channel), channelLabel);
   fillSelect("pilot-status", report.pilots.map((pilot) => pilot.status), translate);
+  if (preserveFilters) {
+    $("campaign-search").value = filters.query;
+    $("campaign-channel").value = filters.channel;
+    $("pilot-status").value = filters.status;
+  }
   renderCampaigns();
   renderPilots();
   renderPilotChart(report);
@@ -527,6 +662,7 @@ export function importReport(report, source = "Текущий прогон") {
 
 function clearReport() {
   currentReport = null;
+  currentSource = "";
   setReportVisible(false);
   $("export-csv").disabled = true;
   $("campaign-cards").replaceChildren();
@@ -561,13 +697,13 @@ async function loadReport(readText, source) {
   setNotice("loading", "Читаем отчёт…", "Проверяем версию и структуру данных.");
   try {
     const text = await readText();
-    if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error("Файл больше 10 МБ. Выберите меньший отчёт.");
+    if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw localizedError("Файл больше 10 МБ. Выберите меньший отчёт.");
     const report = parseReport(text);
     importReport(report, source);
     setNotice("success", "Отчёт загружен", "Открыт сохранённый прогон. Новый расчёт и рассылки не запускаются.");
   } catch (error) {
     clearReport();
-    setNotice("error", "Не удалось открыть отчёт", error instanceof Error ? error.message : "Выберите корректный report.json и повторите попытку.");
+    setNotice("error", "Не удалось открыть отчёт", error instanceof Error ? () => error.message : "Выберите корректный report.json и повторите попытку.");
   } finally {
     setLoading(false);
     $("report-file").value = "";
@@ -581,7 +717,7 @@ $("report-file").addEventListener("change", () => {
   const file = $("report-file").files?.[0];
   if (!file) return;
   loadReport(async () => {
-    if (file.size > MAX_FILE_BYTES) throw new Error("Файл больше 10 МБ. Выберите меньший отчёт.");
+    if (file.size > MAX_FILE_BYTES) throw localizedError("Файл больше 10 МБ. Выберите меньший отчёт.");
     return file.text();
   }, `Импорт · ${file.name}`);
 });
@@ -592,13 +728,13 @@ $("load-static").addEventListener("click", () => {
     try {
       // Fixed, same-origin local path. The imported file is never uploaded.
       const response = await fetch("./report.json", { cache: "no-store", signal: controller.signal, credentials: "omit", redirect: "error" });
-      if (!response.ok) throw new Error("Сохранённый report.json не найден рядом со страницей. Откройте файл отчёта кнопкой «Открыть отчёт».");
+      if (!response.ok) throw localizedError("Сохранённый report.json не найден рядом со страницей. Откройте файл отчёта кнопкой «Открыть отчёт».");
       const length = Number(response.headers.get("content-length"));
-      if (Number.isFinite(length) && length > MAX_FILE_BYTES) throw new Error("Файл больше 10 МБ. Выберите меньший отчёт.");
+      if (Number.isFinite(length) && length > MAX_FILE_BYTES) throw localizedError("Файл больше 10 МБ. Выберите меньший отчёт.");
       return await response.text();
     } catch (error) {
-      if (error?.name === "AbortError") throw new Error("Не удалось загрузить сохранённый отчёт за 10 секунд. Откройте файл вручную.");
-      if (error instanceof TypeError) throw new Error("Сохранённый отчёт недоступен. Откройте файл вручную или запустите локальный веб-сервер по README.");
+      if (error?.name === "AbortError") throw localizedError("Не удалось загрузить сохранённый отчёт за 10 секунд. Откройте файл вручную.");
+      if (error instanceof TypeError) throw localizedError("Сохранённый отчёт недоступен. Откройте файл вручную или запустите локальный веб-сервер по README.");
       throw error;
     } finally {
       clearTimeout(timeout);
@@ -639,3 +775,20 @@ $("clear-report").addEventListener("click", () => {
   setNotice("", "");
 });
 setReportVisible(false);
+
+// Repaint presentation only: language changes never import/reset a snapshot or chat.
+document.addEventListener("tariflow:language-changed", () => {
+  const activeView = document.querySelector(".nav-link.active")?.dataset.view ?? "overview";
+  const scroll = {x:window.scrollX, y:window.scrollY};
+  const focusedId = document.activeElement?.id;
+  const openDetails = [...document.querySelectorAll("details[open]")].map(node => ({id:node.id, parent:node.closest("[id^='campaign-'], [id^='pilot-']")?.id}));
+  if (currentReport) renderReport(currentReport, currentSource, true);
+  setText("view-label", VIEW_LABELS[activeView]);
+  for (const entry of openDetails) {
+    const details = entry.id ? $(entry.id) : entry.parent ? $(entry.parent)?.querySelector("details") : null;
+    if (details) details.open = true;
+  }
+  if (focusedId) $(focusedId)?.focus({preventScroll:true});
+  window.scrollTo({left:scroll.x, top:scroll.y, behavior:"instant"});
+});
+initializeLanguage();

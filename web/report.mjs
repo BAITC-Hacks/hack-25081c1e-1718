@@ -1,15 +1,111 @@
+import {t, registerMessages, getLanguage, getLocale, onLanguageChange, localizedError} from "./i18n.mjs";
+
+registerMessages({
+  "нет данных": "дерек жоқ",
+  "Текущий тариф": "Қазіргі тариф",
+  "Доход с абонента": "Абоненттен түсетін кіріс",
+  "Интернет": "Интернет",
+  "Звонки": "Қоңыраулар",
+  "ожидается строка": "жол болуы керек",
+  "ожидается конечное число или null": "шекті сан немесе null болуы керек",
+  "ожидается массив": "массив болуы керек",
+  "массив превышает 10 000 записей": "массивте 10 000-нан астам жазба бар",
+  "ожидается объект": "нысан болуы керек",
+  "ожидается непустая строка": "бос емес жол болуы керек",
+  "ожидается объект с остатками ресурсов": "қалған ресурстары бар нысан болуы керек",
+  "ожидается массив строк": "жолдар массиві болуы керек",
+  "массив превышает 1 000 предупреждений": "массивте 1 000-нан астам ескерту бар",
+  "ожидается true или false": "true немесе false болуы керек",
+  "Поле «{path}»: {expected}. Выберите корректный отчёт версии 1.0.": "«{path}» өрісі: {expected}. 1.0 нұсқасындағы дұрыс есепті таңдаңыз.",
+  "Отчёт должен быть JSON-объектом. Выберите report.json, созданный агентом.": "Есеп JSON нысаны болуы керек. Агент жасаған report.json файлын таңдаңыз.",
+  "Версия отчёта не поддерживается. Ожидается schema_version: «1.0».": "Есептің бұл нұсқасына қолдау көрсетілмейді. schema_version мәні «1.0» болуы керек.",
+  "Не удалось прочитать JSON. Проверьте формат файла и выберите report.json ещё раз.": "JSON файлын оқу мүмкін болмады. Файл пішімін тексеріп, report.json файлын қайта таңдаңыз.",
+  "{value} ден. ед.": "{value} ақша бірл.",
+  "Неизвестный тариф: {code}": "Белгісіз тариф: {code}",
+  "Параметры не указаны": "Параметрлері көрсетілмеген",
+  "В справочнике нет этого кода.": "Анықтамалықта бұл код жоқ.",
+  "Тариф №{n}": "№{n} тариф",
+  "{n} ГБ": "{n} ГБ",
+  "Без пакета интернета": "Интернет пакеті жоқ",
+  "{n} мин": "{n} мин",
+  "{n} мин, включая городские": "{n} мин, қалалық нөмірлерді қоса",
+  "без пакета минут": "минуттар пакеті жоқ",
+  "{n} минут на других операторов": "Басқа операторларға {n} минут",
+  "{n} минут на других операторов и городские номера (общий пакет)": "Басқа операторларға және қалалық нөмірлерге {n} минут (ортақ пакет)",
+  "{price}/мес.": "{price}/ай",
+  "Без абонентской платы": "Абоненттік төлемсіз",
+  "{n} МБ интернета": "{n} МБ интернет",
+  "Интернет не включён в пакет": "Интернет пакетке кірмейді",
+  "Минуты не включены в пакет": "Минуттар пакетке кірмейді",
+  "или": "немесе",
+  "Любой текущий тариф": "Кез келген қазіргі тариф",
+  "Низкий доход с абонента": "Абоненттен түсетін кіріс: төмен",
+  "Средний доход с абонента": "Абоненттен түсетін кіріс: орташа",
+  "Высокий доход с абонента": "Абоненттен түсетін кіріс: жоғары",
+  "Средний месячный доход с абонента за 3 месяца: меньше 1 000 денежных единиц.": "Соңғы 3 айдағы бір абоненттен түсетін орташа айлық кіріс: 1 000 ақша бірлігінен аз.",
+  "Средний месячный доход с абонента за 3 месяца: от 1 000 до 5 000 денежных единиц.": "Соңғы 3 айдағы бір абоненттен түсетін орташа айлық кіріс: 1 000–5 000 ақша бірлігі.",
+  "Средний месячный доход с абонента за 3 месяца: больше 5 000 денежных единиц.": "Соңғы 3 айдағы бір абоненттен түсетін орташа айлық кіріс: 5 000 ақша бірлігінен көп.",
+  "Не пользуются интернетом": "Интернетті пайдаланбайды",
+  "Мало пользуются интернетом": "Интернетті аз пайдаланады",
+  "Активно пользуются интернетом": "Интернетті белсенді пайдаланады",
+  "0 МБ в месяц.": "Айына 0 МБ.",
+  "Больше 0, до 2 000 МБ в месяц.": "Айына 0 МБ-тан көп, 2 000 МБ-қа дейін.",
+  "Больше 2 000 МБ в месяц.": "Айына 2 000 МБ-тан көп.",
+  "Редко звонят": "Сирек қоңырау шалады",
+  "Умеренно звонят": "Орташа жиілікпен қоңырау шалады",
+  "Часто звонят": "Жиі қоңырау шалады",
+  "Меньше 100 минут в месяц.": "Айына 100 минуттан аз.",
+  "От 100 до 400 минут в месяц.": "Айына 100–400 минут.",
+  "Больше 400 минут в месяц.": "Айына 400 минуттан көп.",
+  "Неизвестный сегмент: {value}": "Белгісіз сегмент: {value}",
+  "Описание этого значения не передано.": "Бұл мәннің сипаттамасы берілмеген.",
+  "Завершён": "Аяқталды",
+  "Ошибка": "Қате",
+  "Пропущен": "Өткізіп жіберілді",
+  "Резервная стратегия": "Қосалқы стратегия",
+  "Проверка пройдена": "Тексеруден өтті",
+  "Проверка не пройдена": "Тексеруден өтпеді",
+  "Автономный режим": "Автономды режим",
+  "Ключ API не задан": "API кілті берілмеген",
+  "Ошибка ответа API": "API жауабында қате бар",
+  "Истекло время ожидания": "Күту уақыты аяқталды",
+  "Ошибка сети": "Желі қатесі",
+  "Ошибка запроса к API": "API сұрауының қатесі",
+  "Достигнут лимит вызовов советника": "Кеңесшіге сұрау жіберу шегіне жетті",
+  "Некорректные входные данные советника": "Кеңесшіге берілген деректер дұрыс емес",
+  "Нет кандидатов для советника": "Кеңесшіге арналған нұсқалар жоқ",
+  "Ответ модели не соответствует допустимому выбору кандидатов": "Модель жауабы рұқсат етілген нұсқаларға сәйкес келмейді",
+  "Некорректный ответ API": "API жауабы дұрыс емес",
+  "Некорректный JSON ответа": "Жауаптағы JSON дұрыс емес",
+  "Выбор гипотез": "Болжамдарды іріктеу",
+  "Пересмотр после пилотов": "Сынақтардан кейін қайта қарау",
+  "Исторический приор недоступен.": "Тарихи деректерге негізделген бастапқы баға қолжетімсіз.",
+  "Недоступна зависимость модуля кандидатов; использована резервная генерация.": "Нұсқалар модуліне қажетті құрамдас қолжетімсіз; қосалқы құру тәсілі қолданылды.",
+  "Модуль кандидатов завершился с ошибкой; использована резервная генерация.": "Нұсқалар модулі қатемен аяқталды; қосалқы құру тәсілі қолданылды.",
+  "Модуль не вернул допустимых кандидатов; использована резервная генерация.": "Модуль жарамды нұсқаларды қайтармады; қосалқы құру тәсілі қолданылды.",
+  "Нет поддерживаемого канала для кампаний.": "Науқандар үшін қолдау көрсетілетін арна жоқ.",
+  "Нет положительного плана по осторожной оценке. Выбрана резервная кампания; положительный эффект не гарантирован.": "Сақтықпен бағалағанда оң нәтиже беретін жоспар жоқ. Қосалқы науқан таңдалды; оң әсерге кепілдік берілмейді.",
+  "Резервная кампания не подтверждена наблюдением пилота.": "Қосалқы науқан сынақ нәтижесімен расталмаған.",
+  "Неопределённость — приблизительный запас для планирования по публичному шаблону. Это не калиброванный доверительный интервал.": "Белгісіздік көрсеткіші — ашық үлгі негізінде жоспарлауда қолданылатын шамамен түзету. Бұл калибрленген сенімділік аралығы емес.",
+  "Пилот завершился с ошибкой: {reason}.": "Сынақ қатемен аяқталды: {reason}.",
+  "Push-уведомление": "Push хабарламасы",
+  "Звонок оператора": "Оператор қоңырауы",
+  "Цифровая реклама": "Цифрлық жарнама"
+});
+
 // The report is data, never markup. Keep parsing independent from the DOM.
-export const MISSING = "нет данных";
+export let MISSING = t("нет данных");
+onLanguageChange(() => { MISSING = t("нет данных"); });
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const CAMPAIGN_COLUMNS = Object.freeze([
   "campaign_name", "filter_current_tariff", "filter_arpu_segment",
   "filter_data_segment", "filter_call_segment", "target_tariff", "channel",
 ]);
 export const FILTER_LABELS = Object.freeze({
-  filter_current_tariff: "Текущий тариф",
-  filter_arpu_segment: "Доход с абонента",
-  filter_data_segment: "Интернет",
-  filter_call_segment: "Звонки",
+  get filter_current_tariff() { return t("Текущий тариф"); },
+  get filter_arpu_segment() { return t("Доход с абонента"); },
+  get filter_data_segment() { return t("Интернет"); },
+  get filter_call_segment() { return t("Звонки"); },
 });
 
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -17,7 +113,7 @@ export const isNumber = (value) => typeof value === "number" && Number.isFinite(
 const absent = (value) => value === undefined || value === null;
 
 function fail(path, expected) {
-  throw new Error(`Поле «${path}»: ${expected}. Выберите корректный отчёт версии 1.0.`);
+  throw localizedError("Поле «{path}»: {expected}. Выберите корректный отчёт версии 1.0.", {path, expected:() => t(expected)});
 }
 
 function optionalString(value, path) {
@@ -39,9 +135,9 @@ function arrayOfObjects(value, path, required = false) {
 }
 
 export function validateReport(report) {
-  if (!object(report)) throw new Error("Отчёт должен быть JSON-объектом. Выберите report.json, созданный агентом.");
+  if (!object(report)) throw localizedError("Отчёт должен быть JSON-объектом. Выберите report.json, созданный агентом.");
   if (report.schema_version !== "1.0") {
-    throw new Error("Версия отчёта не поддерживается. Ожидается schema_version: «1.0».");
+    throw localizedError("Версия отчёта не поддерживается. Ожидается schema_version: «1.0».");
   }
   if (typeof report.engine !== "string" || !report.engine.trim()) fail("engine", "ожидается непустая строка");
   const campaigns = arrayOfObjects(report.campaigns, "campaigns", true);
@@ -95,17 +191,17 @@ export function parseReport(text) {
   try {
     report = JSON.parse(text.replace(/^\uFEFF/, ""));
   } catch {
-    throw new Error("Не удалось прочитать JSON. Проверьте формат файла и выберите report.json ещё раз.");
+    throw localizedError("Не удалось прочитать JSON. Проверьте формат файла и выберите report.json ещё раз.");
   }
   return validateReport(report);
 }
 
 export function number(value, digits = 0) {
-  return isNumber(value) ? value.toLocaleString("ru-RU", { maximumFractionDigits: digits }) : MISSING;
+  return isNumber(value) ? value.toLocaleString(getLocale(), { maximumFractionDigits: digits }) : MISSING;
 }
 
 export function money(value, digits = 0) {
-  return isNumber(value) ? `${number(value, digits)} ден. ед.` : MISSING;
+  return isNumber(value) ? t("{value} ден. ед.", {value:number(value, digits)}) : MISSING;
 }
 
 // Display-only copy of the public tariff_dictionary.csv. No effect on selection.
@@ -123,25 +219,27 @@ export const TARIFF_CATALOG = Object.freeze(Object.fromEntries(tariffRows.map(([
   `tariff_${id}`, Object.freeze({mb, minutes, sharedMinutes, price}),
 ])));
 
-export function tariffInfo(code) {
+export function tariffInfo(code, language = getLanguage()) {
+  const tr = (source, params) => t(source, params, language);
   const row = typeof code === "string" && Object.hasOwn(TARIFF_CATALOG, code) ? TARIFF_CATALOG[code] : null;
-  if (!row) return {name: `Неизвестный тариф: ${displayText(code)}`, package: "Параметры не указаны", price: MISSING, description: "В справочнике нет этого кода."};
-  const name = `Тариф №${code.slice(7)}`;
-  const data = row.mb ? `${number(row.mb / 1024, 2)} ГБ` : "Без пакета интернета";
-  const calls = [row.minutes ? `${number(row.minutes)} мин` : "", row.sharedMinutes ? `${number(row.sharedMinutes)} мин, включая городские` : ""].filter(Boolean);
-  const packageText = [data, ...(calls.length ? calls : ["без пакета минут"])].join(" · ");
-  const callDetails = [row.minutes ? `${number(row.minutes)} минут на других операторов` : "", row.sharedMinutes ? `${number(row.sharedMinutes)} минут на других операторов и городские номера (общий пакет)` : ""].filter(Boolean);
-  return {name, package:packageText, price: row.price ? `${money(row.price, 1)}/мес.` : "Без абонентской платы",
-    description: [row.mb ? `${number(row.mb)} МБ интернета` : "Интернет не включён в пакет", ...(callDetails.length ? callDetails : ["Минуты не включены в пакет"])].join("; ")};
+  if (!row) return {name: tr("Неизвестный тариф: {code}", {code:displayText(code)}), package: tr("Параметры не указаны"), price: MISSING, description: tr("В справочнике нет этого кода.")};
+  const name = tr("Тариф №{n}", {n:code.slice(7)});
+  const data = row.mb ? tr("{n} ГБ", {n:number(row.mb / 1024, 2)}) : tr("Без пакета интернета");
+  const calls = [row.minutes ? tr("{n} мин", {n:number(row.minutes)}) : "", row.sharedMinutes ? tr("{n} мин, включая городские", {n:number(row.sharedMinutes)}) : ""].filter(Boolean);
+  const packageText = [data, ...(calls.length ? calls : [tr("без пакета минут")])].join(" · ");
+  const callDetails = [row.minutes ? tr("{n} минут на других операторов", {n:number(row.minutes)}) : "", row.sharedMinutes ? tr("{n} минут на других операторов и городские номера (общий пакет)", {n:number(row.sharedMinutes)}) : ""].filter(Boolean);
+  return {name, package:packageText, price: row.price ? tr("{price}/мес.", {price:money(row.price, 1)}) : tr("Без абонентской платы"),
+    description: [row.mb ? tr("{n} МБ интернета", {n:number(row.mb)}) : tr("Интернет не включён в пакет"), ...(callDetails.length ? callDetails : [tr("Минуты не включены в пакет")])].join("; ")};
 }
 
 export function tariffCodes(value) {
   return typeof value === "string" ? value.split(";").map(code => code.trim()).filter(Boolean) : [];
 }
 
-export function tariffLabel(value) {
+export function tariffLabel(value, language = getLanguage()) {
+  const tr = (source, params) => t(source, params, language);
   const codes = tariffCodes(value);
-  return codes.length ? codes.map(code => { const info = tariffInfo(code); return `${info.name}: ${info.package}`; }).join(" или ") : "Любой текущий тариф";
+  return codes.length ? codes.map(code => { const info = tariffInfo(code, language); return `${info.name}: ${info.package}`; }).join(` ${tr("или")} `) : tr("Любой текущий тариф");
 }
 
 const SEGMENTS = {
@@ -162,15 +260,16 @@ const SEGMENTS = {
   },
 };
 
-export function segmentInfo(key, value) {
+export function segmentInfo(key, value, language = getLanguage()) {
+  const tr = (source, params) => t(source, params, language);
   const group = Object.hasOwn(SEGMENTS, key) ? SEGMENTS[key] : null;
   const entry = group && Object.hasOwn(group, value) ? group[value] : null;
-  return entry ? {label:entry[0], description:entry[1]} : {label:`Неизвестный сегмент: ${displayText(value)}`, description:"Описание этого значения не передано."};
+  return entry ? {label:tr(entry[0]), description:tr(entry[1])} : {label:tr("Неизвестный сегмент: {value}", {value:displayText(value)}), description:tr("Описание этого значения не передано.")};
 }
 
 export function ratio(value) {
   return isNumber(value)
-    ? value.toLocaleString("ru-RU", { style: "percent", maximumFractionDigits: 2, signDisplay: "exceptZero" })
+    ? value.toLocaleString(getLocale(), { style: "percent", maximumFractionDigits: 2, signDisplay: "exceptZero" })
     : MISSING;
 }
 
@@ -202,10 +301,11 @@ export function findAllocation(campaign, allocation = []) {
 
 export function campaignMatches(campaign, query, channel) {
   if (channel && campaign.channel !== channel) return false;
-  const descriptions = [tariffLabel(campaign.filter_current_tariff), tariffLabel(campaign.target_tariff), channelLabel(campaign.channel),
-    ...Object.keys(SEGMENTS).filter(key => campaign[key]).map(key => segmentInfo(key, campaign[key]).label)];
-  const text = [...CAMPAIGN_COLUMNS.map((key) => campaign[key] ?? ""), ...descriptions].join(" ").toLocaleLowerCase("ru-RU");
-  return text.includes(query.trim().toLocaleLowerCase("ru-RU"));
+  // Search both vocabularies so changing the interface language retains useful results.
+  const descriptions = ["ru", "kk"].flatMap(language => [tariffLabel(campaign.filter_current_tariff, language), tariffLabel(campaign.target_tariff, language), channelLabel(campaign.channel, language),
+    ...Object.keys(SEGMENTS).filter(key => campaign[key]).map(key => segmentInfo(key, campaign[key], language).label)]);
+  const text = [...CAMPAIGN_COLUMNS.map((key) => campaign[key] ?? ""), ...descriptions].join(" ").toLocaleLowerCase(getLocale());
+  return text.includes(query.trim().toLocaleLowerCase(getLocale()));
 }
 
 function csvCell(value) {
@@ -244,12 +344,13 @@ const TRANSLATIONS = Object.freeze({
 
 export function translate(value) {
   if (typeof value !== "string" || !value.trim()) return MISSING;
-  if (Object.hasOwn(TRANSLATIONS, value)) return TRANSLATIONS[value];
-  if (value.startsWith("pilot_failed_")) return `Пилот завершился с ошибкой: ${value.slice("pilot_failed_".length)}.`;
+  if (Object.hasOwn(TRANSLATIONS, value)) return t(TRANSLATIONS[value]);
+  if (value.startsWith("pilot_failed_")) return t("Пилот завершился с ошибкой: {reason}.", {reason:value.slice("pilot_failed_".length)});
   return value;
 }
 
-export function channelLabel(value) {
+export function channelLabel(value, language = getLanguage()) {
+  const tr = (source, params) => t(source, params, language);
   const labels = { sms: "SMS", push: "Push-уведомление", call: "Звонок оператора", digital_ads: "Цифровая реклама" };
-  return Object.hasOwn(labels, value) ? labels[value] : displayText(value);
+  return Object.hasOwn(labels, value) ? tr(labels[value]) : displayText(value);
 }

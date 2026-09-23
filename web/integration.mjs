@@ -1,6 +1,92 @@
 import { createApiClient } from "./api.mjs";
 import { getCurrentReport, importReport, showAppNotice, focusEvidence } from "./app.mjs";
 import { findAllocation } from "./report.mjs";
+import { registerMessages, t, getLanguage, setLocalizedText } from "./i18n.mjs";
+
+registerMessages({
+  "Не удалось выполнить запрос. Повторите попытку.": "Сұрауды орындау мүмкін болмады. Қайталап көріңіз.",
+  "Локальный API недоступен": "Жергілікті API қолжетімсіз",
+  "Сервер подключён · ключ OpenAI не настроен": "Сервер қосылған · OpenAI кілті бапталмаған",
+  "Сервер подключён · OpenAI выключен на сервере": "Сервер қосылған · серверде OpenAI өшірілген",
+  "Сервер подключён · OpenAI настроен": "Сервер қосылған · OpenAI бапталған",
+  "Запустите локальный сервер по README или откройте сохранённый report.json.": "README нұсқаулығы бойынша жергілікті серверді іске қосыңыз немесе сақталған report.json файлын ашыңыз.",
+  "OpenAI недоступен. Настройте ключ в окружении сервера или выберите автономный режим.": "OpenAI қолжетімсіз. Кілтті сервер ортасында баптаңыз немесе автономды режимді таңдаңыз.",
+  "Настройки OpenAI доступны. Успех вызова будет известен после запуска.": "OpenAI баптаулары қолжетімді. Сұраудың сәтті орындалғаны іске қосқаннан кейін белгілі болады.",
+  "Автономный анализ работает без запросов к OpenAI.": "Автономды талдау OpenAI сұрауларынсыз жұмыс істейді.",
+  "По текущему отчёту": "Ағымдағы есеп бойынша",
+  "Отчёт не выбран": "Есеп таңдалмаған",
+  "Отчёт из файла · доступен для просмотра": "Файлдағы есеп · қарауға болады",
+  "Кампаний: {campaigns} · пилотов: {pilots}": "Науқандар: {campaigns} · сынақтар: {pilots}",
+  "Запустите анализ или загрузите отчёт сервера, чтобы задать вопрос.": "Сұрақ қою үшін талдауды іске қосыңыз немесе сервердегі есепті жүктеңіз.",
+  "Для вопросов нужен отчёт сервера. Загрузите его кнопкой выше или запустите анализ.": "Сұрақ қою үшін сервердегі есеп қажет. Оны жоғарыдағы батырмамен жүктеңіз немесе талдауды іске қосыңыз.",
+  "Для ответа нужен локальный API. Открытый отчёт сохранён.": "Жауап алу үшін жергілікті API қажет. Ашық есеп сақталды.",
+  "Каждый вопрос рассматривается отдельно, по текущему отчёту.": "Әр сұрақ ағымдағы есеп бойынша жеке қарастырылады.",
+  "Сервер пока отвечает только на русском. Интерфейс переведён; язык ответа агента недоступен.": "Сервер әзірге тек орысша жауап береді. Интерфейс аударылған; агенттің қазақша жауабы әзірге қолжетімсіз.",
+  "Проверяем подключение…": "Қосылымды тексеріп жатырмыз…",
+  "Новый запуск не подтверждён": "Жаңа іске қосу расталмады",
+  "Сервер показывает предыдущий расчёт. Можно загрузить его отчёт или вручную повторить запуск.": "Сервер алдыңғы есептеуді көрсетіп тұр. Оның есебін жүктеуге немесе қайта іске қосуға болады.",
+  "Активный запуск не найден": "Орындалып жатқан есептеу табылмады",
+  "Сервер не подтверждает прежний запуск. Можно загрузить его последний снимок или запустить анализ вручную.": "Сервер бұрынғы іске қосуды растамайды. Соңғы есепті жүктеуге немесе талдауды өзіңіз іске қосуға болады.",
+  "{message} Импорт отчёта остаётся доступен.": "{message} Есепті импорттауға әлі де болады.",
+  "Сохранённый снимок сервера": "Серверде сақталған есеп",
+  "Текущий прогон": "Ағымдағы есептеу",
+  "На сервере уже другой снимок. Загрузите последний отчёт отдельно; он не будет выдан за результат этого запуска.": "Серверде басқа есеп бар. Соңғы есепті бөлек жүктеңіз; ол осы іске қосудың нәтижесі ретінде көрсетілмейді.",
+  "Снимок сервера загружен": "Сервердегі есеп жүктелді",
+  "Открыт сохранённый отчёт сервера. Теперь можно задавать вопросы об этом снимке.": "Серверде сақталған есеп ашылды. Енді осы есеп туралы сұрақ қоюға болады.",
+  "Анализ завершён. Показан проверенный отчёт этого запуска.": "Талдау аяқталды. Осы іске қосудың тексерілген есебі көрсетілді.",
+  "Анализ завершён": "Талдау аяқталды",
+  "Результат расчёта получен от локального сервера. Реальные рассылки не выполнялись.": "Есептеу нәтижесі жергілікті серверден алынды. Нақты хабарламалар жіберілген жоқ.",
+  "Анализ завершился ошибкой. {message}": "Талдау қатемен аяқталды. {message}",
+  "Повторите запуск.": "Қайта іске қосыңыз.",
+  "Не удалось завершить анализ": "Талдауды аяқтау мүмкін болмады",
+  "Предыдущий отчёт, если он был открыт, остаётся сохранённым. {message}": "Бұрын ашылған есеп сақталады. {message}",
+  "Анализ выполняется · расчёт и проверка кампаний. Ожидаем результат сервера.": "Талдау орындалуда · науқандар есептеліп, тексерілуде. Сервер нәтижесін күтіп отырмыз.",
+  "Ожидание статуса затянулось. Проверьте соединение; повторный анализ пока заблокирован.": "Күйді күту ұзаққа созылды. Қосылымды тексеріңіз; талдауды қайта іске қосу әзірге бұғатталған.",
+  "{message} Нажмите «Проверить подключение», чтобы продолжить наблюдение за тем же запуском.": "{message} Осы іске қосуды бақылауды жалғастыру үшін «Қосылымды тексеру» батырмасын басыңыз.",
+  "{message} Можно отдельно загрузить последний снимок сервера или проверить подключение.": "{message} Сервердегі соңғы есепті бөлек жүктеуге немесе қосылымды тексеруге болады.",
+  "Не удалось получить результат": "Нәтижені алу мүмкін болмады",
+  "Новый запуск не отправлен повторно. Сохранённый открытый отчёт не изменён.": "Жаңа іске қосу қайта жіберілген жоқ. Ашық сақталған есеп өзгермеді.",
+  "Передаём запуск локальному серверу…": "Іске қосу сұрауын жергілікті серверге жіберіп жатырмыз…",
+  "Исход отправки неизвестен. Проверяем состояние сервера без повторного запуска…": "Жіберу нәтижесі белгісіз. Қайта іске қоспай, сервер күйін тексеріп жатырмыз…",
+  "Не удалось подтвердить исход отправки. Проверьте подключение; повторный запуск заблокирован.": "Жіберу нәтижесін растау мүмкін болмады. Қосылымды тексеріңіз; қайта іске қосу бұғатталған.",
+  "{message} Выберите доступный режим и повторите действие.": "{message} Қолжетімді режимді таңдап, әрекетті қайталаңыз.",
+  "Загружаем снимок сервера…": "Сервердегі есепті жүктеп жатырмыз…",
+  "Загружаем отчёт": "Есеп жүктелуде",
+  "Получаем последний сохранённый снимок сервера.": "Серверде сақталған соңғы есепті алып жатырмыз.",
+  "Не удалось загрузить снимок": "Есепті жүктеу мүмкін болмады",
+  "{message} Открытый отчёт не изменён.": "{message} Ашық есеп өзгермеді.",
+  "Вы": "Сіз",
+  "Изучаю данные отчёта…": "Есеп деректерін зерттеп жатырмын…",
+  "Готовит ответ": "Жауап дайындалуда",
+  "Агент готовит ответ по текущему отчёту…": "Агент ағымдағы есеп бойынша жауап дайындап жатыр…",
+  "Автономный ответ": "Автономды жауап",
+  "Tariflow · Автономный ответ": "Tariflow · Автономды жауап",
+  "Ответ готов. Ссылки под ним открывают данные отчёта.": "Жауап дайын. Оның астындағы сілтемелер есеп деректерін ашады.",
+  "Tariflow · ответ не получен": "Tariflow · жауап алынбады",
+  "Повторить вопрос": "Сұрақты қайталау",
+  "Ответ не получен": "Жауап алынбады",
+  "Вопрос сохранён. Повторите его кнопкой в сообщении.": "Сұрақ сақталды. Оны хабарламадағы батырмамен қайталаңыз.",
+  "Введите вопрос от 1 до 2000 символов.": "Ұзындығы 1–2000 таңба болатын сұрақ енгізіңіз.",
+  "Итог расчёта": "Есептеу нәтижесі",
+  "Ресурсы": "Ресурстар",
+  "План ресурсов": "Ресурстар жоспары",
+  "Кампания {number}": "Науқан {number}",
+  "Пилот {number}": "Сынақ {number}",
+  "{label} · исходная подпись, ссылка недоступна": "{label} · бастапқы атау, сілтеме қолжетімсіз",
+  "{label} · данные сервера": "{label} · сервер деректері",
+  "Ответ на русском": "Жауап орыс тілінде",
+  "Ответ на казахском": "Жауап қазақ тілінде",
+  "Язык ответа не указан сервером": "Сервер жауап тілін көрсетпеді",
+  "Сервер пока отвечает только на русском; этот ответ не переведён.": "Сервер әзірге тек орысша жауап береді; бұл жауап аударылған жоқ.",
+  "Сообщение сервера: {message}": "Сервер хабарламасы: {message}",
+  "Данные сервера": "Сервер деректері",
+  "Сохранённого отчёта пока нет. Сначала запустите анализ.": "Сақталған есеп әзірге жоқ. Алдымен талдауды іске қосыңыз.",
+  "Выбранный отчёт не найден. Загрузите актуальный снимок сервера.": "Таңдалған есеп табылмады. Сервердегі өзекті есепті жүктеңіз.",
+  "Запуск не найден. Проверьте подключение к серверу.": "Іске қосу табылмады. Серверге қосылымды тексеріңіз.",
+  "Сервер уже выполняет анализ. Дождитесь его завершения.": "Сервер талдауды орындап жатыр. Оның аяқталуын күтіңіз.",
+  "Сервер уже готовит ответ. Дождитесь его завершения.": "Сервер жауап дайындап жатыр. Оның аяқталуын күтіңіз.",
+  "OpenAI на сервере недоступен. Выберите автономный режим.": "Серверде OpenAI қолжетімсіз. Автономды режимді таңдаңыз.",
+});
 
 const $ = id => document.getElementById(id);
 // Leave time for the server's bounded 20-second OpenAI request and fallback.
@@ -20,8 +106,32 @@ let knownRunId = null;
 let previousRunId = null;
 let snapshotLoading = false;
 
-function text(id, value) { const node = $(id); if (node) node.textContent = value; }
-function message(error) { return error instanceof Error ? error.message : "Не удалось выполнить запрос. Повторите попытку."; }
+function localize(node, source, params = {}) {
+  // Getters resolve nested localized errors again when i18n refreshes this binding.
+  const values = typeof params === "function" ? Object.defineProperties({}, Object.fromEntries(
+    Object.keys(params()).map(key => [key, {enumerable:true, get:() => params()[key]}]),
+  )) : params;
+  setLocalizedText(node, source, values);
+}
+function text(id, source, params = {}) { const node = $(id); if (node) localize(node, source, params); }
+const SERVER_ERROR_MESSAGES = Object.freeze({
+  no_report:"Сохранённого отчёта пока нет. Сначала запустите анализ.",
+  report_not_found:"Выбранный отчёт не найден. Загрузите актуальный снимок сервера.",
+  run_not_found:"Запуск не найден. Проверьте подключение к серверу.",
+  run_busy:"Сервер уже выполняет анализ. Дождитесь его завершения.",
+  chat_busy:"Сервер уже готовит ответ. Дождитесь его завершения.",
+  openai_unavailable:"OpenAI на сервере недоступен. Выберите автономный режим.",
+});
+function message(error) {
+  if (!(error instanceof Error)) return t("Не удалось выполнить запрос. Повторите попытку.");
+  if (error.serverMessage && Object.hasOwn(SERVER_ERROR_MESSAGES, error.code)) return t(SERVER_ERROR_MESSAGES[error.code]);
+  return error.serverMessage ? t("Сообщение сервера: {message}", {message:error.message}) : t(error.source || error.message, error.params || {});
+}
+function errorText(id, error, source = "{message}") { text(id, source, () => ({message:message(error)})); }
+function notice(kind, title, description = "", params = {}) {
+  showAppNotice(kind, t(title), t(description, typeof params === "function" ? params() : params));
+  text("status-title", title); text("status-description", description, params);
+}
 function selectedMode() { return $("analysis-mode").value; }
 function canOpenAI() { return !!(health?.openai.configured && health?.openai.enabled); }
 function updateControls() {
@@ -37,6 +147,13 @@ function updateControls() {
     if ($(id)) $(id).disabled = !health || !!activeRun || connecting || chatBusy || snapshotLoading;
   }
   if ($("retry-api")) $("retry-api").disabled = connecting || polling;
+  refreshLanguageHint();
+}
+function refreshLanguageHint() {
+  let node = $("agent-language-note");
+  if (!node) { node = document.createElement("p"); node.id = "agent-language-note"; node.className = "small-note"; $("agent-status").after(node); }
+  node.hidden = getLanguage() !== "kk" || !health || !!health.capabilities.chat_languages?.includes("kk");
+  localize(node, "Сервер пока отвечает только на русском. Интерфейс переведён; язык ответа агента недоступен.");
 }
 function connectionText() {
   if (!health) return "Локальный API недоступен";
@@ -63,7 +180,7 @@ function clearConversation() {
 }
 function chatHint() {
   const report = getCurrentReport();
-  text("chat-source", !report ? "Отчёт не выбран" : !snapshotId ? "Отчёт из файла · доступен для просмотра" : `Кампаний: ${report.campaigns.length} · пилотов: ${report.pilots.length}`);
+  text("chat-source", !report ? "Отчёт не выбран" : !snapshotId ? "Отчёт из файла · доступен для просмотра" : "Кампаний: {campaigns} · пилотов: {pilots}", {campaigns:report?.campaigns.length, pilots:report?.pilots.length});
   if (!report) text("agent-status", "Запустите анализ или загрузите отчёт сервера, чтобы задать вопрос.");
   else if (!snapshotId) text("agent-status", "Для вопросов нужен отчёт сервера. Загрузите его кнопкой выше или запустите анализ.");
   else if (!health) text("agent-status", "Для ответа нужен локальный API. Открытый отчёт сохранён.");
@@ -99,19 +216,19 @@ async function refreshHealth({resume = true} = {}) {
     if (resume) {
       if (activeRun === "unconfirmed" && health.run.run_id === previousRunId && health.run.state !== "running") {
         activeRun = null;
-        showAppNotice("info", "Новый запуск не подтверждён", "Сервер показывает предыдущий расчёт. Можно загрузить его отчёт или вручную повторить запуск.");
+        notice("info", "Новый запуск не подтверждён", "Сервер показывает предыдущий расчёт. Можно загрузить его отчёт или вручную повторить запуск.");
       } else if (health.run.state === "running" || (activeRun && health.run.state !== "idle")) {
         activeRun = health.run.run_id;
       } else if (activeRun && health.run.state === "idle") {
         activeRun = null;
-        showAppNotice("info", "Активный запуск не найден", "Сервер не подтверждает прежний запуск. Можно загрузить его последний снимок или запустить анализ вручную.");
+        notice("info", "Активный запуск не найден", "Сервер не подтверждает прежний запуск. Можно загрузить его последний снимок или запустить анализ вручную.");
       }
     }
     knownRunId = health.run.run_id;
   } catch (error) {
     health = null;
     text("api-status", "Локальный API недоступен");
-    text("analysis-status", message(error) + " Импорт отчёта остаётся доступен.");
+    errorText("analysis-status", error, "{message} Импорт отчёта остаётся доступен.");
   } finally {
     connecting = false; updateControls(); modeHint(); chatHint();
   }
@@ -125,7 +242,7 @@ async function loadSnapshot(expectedId = null, source = "Сохранённый 
     throw new Error("На сервере уже другой снимок. Загрузите последний отчёт отдельно; он не будет выдан за результат этого запуска.");
   }
   await displaySnapshot(payload, source);
-  if (source !== "Текущий прогон") showAppNotice("success", "Снимок сервера загружен", "Открыт сохранённый отчёт сервера. Теперь можно задавать вопросы об этом снимке.");
+  if (source !== "Текущий прогон") notice("success", "Снимок сервера загружен", "Открыт сохранённый отчёт сервера. Теперь можно задавать вопросы об этом снимке.");
 }
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function pollRun(id) {
@@ -139,13 +256,14 @@ async function pollRun(id) {
         activeRun = null;
         await loadSnapshot(run.report_id, "Текущий прогон");
         text("analysis-status", "Анализ завершён. Показан проверенный отчёт этого запуска.");
-        showAppNotice("success", "Анализ завершён", "Результат расчёта получен от локального сервера. Реальные рассылки не выполнялись.");
+        notice("success", "Анализ завершён", "Результат расчёта получен от локального сервера. Реальные рассылки не выполнялись.");
         return;
       }
       if (run.state === "failed") {
         activeRun = null;
-        text("analysis-status", "Анализ завершился ошибкой. " + (run.error?.message || "Повторите запуск."));
-        showAppNotice("error", "Не удалось завершить анализ", "Предыдущий отчёт, если он был открыт, остаётся сохранённым. " + (run.error?.message || ""));
+        const failure = () => ({message:run.error?.message ? t("Сообщение сервера: {message}", {message:run.error.message}) : t("Повторите запуск.")});
+        text("analysis-status", "Анализ завершился ошибкой. {message}", failure);
+        notice("error", "Не удалось завершить анализ", "Предыдущий отчёт, если он был открыт, остаётся сохранённым. {message}", failure);
         return;
       }
       text("analysis-status", "Анализ выполняется · расчёт и проверка кампаний. Ожидаем результат сервера.");
@@ -154,10 +272,10 @@ async function pollRun(id) {
     }
   } catch (error) {
     if (error?.status === 404) activeRun = null;
-    text("analysis-status", message(error) + (activeRun
-      ? " Нажмите «Проверить подключение», чтобы продолжить наблюдение за тем же запуском."
-      : " Можно отдельно загрузить последний снимок сервера или проверить подключение."));
-    showAppNotice("error", "Не удалось получить результат", "Новый запуск не отправлен повторно. Сохранённый открытый отчёт не изменён.");
+    errorText("analysis-status", error, activeRun
+      ? "{message} Нажмите «Проверить подключение», чтобы продолжить наблюдение за тем же запуском."
+      : "{message} Можно отдельно загрузить последний снимок сервера или проверить подключение.");
+    notice("error", "Не удалось получить результат", "Новый запуск не отправлен повторно. Сохранённый открытый отчёт не изменён.");
   } finally { polling = false; updateControls(); }
 }
 $("run-analysis").addEventListener("click", async () => {
@@ -186,14 +304,14 @@ $("run-analysis").addEventListener("click", async () => {
       updateControls(); return;
     }
     activeRun = null;
-    text("analysis-status", message(error));
+    errorText("analysis-status", error);
     if (error?.status === 409) {
       await refreshHealth({resume:true});
       return;
     }
     if (error?.status === 503) {
       await refreshHealth({resume:false});
-      text("analysis-status", message(error) + " Выберите доступный режим и повторите действие.");
+      errorText("analysis-status", error, "{message} Выберите доступный режим и повторите действие.");
     }
     updateControls(); return;
   }
@@ -206,12 +324,12 @@ async function openLatestReport() {
   snapshotLoading = true; updateControls();
   const generation = reportGeneration;
   text("agent-status", "Загружаем снимок сервера…");
-  showAppNotice("info", "Загружаем отчёт", "Получаем последний сохранённый снимок сервера.");
+  notice("info", "Загружаем отчёт", "Получаем последний сохранённый снимок сервера.");
   try { await loadSnapshot(null, "Сохранённый снимок сервера", generation); }
   catch (error) {
     if (generation !== reportGeneration) return;
-    text("agent-status", message(error));
-    showAppNotice("error", "Не удалось загрузить снимок", message(error) + " Открытый отчёт не изменён.");
+    errorText("agent-status", error);
+    notice("error", "Не удалось загрузить снимок", "{message} Открытый отчёт не изменён.", () => ({message:message(error)}));
   } finally { snapshotLoading = false; updateControls(); }
 }
 $("load-server-report")?.addEventListener("click", openLatestReport);
@@ -236,11 +354,26 @@ function evidenceTarget(ref, report) {
 function updateDraft() {
   text("chat-count", `${$("agent-question").value.length} / 2000`);
 }
-function chatNode(className, value, tag = "div") {
+function chatNode(className, value, tag = "div", params = {}) {
   const node = document.createElement(tag);
   node.className = className;
-  if (value !== undefined) node.textContent = value;
+  if (value !== undefined) localize(node, value, params);
   return node;
+}
+function dataNode(className, value) {
+  const node = chatNode(className);
+  node.textContent = value;
+  return node;
+}
+function citationLabel(ref, target) {
+  if (ref === "evaluation") return ["Итог расчёта", {}];
+  if (ref === "resources") return ["Ресурсы", {}];
+  if (ref === "planned_resources") return ["План ресурсов", {}];
+  const campaign = /^campaigns\[(\d+)\]$/.exec(target);
+  if (campaign) return ["Кампания {number}", {number:Number(campaign[1]) + 1}];
+  const pilot = /^pilots\[(\d+)\]$/.exec(target);
+  if (pilot) return ["Пилот {number}", {number:Number(pilot[1]) + 1}];
+  return null;
 }
 function scrollConversation() {
   $("chat-messages").scrollTop = $("chat-messages").scrollHeight;
@@ -253,7 +386,7 @@ window.addEventListener("resize", () => {
 });
 function addTurn(question) {
   const user = chatNode("chat-message is-user");
-  user.append(chatNode("message-meta", "Вы"), chatNode("message-body", question));
+  user.append(chatNode("message-meta", "Вы"), dataNode("message-body", question));
   const assistant = chatNode("chat-message is-assistant");
   const turn = {question, reportId:snapshotId, user, assistant};
   chatTurns.push(turn);
@@ -270,6 +403,8 @@ async function askQuestion(turn) {
   const askedSnapshot = snapshotId;
   const generation = reportGeneration;
   const sequence = ++chatSequence;
+  const requestedLanguage = getLanguage();
+  const sentLanguage = health.capabilities.chat_languages?.includes(requestedLanguage) ? requestedLanguage : undefined;
   chatBusy = true;
   turn.assistant.classList.add("is-pending");
   turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow"), chatNode("message-body", "Изучаю данные отчёта…"));
@@ -278,27 +413,37 @@ async function askQuestion(turn) {
   text("agent-status", "Агент готовит ответ по текущему отчёту…");
   updateControls(); scrollConversation();
   try {
-    const answer = await api.chat({report_id:askedSnapshot, message:turn.question});
+    const payload = {report_id:askedSnapshot, message:turn.question};
+    if (sentLanguage) payload.language = sentLanguage;
+    const answer = await api.chat(payload);
     if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
     const label = answer.mode === "openai" ? "OpenAI" : "Автономный ответ";
-    turn.assistant.replaceChildren(chatNode("message-meta", `Tariflow · ${label}`), chatNode("message-body", answer.answer));
+    const answerLanguage = answer.language ?? sentLanguage ?? "ru";
+    const languageLabel = answerLanguage === "kk" ? "Ответ на казахском" : answerLanguage === "ru" ? "Ответ на русском" : "Язык ответа не указан сервером";
+    turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow · {mode} · {language}", "div", () => ({mode:t(label), language:t(languageLabel)})), dataNode("message-body", answer.answer));
     const evidence = chatNode("message-evidence");
     for (const citation of answer.citations) {
       const target = evidenceTarget(citation.ref, getCurrentReport());
       const node = document.createElement(target ? "button" : "span");
-      node.textContent = citation.label || citation.ref;
       node.className = target ? "evidence-link" : "evidence-unavailable";
-      if (target) { node.type = "button"; node.addEventListener("click", () => focusEvidence(target)); }
-      else node.textContent += " · ссылка недоступна";
+      if (target) {
+        const caption = citationLabel(citation.ref, target);
+        if (caption) localize(node, caption[0], caption[1]);
+        else localize(node, "{label} · данные сервера", {label:citation.label || citation.ref});
+        node.type = "button"; node.addEventListener("click", () => focusEvidence(target));
+      } else localize(node, "{label} · исходная подпись, ссылка недоступна", {label:citation.label || citation.ref});
       evidence.append(node);
     }
     if (evidence.childElementCount) turn.assistant.append(evidence);
-    if (answer.warnings?.length) turn.assistant.append(chatNode("message-warning", answer.warnings.join(" · ")));
+    if (answer.warnings?.length) {
+      turn.assistant.append(chatNode("message-warning-label", "Данные сервера"), dataNode("message-warning", answer.warnings.join(" · ")));
+    }
+    if (requestedLanguage === "kk" && !sentLanguage) turn.assistant.append(chatNode("message-warning", "Сервер пока отвечает только на русском; этот ответ не переведён."));
     text("agent-mode", label);
     text("agent-status", "Ответ готов. Ссылки под ним открывают данные отчёта.");
   } catch (error) {
     if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
-    turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow · ответ не получен"), chatNode("message-warning", message(error)));
+    turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow · ответ не получен"), chatNode("message-warning", "{message}", "div", () => ({message:message(error)})));
     const retry = chatNode("button button-secondary chat-retry", "Повторить вопрос", "button");
     retry.type = "button";
     retry.addEventListener("click", () => askQuestion(turn));
@@ -331,6 +476,10 @@ $("agent-question").addEventListener("keydown", event => {
 $("chat-clear").addEventListener("click", () => {
   if (chatBusy) return;
   clearConversation(); chatHint(); updateControls(); $("agent-question").focus();
+});
+document.addEventListener("tariflow:language-changed", () => {
+  // The shared i18n bindings update system labels. Keep draft, report and answers intact.
+  refreshLanguageHint();
 });
 updateControls();
 updateDraft();
