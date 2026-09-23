@@ -115,3 +115,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: Official list names agent.py and CSV, so relying on separately uploaded helper modules would risk failure or weaker fallback. The team still benefits from separate owned source modules.
 - Who: Dima; Azim's modules read for packaging only, not edited.
 - Consequences: [AFFECTS-OTHERS] Release workflow requires verify -Release then packaging; organizer data remain runtime inputs. Isolated Python run without helper files PASS+685150 and exact CSV hash match. Integrated Azim UI593667d and imported newest report:3 campaigns,20 pilots,685150 net,53402 budget/9394 contacts after plan, no console errors.
+
+### 2026-09-23 - Develop the product interface and grounded OpenAI answers in parallel
+
+- Decision: User confirmed more than two hours remain. Start a120-minute stage: Azim owns web/DESIGN/DEMO/README; Dima owns core/local server/report assistant and API contract. Keep candidate inputs frozen during controller comparisons. Use the existing skills, browser and OpenAI Docs MCP; no heavy framework or arbitrary plugin installation.
+- Why: The user wants a more polished usable product, actual OpenAI answers and better campaign decisions. The current viewer cannot start a run or ask questions. Existing API advice and an offline report must be distinguished clearly.
+- Who: Dima under explicit user direction; Azim receives a self-contained prompt and can begin design immediately.
+- Consequences: [AFFECTS-OTHERS] docs/API.md fixes same-origin run/report/chat contracts, token/origin restrictions, honest offline mode and report citations. New server modules do not enter the official agent bundle. Quality is measured by campaign net/resource safety and evidence, not a fabricated detection-accuracy percentage. Four-minute Git checkpoints continue.
