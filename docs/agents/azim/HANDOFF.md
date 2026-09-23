@@ -13,7 +13,11 @@
 
 Checkpoint: `feat: reshape marketer workspace and recommendations`; SHA смотреть по последнему коммиту web/index.html. Node parser 8/8, syntax, Chromium: реальный/битый/пустой/отрицательный JSON, отсутствующие поля, CSV, фильтр, клавиатурное раскрытие — PASS. Снимки output/playwright-v2/overview-{375,768}.png и top-1440.png открыты и оценены. Нет page overflow/JS errors, контраст пяти разделов AA. Черновик интеграции не включён в первый checkpoint.
 
-## API и что нужно Диме
+## Второй checkpoint: API и что нужно Диме
+
+Первый каркас опубликован **1775bc5**. API/panel checkpoint: `feat: connect analysis and report questions to local API`, точный SHA по git log -1 -- web/integration.mjs. Подключены health/report/runs/run status/chat, фактический режим, доступность OpenAI, проверка snapshot ID. 13/13 adapter tests и 9/9 Chromium сценариев на изолированных API-фикстурах прошли; JS errors/externalRequests пусто. Это не утверждение о готовности реального backend: его публикация и отдельная проверка ещё нужны.
+
+Проверены восстановление после неизвестного исхода POST, completed-run/report mismatch и перезапуска сервера; повторный POST не отправляется автоматически. Старый ответ чата после смены отчёта игнорируется. Ответ и labels безопасный текст, неизвестные citations не кликабельны. Результат: output/playwright-v2/api-integration-verification.json.
 
 [AFFECTS-OTHERS] Новые frontend файлы для второго checkpoint: **web/api.mjs** (адаптер) и **web/integration.mjs** (управление API-состояниями). Их нужно разрешить в static allowlist server.py вместе с прежними index.html/styles.css/app.mjs/report.mjs. JSON/test-файлы обслуживать не требуется.
 
@@ -23,8 +27,8 @@ API принят без изменений: относительные URL, X-AR
 
 ## Следующие три шага
 
-1. Диме: принять первый checkpoint композиции с реальным JSON; web/ принадлежит Азиму, менять не требуется.
-2. Азим: подключить adapter/panel; Дима: опубликовать сервер с согласованным API и указанными static paths. До сервера продолжаю UI/состояния.
-3. Совместно: реальный offline run/chat, проверка ошибок/нет ключа, 375/768/1440, README и двухминутное DEMO; затем финальный handoff.
+1. Диме: принять 1775bc5 и API checkpoint; опубликовать сервер с API.md и указанными static paths. web/ менять не требуется.
+2. Азим: завершить визуальную полировку, README и DEMO; продолжать без ожидания сервера.
+3. Совместно: проверить реальный offline run/chat и ошибки/нет ключа; повторно открыть итоговые375/768/1440, затем финальный handoff.
 
 Сверка GitHub примерно каждые4 активные минуты. Новые данные не менять посреди benchmark. Скрытые эффекты не исследуются. Текущий сохранённый чистый отчёт 9f8d1da: seed42 PASS +685149.52,20 пилотов/3 кампании; это учебное измерение, не обещание прибыли.

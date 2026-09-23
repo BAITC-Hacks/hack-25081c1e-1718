@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: Приняты 9f8d1da и ca9bac0/API. Разрабатываю рабочее место маркетолога: компактная навигация, обзор и карточки, затем запуск/API/вопросы. DESIGN обновлён; кандидатный модуль и analysis заморожены.
+- Current: Новый каркас1775bc5 опубликован: обзор, рекомендации/details, клавиатура/контраст/375–1440 проверены. API/panel готовы по ca9bac0:13/13 unit и9/9 браузерных сценариев на фикстурах; реальный backend проверим после публикации. Кандидаты/analysis заморожены.
 - Ownership: web/**, docs/DESIGN.md, docs/DEMO.md, README.md, собственные LOG/HANDOFF и этот раздел STATUS. candidate_model.py/analysis не меняются в этом этапе.
-- Next: Первый checkpoint каркаса на реальном JSON, затем adapter api.mjs/integration.mjs и панель агента по API.md, затем проверки/DEMO. Диме учесть эти два JS-модуля в static allowlist. Сверять GitHub каждые4 активные минуты.
+- Next: Полировка/README/DEMO, интеграция реального сервера. Диме разрешить api.mjs/integration.mjs в static allowlist; контракт принят без изменений. Сверка GitHub каждые4 активные минуты.
 - Blockers: Mock-результат не предсказывает судейский; независимая проверка и сравнение контроллеров остаются у Димы. Изменения общего контракта не требуются.
