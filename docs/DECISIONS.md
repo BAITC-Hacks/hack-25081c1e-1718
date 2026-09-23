@@ -108,3 +108,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: Cheap push exploration had a lower worst-case outcome than SMS in earlier comparisons; full-budget bounds permit better signal without blind expensive calls. Official artifact list does not guarantee extra helper modules are uploaded.
 - Who: Dima; unchanged Azim ownership and candidate interface.
 - Consequences: [AFFECTS-OTHERS] Optional scout_channel in report1.0. Seed42+685150; nine new seeds40,41,43..49 median+657090 versus prior+582083, both9/9 positive. Full40..49 includes known42 and is labeled accordingly. A standalone bundle preserving the full specialist logic follows separately.
+
+### 2026-09-23 - Package the complete strategy as a single upload agent
+
+- Decision: Add package_submission.py to embed our own candidate/advisor sources into a standalone agent without changing their logic. Package the official CSV, requirements and optional provenance manifest. Syntax/shape/secret scan before writes; captured inputs, atomic files/zip. Keep generated output ignored and reproducible from Git.
+- Why: Official list names agent.py and CSV, so relying on separately uploaded helper modules would risk failure or weaker fallback. The team still benefits from separate owned source modules.
+- Who: Dima; Azim's modules read for packaging only, not edited.
+- Consequences: [AFFECTS-OTHERS] Release workflow requires verify -Release then packaging; organizer data remain runtime inputs. Isolated Python run without helper files PASS+685150 and exact CSV hash match. Integrated Azim UI593667d and imported newest report:3 campaigns,20 pilots,685150 net,53402 budget/9394 contacts after plan, no console errors.
