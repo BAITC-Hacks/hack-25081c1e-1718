@@ -99,7 +99,7 @@ export function createApiClient({ fetchImpl = globalThis.fetch, timeoutMs = 1500
           // Browsers set Origin themselves; do not imitate it or accept remote URLs.
           response = await fetchImpl(path, { method, headers, body, signal: controller.signal, credentials: "same-origin", cache: "no-store", redirect: "error" });
         } catch {
-          throw new ApiError("network_error", "Локальный API недоступен. Запустите сервер ARPU Compass; импорт файла доступен без подключения.");
+          throw new ApiError("network_error", "Локальный API недоступен. Запустите сервер Tariflow; импорт файла доступен без подключения.");
         }
         if (response.status === 403 && method === "POST") {
           throw new ApiError("csrf_expired", "Подключение к серверу изменилось.", 403);

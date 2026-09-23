@@ -18,6 +18,22 @@ function element(tag, className, text) {
 
 function setText(id, text) { $(id).textContent = text; }
 
+function setMoneyValue(id, value) {
+  const node = $(id);
+  node.replaceChildren();
+  node.removeAttribute("aria-label");
+  if (!isNumber(value)) { node.textContent = MISSING; return; }
+  node.append(element("span", "money-number", number(value)), document.createTextNode(" "), element("span", "money-unit", "ден. ед."));
+  node.setAttribute("aria-label", `${number(value)} условных денежных единиц`);
+}
+
+function prepareQuestion(question) {
+  showView("ask");
+  $("agent-question").value = question;
+  $("agent-question").dispatchEvent(new Event("input"));
+  $("agent-question").focus();
+}
+
 export function getCurrentReport() { return currentReport; }
 export function showAppNotice(kind, title, description = "") { setNotice(kind, title, description); }
 
@@ -243,11 +259,12 @@ function renderOverview(report) {
       if (isNumber(right)) return 1;
       return a.index - b.index;
     }).slice(0, 3);
-  ranked.forEach(({ campaign, index, allocation }, rank) => {
+  ranked.forEach(({ campaign, index, allocation }) => {
     const card = element("button", "recommendation-card");
     card.type = "button";
     card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${tariffLabel(campaign.filter_current_tariff)} → ${tariffLabel(campaign.target_tariff)}, ${channelLabel(campaign.channel)}`);
     const text = element("span", "recommendation-text");
+    text.append(element("span", "recommendation-label", `Кампания ${String(index + 1).padStart(2, "0")}`));
     text.append(tariffTransition(campaign));
     const segment = Object.entries(FILTER_LABELS)
       .filter(([key]) => key !== "filter_current_tariff" && campaign[key])
@@ -257,7 +274,7 @@ function renderOverview(report) {
     text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `проверок на небольшой группе: ${number(evidence)}` : "нет связанных проверок"}`));
     const effect = element("span", "recommendation-effect");
     effect.append(element("strong", effectClass(allocation?.conservative_net), money(allocation?.conservative_net)), element("span", "", "прогноз с поправкой на риск"));
-    card.append(element("span", "recommendation-rank", String(rank + 1).padStart(2, "0")), text, effect);
+    card.append(text, effect);
     card.addEventListener("click", () => focusEvidence(`campaigns[${index}]`));
     recommendations.append(card);
   });
@@ -318,6 +335,14 @@ function renderCampaigns() {
     cost.append(element("span", "campaign-fact-label", "Расходы на коммуникацию"), element("strong", "", money(allocation?.communication_cost)));
     facts.append(segment, reach, cost);
     row.append(header, facts, campaignEvidence(campaign), campaignDetails(campaign, allocation));
+    const actions = element("div", "campaign-actions");
+    const ask = element("button", "button button-secondary ask-campaign", "Обсудить с агентом");
+    ask.type = "button";
+    ask.setAttribute("aria-label", `Обсудить кампанию ${index + 1} с агентом`);
+    ask.prepend(icon("chat"));
+    ask.addEventListener("click", () => prepareQuestion(`Почему выбрана кампания ${index + 1} и какие пилоты подтверждают её?`));
+    actions.append(ask);
+    row.append(actions);
     rows.append(row);
   });
   setText("campaign-result-count", `Показано ${number(campaigns.length)} из ${number(currentReport.campaigns.length)}`);
@@ -461,7 +486,7 @@ function renderReport(report, source) {
   setText("overview-title", report.campaigns.length ? "Результаты анализа" : "План не сформирован");
   setText("overview-description", "Итог расчёта, рекомендованные кампании и доступные ресурсы.");
   setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
-  setText("metric-net", money(report.evaluation?.net_arpu_gain));
+  setMoneyValue("metric-net", report.evaluation?.net_arpu_gain);
   setText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
     ? (report.evaluation?.status ? translate(report.evaluation.status) : "Итог расчёта")
     : "Итог расчёта недоступен");
@@ -474,7 +499,7 @@ function renderReport(report, source) {
   setText("metric-pilots-left", number(report.resources.pilots_left));
   setText("budget-pilots", money(report.resources.remaining_budget));
   setText("contacts-pilots", number(report.resources.remaining_contacts));
-  setText("budget-planned", money(report.planned_resources?.remaining_budget));
+  setMoneyValue("budget-planned", report.planned_resources?.remaining_budget);
   setText("contacts-planned", number(report.planned_resources?.remaining_contacts));
   setText("campaign-heading-count", number(report.campaigns.length));
   setText("nav-campaign-count", number(report.campaigns.length));
@@ -589,7 +614,7 @@ $("export-csv").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const anchor = element("a");
   anchor.href = url;
-  anchor.download = "arpu-compass-campaigns.csv";
+  anchor.download = "tariflow-campaigns.csv";
   document.body.append(anchor);
   anchor.click();
   anchor.remove();

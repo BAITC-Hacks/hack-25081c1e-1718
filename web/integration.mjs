@@ -18,21 +18,24 @@ let chatReportId = null;
 let chatTurns = [];
 let knownRunId = null;
 let previousRunId = null;
+let snapshotLoading = false;
 
 function text(id, value) { const node = $(id); if (node) node.textContent = value; }
 function message(error) { return error instanceof Error ? error.message : "Не удалось выполнить запрос. Повторите попытку."; }
 function selectedMode() { return $("analysis-mode").value; }
 function canOpenAI() { return !!(health?.openai.configured && health?.openai.enabled); }
 function updateControls() {
-  const runAllowed = !!health?.capabilities.run && !activeRun && !connecting;
+  const runAllowed = !!health?.capabilities.run && !activeRun && !connecting && !snapshotLoading;
   $("run-analysis").disabled = !runAllowed || (selectedMode() === "openai" && !canOpenAI());
   $("analysis-mode").disabled = !!activeRun;
   $("run-seed").disabled = !!activeRun;
-  $("ask-agent").disabled = !health?.capabilities.chat || !snapshotId || chatBusy || !!activeRun;
+  $("ask-agent").disabled = !health?.capabilities.chat || !snapshotId || chatBusy || !!activeRun || snapshotLoading;
   $("agent-question").disabled = !snapshotId || !!activeRun;
   $("chat-clear").disabled = chatBusy || !chatTurns.length;
-  document.querySelectorAll(".chat-retry").forEach(button => { button.disabled = chatBusy || !!activeRun || !health?.capabilities.chat; });
-  if ($("load-server-report")) $("load-server-report").disabled = !health || !!activeRun || connecting || chatBusy;
+  document.querySelectorAll(".chat-retry").forEach(button => { button.disabled = chatBusy || !!activeRun || snapshotLoading || !health?.capabilities.chat; });
+  for (const id of ["load-server-report", "load-latest-report"]) {
+    if ($(id)) $(id).disabled = !health || !!activeRun || connecting || chatBusy || snapshotLoading;
+  }
   if ($("retry-api")) $("retry-api").disabled = connecting || polling;
 }
 function connectionText() {
@@ -114,8 +117,10 @@ async function refreshHealth({resume = true} = {}) {
   }
   if (resume && activeRun && health && !polling) await pollRun(activeRun);
 }
-async function loadSnapshot(expectedId = null, source = "Сохранённый снимок сервера") {
+async function loadSnapshot(expectedId = null, source = "Сохранённый снимок сервера", expectedGeneration = null) {
   const payload = await api.report();
+  // A file imported while this GET was pending remains the user's latest choice.
+  if (expectedGeneration !== null && reportGeneration !== expectedGeneration) return;
   if (expectedId !== null && payload.report_id !== expectedId) {
     throw new Error("На сервере уже другой снимок. Загрузите последний отчёт отдельно; он не будет выдан за результат этого запуска.");
   }
@@ -156,7 +161,7 @@ async function pollRun(id) {
   } finally { polling = false; updateControls(); }
 }
 $("run-analysis").addEventListener("click", async () => {
-  if (activeRun || !health) return;
+  if (activeRun || !health || snapshotLoading) return;
   const rawSeed = $("run-seed").value.trim();
   const seed = Number(rawSeed);
   if (!rawSeed || !Number.isInteger(seed) || seed < 0 || seed > 4294967295) {
@@ -196,15 +201,21 @@ $("run-analysis").addEventListener("click", async () => {
 });
 $("analysis-mode").addEventListener("change", () => { modeHint(); updateControls(); });
 $("retry-api")?.addEventListener("click", () => refreshHealth());
-$("load-server-report")?.addEventListener("click", async () => {
-  $("load-server-report").disabled = true;
+async function openLatestReport() {
+  if (snapshotLoading || !health || activeRun || chatBusy) return;
+  snapshotLoading = true; updateControls();
+  const generation = reportGeneration;
   text("agent-status", "Загружаем снимок сервера…");
-  try { await loadSnapshot(); }
+  showAppNotice("info", "Загружаем отчёт", "Получаем последний сохранённый снимок сервера.");
+  try { await loadSnapshot(null, "Сохранённый снимок сервера", generation); }
   catch (error) {
+    if (generation !== reportGeneration) return;
     text("agent-status", message(error));
     showAppNotice("error", "Не удалось загрузить снимок", message(error) + " Открытый отчёт не изменён.");
-  } finally { updateControls(); }
-});
+  } finally { snapshotLoading = false; updateControls(); }
+}
+$("load-server-report")?.addEventListener("click", openLatestReport);
+$("load-latest-report")?.addEventListener("click", openLatestReport);
 
 function evidenceTarget(ref, report) {
   if (!report || typeof ref !== "string") return null;
@@ -255,13 +266,13 @@ function addTurn(question) {
   return turn;
 }
 async function askQuestion(turn) {
-  if (!snapshotId || chatBusy || activeRun || !health?.capabilities.chat || turn.reportId !== snapshotId) return;
+  if (!snapshotId || chatBusy || activeRun || snapshotLoading || !health?.capabilities.chat || turn.reportId !== snapshotId) return;
   const askedSnapshot = snapshotId;
   const generation = reportGeneration;
   const sequence = ++chatSequence;
   chatBusy = true;
   turn.assistant.classList.add("is-pending");
-  turn.assistant.replaceChildren(chatNode("message-meta", "Compass"), chatNode("message-body", "Изучаю данные отчёта…"));
+  turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow"), chatNode("message-body", "Изучаю данные отчёта…"));
   turn.assistant.setAttribute("aria-busy", "true");
   text("agent-mode", "Готовит ответ");
   text("agent-status", "Агент готовит ответ по текущему отчёту…");
@@ -270,7 +281,7 @@ async function askQuestion(turn) {
     const answer = await api.chat({report_id:askedSnapshot, message:turn.question});
     if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
     const label = answer.mode === "openai" ? "OpenAI" : "Автономный ответ";
-    turn.assistant.replaceChildren(chatNode("message-meta", `Compass · ${label}`), chatNode("message-body", answer.answer));
+    turn.assistant.replaceChildren(chatNode("message-meta", `Tariflow · ${label}`), chatNode("message-body", answer.answer));
     const evidence = chatNode("message-evidence");
     for (const citation of answer.citations) {
       const target = evidenceTarget(citation.ref, getCurrentReport());
@@ -287,7 +298,7 @@ async function askQuestion(turn) {
     text("agent-status", "Ответ готов. Ссылки под ним открывают данные отчёта.");
   } catch (error) {
     if (generation !== reportGeneration || sequence !== chatSequence || snapshotId !== askedSnapshot) return;
-    turn.assistant.replaceChildren(chatNode("message-meta", "Compass · ответ не получен"), chatNode("message-warning", message(error)));
+    turn.assistant.replaceChildren(chatNode("message-meta", "Tariflow · ответ не получен"), chatNode("message-warning", message(error)));
     const retry = chatNode("button button-secondary chat-retry", "Повторить вопрос", "button");
     retry.type = "button";
     retry.addEventListener("click", () => askQuestion(turn));
@@ -302,7 +313,7 @@ async function askQuestion(turn) {
 }
 $("chat-form").addEventListener("submit", event => {
   event.preventDefault();
-  if (!snapshotId || chatBusy || activeRun || !health?.capabilities.chat) return;
+  if (!snapshotId || chatBusy || activeRun || snapshotLoading || !health?.capabilities.chat) return;
   const question = $("agent-question").value.trim();
   if (!question || question.length > 2000) {
     text("agent-status", "Введите вопрос от 1 до 2000 символов."); $("agent-question").focus(); return;
