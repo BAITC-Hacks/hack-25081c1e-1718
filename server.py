@@ -31,7 +31,7 @@ STATIC_FILES = {"/": "index.html", "/index.html": "index.html", "/app.mjs": "app
 
 
 def utc_now():
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def reject_constant(value):

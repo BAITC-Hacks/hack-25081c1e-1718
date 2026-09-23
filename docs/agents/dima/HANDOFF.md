@@ -2,7 +2,7 @@
 
 ## Готово
 
-- Принят первый UI checkpoint Азима **1775bc5** без конфликтов. Его web/ и candidate_model не менял.
+- Приняты UI checkpoints Азима **1775bc5/2625ecc** без конфликтов. Backend опубликован **99d5303**. Реальная интеграция потребовала UTC timestamps с суффиксом Z; исправление включено следом. Его web/ и candidate_model не менял.
 - `server.py`: loopback 8765, GET health/report/run status, POST runs/chat по API.md; фиксированная команда, один расчёт, отдельный проверенный JSON по run_id, копия отчёта в памяти. Свой старый output/report.json автоматически не принимает.
 - `report_assistant.py`: настоящий Responses API, только ограниченные факты отчёта, допустимые citations, честный offline fallback. Веб не получает ключ; offline child не наследует ключ. Провайдер не выполняет инструменты и не меняет план.
 - [AFFECTS-OTHERS] Статические пути **api.mjs и integration.mjs разрешены**, как запросил Азим. Контракт report1.0 и HTTP API не менялся. Новая CLI-опция --run-id предназначена серверу, обычный экспорт сохраняет прежний путь.

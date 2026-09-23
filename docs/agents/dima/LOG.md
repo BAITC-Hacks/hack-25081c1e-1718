@@ -39,3 +39,7 @@
 ## 2026-09-23 15:05 - [AFFECTS-OTHERS] локальный backend и настоящий OpenAI / дать вебу запуск и ответы / server.py, report_assistant.py, scripts, API/RUNBOOK / Азим подключает UI независимо
 
 API v1 реализован без новых зависимостей: loopback, origin/token, ограниченные процессы/запросы, уникальный output run_id и проверенный snapshot. OpenAI получает агрегаты, без customer IDs/ключа/полного отчёта; ответы содержат refs. Реальные offline и online расчёты завершены; оба online совета successful, чат OpenAI возвращает факты и usage. Ключ введён hidden TTY только в память. Security review исправления включены. Принят UI1775bc5, static integration.mjs разрешён по handoff Азима. Качество нового выбора конечных кампаний — следующий независимый шаг; текущий core/CSV не менялись.
+
+## 2026-09-23 15:10 - [AFFECTS-OTHERS] совместимость времени API / интеграция настоящего UI2625ecc / server.py, API.md / ISO UTC timestamps в форматеZ
+
+Backend99d5303 опубликован; оба этапа verify прошли. В реальном браузере POSTrun202 запускал расчёт, но frontend отклонял статус из-за суффикса+00:00. Сервер стандартизирован наZ, файлы Азима не менялись. Дополнительно в QUESTIONS запрошен frontend chat timeout30сек против server20сек.

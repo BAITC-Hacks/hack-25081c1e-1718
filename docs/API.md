@@ -28,6 +28,8 @@ configured — ключесть, enabled — не выключенARPU_OFFLINE. 
 
 ## GET /api/runs/{run_id}
 
+Временные метки запуска имеют ISO-8601 UTC суффикс `Z` (например, `2026-09-23T10:08:12.123456Z`), совместимый с web/api.mjs.
+
 ```json
 {"run_id":"opaque","state":"running","stage":"evaluating","mode":"offline","seed":42,"started_at":"ISO-UTC","finished_at":null,"report_id":null,"error":null}
 ```
