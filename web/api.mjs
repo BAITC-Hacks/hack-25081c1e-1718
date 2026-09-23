@@ -9,7 +9,7 @@ const mode = (value) => value === "offline" || value === "openai";
 const seed = (value) => Number.isInteger(value) && value >= 0 && value <= 4294967295;
 const count = (value) => Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000_000;
 const id = (value) => string(value, 256) && value.trim() === value && !/[\s\u0000-\u001f\u007f]/u.test(value) && value !== "." && value !== "..";
-const timestamp = (value) => string(value, 64) && /^\d{4}-\d{2}-\d{2}T.*Z$/.test(value) && Number.isFinite(Date.parse(value));
+const timestamp = (value) => string(value, 64) && /^\d{4}-\d{2}-\d{2}T.*(?:Z|\+00:00)$/.test(value) && Number.isFinite(Date.parse(value));
 const serverError = (value) => object(value) && typeof value.code === "string" && /^[a-z][a-z0-9_]{0,79}$/.test(value.code) && string(value.message, 2000);
 
 export class ApiError extends Error {

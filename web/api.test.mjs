@@ -99,7 +99,7 @@ test("opaque run IDs are encoded and each status must belong to the requested ru
 test("run statuses distinguish fresh success, failure and an unfinished calculation", async () => {
   const complete = run({ state: "completed", stage: "ready", finished_at: "2026-09-23T10:01:00.123Z", report_id: "snapshot-A" });
   const failed = run({ state: "failed", stage: "failed", finished_at: "2026-09-23T10:01:00Z", error: { code: "run_failed", message: "Расчёт завершился ошибкой." } });
-  for (const payload of [run(), complete, failed]) assert.deepEqual(await clientFor([json(payload)]).client.run(payload.run_id), payload);
+  for (const payload of [run(), complete, failed, run({started_at:"2026-09-23T10:00:00+00:00"})]) assert.deepEqual(await clientFor([json(payload)]).client.run(payload.run_id), payload);
   for (const payload of [run({ report_id: "old-report" }), { ...complete, report_id: null }, { ...failed, report_id: "old-report" }, run({ started_at: "yesterday" }), run({ seed: -1 })]) {
     await assert.rejects(clientFor([json(payload)]).client.run(payload.run_id), expectCode("invalid_response"));
   }

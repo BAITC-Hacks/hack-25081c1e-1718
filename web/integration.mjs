@@ -3,7 +3,8 @@ import { getCurrentReport, importReport, showAppNotice, focusEvidence } from "./
 import { findAllocation } from "./report.mjs";
 
 const $ = id => document.getElementById(id);
-const api = createApiClient();
+// Leave time for the server's bounded 20-second OpenAI request and fallback.
+const api = createApiClient({ timeoutMs: 30000 });
 let health = null;
 let activeRun = null;
 let polling = false;
@@ -101,6 +102,7 @@ async function loadSnapshot(expectedId = null, source = "Сохранённый 
     throw new Error("На сервере уже другой снимок. Загрузите последний отчёт отдельно; он не будет выдан за результат этого запуска.");
   }
   await displaySnapshot(payload, source);
+  if (source !== "Текущий прогон") showAppNotice("success", "Снимок сервера загружен", "Открыт сохранённый отчёт сервера. Теперь можно задавать вопросы об этом снимке.");
 }
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function pollRun(id) {
@@ -164,7 +166,7 @@ $("run-analysis").addEventListener("click", async () => {
       await refreshHealth({resume:true});
       return;
     }
-    if (error?.status === 403 || error?.status === 503) {
+    if (error?.status === 503) {
       await refreshHealth({resume:false});
       text("analysis-status", message(error) + " Выберите доступный режим и повторите действие.");
     }
@@ -233,7 +235,6 @@ $("ask-agent").addEventListener("click", async () => {
     if (generation !== reportGeneration || sequence !== chatSequence) return;
     text("agent-mode", "Ответ не получен");
     text("agent-status", message(error));
-    if (error?.status === 403) { await refreshHealth({resume:false}); text("agent-status", message(error)); }
   } finally { chatBusy = false; updateControls(); }
 });
 updateControls();

@@ -100,6 +100,7 @@ function setLoading(value) {
 }
 
 function setReportVisible(value) {
+  document.body.classList.toggle("report-loaded", value);
   $("report-view").hidden = !value;
   $("empty-state").hidden = value;
   $("nav-campaign-count").hidden = !value;
@@ -400,8 +401,8 @@ function renderReport(report, source) {
   setText("meta-seed", number(report.seed));
   setText("meta-time", formatDate(report.generated_at));
   setText("meta-engine", report.engine);
-  setText("overview-title", report.campaigns.length ? "Ваш план. С понятными основаниями." : "Прогон завершён без плана.");
-  setText("overview-description", "Проверьте фактический результат, плановые оценки кампаний и ограничения перед решением.");
+  setText("overview-title", report.campaigns.length ? "Результаты анализа" : "План не сформирован");
+  setText("overview-description", "Фактический эффект, план кампаний и доступные ресурсы.");
   setText("plan-summary", report.campaigns.length ? "План сформирован" : "План не сформирован");
   setText("metric-net", money(report.evaluation?.net_arpu_gain));
   setText("evaluation-status", isNumber(report.evaluation?.net_arpu_gain)
@@ -461,8 +462,8 @@ function clearReport() {
   setText("campaign-heading-count", "");
   setText("pilot-heading-count", "");
   setText("run-badge", "Отчёт не загружен");
-  setText("overview-title", "Ваш следующий уверенный шаг.");
-  setText("overview-description", "Найдите перспективные тарифные кампании и проверьте их пилотами — до расходования бюджета.");
+  $("overview-title").replaceChildren(document.createTextNode("Выбирайте кампании."), element("br"), element("span", "", "Проверяйте эффект."));
+  setText("overview-description", "Агент проверяет гипотезы пилотами и предлагает план с учётом бюджета и доступных контактов.");
   $("warnings-list").replaceChildren(element("li", "", "Откройте отчёт, чтобы увидеть ограничения фактического прогона."));
   $("advisor-content").replaceChildren(element("p", "advisor-entry", "Отчёт пока не загружен."));
   setText("uncertainty-note", "Неопределённость — приблизительный запас для планирования, а не доверительный интервал.");
