@@ -289,6 +289,12 @@ def run_one(module, seed, evaluate):
         if not 1 <= completed <= 20 or len(pilots) > 20 or actual_pilots is None or not 1 <= actual_pilots <= 20:
             record["reason"] = "pilot_limit_exceeded"
             return record
+        if (not completed <= actual_pilots <= len(pilots)
+                or actual_pilots != agent.before["pilots_left"] - agent.after["pilots_left"]
+                or finite(result.get("n_campaigns")) != actual_pilots + len(campaigns)
+                or report.get("campaigns") != campaigns):
+            record["reason"] = "reported_plan_or_pilot_count_mismatch"
+            return record
         resources = report.get("resources", {})
         planned_resources = report.get("planned_resources", report.get("planned_resources_after_final", {}))
         if isinstance(resources, dict) and not planned_resources:

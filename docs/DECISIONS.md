@@ -94,3 +94,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: With Azim's cautious candidates the earlier SMS-only controller beat push-only. Direct measurement can justify stronger channels without unsupported extrapolation. A self-reported plan alone is insufficient validation evidence.
 - Who: Dima; Azim's candidate/web areas untouched. Integrated Azim's217e338 handoff.
 - Consequences: [AFFECTS-OTHERS] Optional event action channel_check and channel field; v1/candidate contracts preserved. Heldout30..39 median+607623 versus SMS+579470, both10/10 positive; minimum worsened to+203004 versus+466908. Keep that risk visible; no guarantee of real/judge profit.
+
+### 2026-09-23 - Publish only a validated complete report
+
+- Decision: Validate actual returned campaigns and reported public resource stages before atomic JSON replacement. Preserve the previous report on technical failure, keep a nonzero exit code, and include optional code provenance captured before evaluation. Preserve caller-selected offline/OpenAI modes.
+- Why: Azim's interface needs a complete real report and a way to distinguish stale runs from current code. A partial or invalid file could hide a failed evaluation.
+- Who: Dima; web/ remains Azim's module.
+- Consequences: [AFFECTS-OTHERS] Optional provenance/validation in report1.0; no mandatory UI changes or new dependencies. Corrected WORK_PLAN's old handoff label to prevent duplicate candidate work.
