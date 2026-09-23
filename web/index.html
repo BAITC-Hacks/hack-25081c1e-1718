@@ -29,7 +29,7 @@
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m3 10v-3a6 6 0 0 0-2-4"/></symbol>
   </defs></svg>
   <div class="app-shell">
-    <aside class="sidebar" aria-label="Рабочая область Tariflow">
+    <aside class="sidebar" aria-label="Навигация Tariflow">
       <a class="brand" href="#overview" data-view="overview" aria-label="Tariflow — обзор"><svg class="brand-mark" width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="M9 40V17C9 10.925 13.925 6 20 6H42L35 14H20C18.343 14 17 15.343 17 17V40H9Z"/><path fill="#FFF9DB" d="M21 21H38L31 29H21V21Z"/></svg><span class="brand-wordmark">Tariflow</span></a>
       <p class="sidebar-caption">Тарифные кампании</p>
       <nav class="navigation" aria-label="Разделы">
@@ -40,10 +40,9 @@
         <a href="#limitations" class="nav-link" data-view="limitations"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg><span class="nav-label-long">О результате</span><span class="nav-label-short">Результат</span></a>
       </nav>
       <p class="nav-scroll-hint">Разделы можно листать<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></p>
-      <div class="sidebar-bottom"><div class="project-context"><span class="project-context-mark" aria-hidden="true"></span><div><strong>Локальный проект</strong><span>Рабочая область</span></div></div></div>
     </aside>
     <div class="content-shell">
-      <header class="topbar"><div class="workspace-label"><span class="workspace-dot" aria-hidden="true"></span>Рабочая область <span class="topbar-divider" aria-hidden="true">/</span><span id="view-label">Обзор</span></div><button class="button button-quiet" type="button" data-open><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Открыть отчёт</button><label class="sr-only" for="report-file">Выберите файл report.json</label><input type="file" id="report-file" accept=".json,application/json" class="sr-only" tabindex="-1"></header>
+      <header class="topbar"><div class="workspace-label"><span id="view-label">Обзор</span></div><button class="button button-quiet" type="button" data-open><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Открыть отчёт</button><label class="sr-only" for="report-file">Выберите файл report.json</label><input type="file" id="report-file" accept=".json,application/json" class="sr-only" tabindex="-1"></header>
       <main id="main" tabindex="-1">
         <div id="load-status" class="notice" role="status" aria-live="polite" aria-atomic="true" hidden><div><strong id="status-title"></strong><p id="status-description"></p></div><button id="retry-button" class="button button-secondary" type="button" data-open hidden>Выбрать другой файл</button></div>
         <section id="overview" class="view-panel" data-panel="overview" aria-labelledby="overview-title">

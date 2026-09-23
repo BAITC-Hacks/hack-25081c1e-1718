@@ -33,13 +33,11 @@ p{color:var(--muted)} strong{font-weight:650} ::selection{background:#F9E57B;col
 .nav-link .icon{width:18px;height:18px}.nav-count{margin-left:auto;background:#334453;color:#FFFFFF;padding:1px 6px;font-size:12px;border-radius:4px}
 .nav-link.active .nav-count{background:#405260;color:#FFFFFF}
 .nav-scroll-hint{display:none}
-.sidebar-bottom{margin-top:auto;padding:32px 12px 0}.sidebar-bottom>p{font-size:12px;color:#B2BFCC;margin-top:20px;line-height:1.7}
 .event-tag{display:flex;align-items:center;gap:10px;padding-top:24px;border-top:1px solid #364552}
 .event-mark{width:32px;height:32px;background:#2A3947;border-radius:8px;display:grid;place-items:center;font-size:14px;font-weight:700;color:var(--accent)}
 .event-tag strong{display:block;font-size:12px}.event-tag div>span{font-size:12px;color:#B2BFCC}
 .content-shell{min-width:0}.topbar{min-height:76px;display:flex;align-items:center;gap:20px;padding:16px 40px;border-bottom:1px solid var(--border);background:var(--surface)}
 .workspace-label{display:flex;gap:10px;align-items:center;font-size:12px;font-weight:550;color:var(--muted);min-width:0}.workspace-label>#view-label{color:var(--ink)}
-.workspace-dot{height:7px;width:7px;flex-shrink:0;border-radius:50%;background:var(--accent)}.topbar-divider{color:var(--muted)}
 .topbar>.button{margin-left:auto}
 .button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border:1px solid transparent;border-radius:8px;font-size:14px;font-weight:650;text-decoration:none;transition:background .15s,border-color .15s}
 .button .icon{width:17px;height:17px}.button-primary{background:var(--accent);color:var(--ink)}.button-primary:hover:not(:disabled){background:var(--accent-hover)}
@@ -173,7 +171,7 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
 @media(min-width:1600px){main{padding:40px 48px 0}.topbar{padding-left:48px;padding-right:48px}}
 @media(max-width:1250px){
   .app-shell{grid-template-columns:196px minmax(0,1fr)}.sidebar{padding-left:12px;padding-right:12px}.nav-link{font-size:12px;gap:10px}
-  main{padding:28px 28px 0}.topbar{padding:16px 28px;gap:12px}.workspace-label{font-size:12px}.workspace-label>.topbar-divider,.workspace-label>#view-label{display:none}
+  main{padding:28px 28px 0}.topbar{padding:16px 28px;gap:12px}.workspace-label{font-size:12px}
   .page-heading{align-items:flex-start}h1{font-size:28px;letter-spacing:-.9px}.page-heading>.badge{margin-top:24px}
   .analysis-label{flex:1}.analysis-settings{gap:12px}.analysis-bar{padding:20px}.analysis-settings>.button{font-size:12px;padding-left:12px;padding-right:12px}
   .welcome-grid{gap:16px;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr)}.welcome-main{padding:24px}.welcome-main h2{font-size:28px}.import-card{padding:24px}
@@ -183,8 +181,8 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
 }
 @media(max-width:960px){
   .app-shell{display:block}.sidebar{position:static;height:auto;padding:16px 24px 12px}.brand{padding:0;gap:10px;align-self:flex-start}.brand>span{font-size:12px;letter-spacing:1px}.brand strong{display:inline;font-size:16px;margin-left:6px}.brand-mark{width:30px;height:30px}
-  .sidebar-caption,.sidebar-bottom{display:none}.navigation{margin-top:16px;flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:2px}.nav-link{min-height:36px;white-space:nowrap;font-size:12px;padding:8px 12px;gap:8px}
-  .nav-link .icon{width:16px;height:16px}.topbar{min-height:64px;padding:12px 24px}.workspace-label{display:none}.topbar .button{min-height:36px;font-size:12px;padding:8px}
+  .sidebar-caption{display:none}.navigation{margin-top:16px;flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:2px}.nav-link{min-height:36px;white-space:nowrap;font-size:12px;padding:8px 12px;gap:8px}
+  .nav-link .icon{width:16px;height:16px}.topbar{min-height:64px;padding:12px 24px}.topbar .button{min-height:36px;font-size:12px;padding:8px}
   main{padding:28px 24px 0}.page-heading{margin-bottom:24px}.analysis-label{flex:1}.analysis-settings{margin-left:auto}.analysis-bar{margin-bottom:24px}
   .welcome-grid{grid-template-columns:1.5fr 1fr}.welcome-main h2{font-size:28px}.method-path{margin-top:28px;padding-top:20px;flex-direction:column;gap:18px}.method-path>div{position:relative;padding-left:32px}.method-number{position:absolute;left:0;top:1px;margin:0}.method-path p{margin-top:3px}
   .metric-grid{gap:12px}.metric-card{padding:20px 16px}.metric-top{gap:6px}.metric-value{font-size:24px}.metric-evaluation .metric-value{font-size:28px}.overview-grid{grid-template-columns:1.5fr 1fr}
@@ -240,10 +238,6 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 
 /* Product identity, conversation workspace and report context. */
-.project-context{display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid #364552}
-.project-context-mark{width:7px;height:7px;background:#A7B6C4;border-radius:2px;flex-shrink:0}
-.project-context strong{display:block;font-size:12px;font-weight:500;color:#DCE3E9}
-.project-context div>span{display:block;font-size:12px;color:#B2BFCC;margin-top:3px}
 .chat-page-heading{margin-bottom:24px}
 .chat-surface{display:flex;flex-direction:column;min-height:580px;height:min(720px,calc(100dvh - 260px));overflow:hidden}
 .chat-toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 24px;border-bottom:1px solid var(--border);background:#FAFBFC;flex-shrink:0}
@@ -348,13 +342,13 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
 @media(max-width:960px){
   .brand{padding:0;gap:10px}.brand>.brand-wordmark{font-size:24px;font-weight:500;letter-spacing:-.8px}.brand-mark{width:30px;height:30px}
   .nav-link.active::before{top:auto;bottom:1px;left:10px;width:calc(100% - 20px);height:2px}
-  .topbar{min-height:58px}.workspace-label{display:flex}.workspace-label>.topbar-divider,.workspace-label>#view-label{display:inline}
+  .topbar{min-height:58px}
   .chat-surface{height:660px;min-height:560px}.chat-page-heading{margin-bottom:20px}
   .result-metadata{gap:16px}.result-content-grid{gap:16px}.result-resources-heading{flex-wrap:wrap;gap:10px}.result-resources-heading .unit-label{max-width:none}
   .result-resource-table thead th,.result-resource-table tbody th,.result-resource-table tbody td{padding-left:20px;padding-right:20px}
 }
 @media(max-width:600px){
-  .topbar{min-height:52px;padding-top:8px;padding-bottom:8px}.workspace-label{font-size:12px}.workspace-label>.workspace-dot,.workspace-label>.topbar-divider,.workspace-label>#view-label{display:none}
+  .topbar{min-height:52px;padding-top:8px;padding-bottom:8px}.workspace-label{font-size:12px}
   .brand>.brand-wordmark{font-size:23px}.sidebar{padding-top:14px}.nav-link.active::before{left:8px;width:calc(100% - 16px)}
   .welcome-main h2{font-size:24px;margin-top:0}.metric-tag{font-size:12px}
   .chat-page-heading .page-description{font-size:12px;line-height:1.6;margin-top:8px}
@@ -516,7 +510,7 @@ textarea{display:block;width:100%;resize:vertical;padding:14px;font-size:14px;mi
   .brand{gap:10px;min-height:40px}
   .brand>.brand-wordmark{font-size:27px}
   .brand-mark{width:38px;height:38px}
-  .sidebar-caption,.sidebar-bottom,.nav-scroll-hint{display:none}
+  .sidebar-caption,.nav-scroll-hint{display:none}
   .sidebar>.navigation{position:fixed;z-index:40;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));min-height:var(--mobile-nav-space);background:#17212B;border-top:1px solid #374753;box-shadow:0 -3px 16px rgba(23,33,43,.08);overflow:visible}
   .navigation>.nav-link{min-width:0;min-height:60px;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:8px 2px;border-radius:8px;font-size:12px;line-height:1.35;font-weight:450;letter-spacing:-.15px;color:#C5D0D9;text-align:center;white-space:nowrap}
   .navigation>.nav-link>.icon{display:block;width:20px;height:20px;stroke-width:1.7}
