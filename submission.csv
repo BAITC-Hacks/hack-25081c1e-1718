@@ -1,4 +1,4 @@
 campaign_name,filter_arpu_segment,filter_data_segment,filter_call_segment,filter_current_tariff,target_tariff,channel
 compass_c_95e4a9c341c532,MID,LITE,LOW,tariff_4,tariff_8,digital_ads
-compass_c_3b8714bfd0dba6,HIGH,LITE,MEDIUM,tariff_8,tariff_10,push
-compass_c_28037c7d151259,MID,LITE,LOW,tariff_8,tariff_10,push
+compass_c_28037c7d151259,MID,LITE,LOW,tariff_8,tariff_10,sms
+compass_c_3b8714bfd0dba6,HIGH,LITE,MEDIUM,tariff_8,tariff_10,sms

@@ -9,7 +9,21 @@ import time
 
 import pandas as pd
 
-from llm_advisor import Advisor
+try:
+    from llm_advisor import Advisor
+except ModuleNotFoundError as error:
+    if error.name != "llm_advisor":
+        raise
+
+    class Advisor:
+        """Allow a minimal agent.py-only upload to remain autonomous."""
+
+        def __init__(self):
+            self.events = []
+
+        def recommend(self, candidates, observations, resources, phase):
+            self.events.append({"phase": phase, "status": "skipped", "reason": "advisor_module_unavailable"})
+            return {"candidate_ids": [], "summary": ""}
 
 ROOT = Path(__file__).resolve().parent
 CHANNEL_COSTS = {"push": 0.0, "sms": 4.0, "digital_ads": 22.0, "call": 160.0}
@@ -63,8 +77,8 @@ class Agent:
                       for _, row in tariffs.iterrows()}
         valid = sorted(str(item) for item in tariffs["tariff_plan_code"])
         raw, groups = [], []
-        # A conservative standalone shortlist while the specialist data module is
-        # pending. Narrow cells limit exposure to an unreliable historical prior.
+        # Standalone fallback when the specialist module is unavailable.
+        # Narrow cells limit exposure to an unreliable historical prior.
         names = ["current_tariff", "arpu_segment", "data_segment", "call_segment"]
         for keys, group in profile.groupby(names, observed=True):
             filters = {"filter_" + name: str(value) for name, value in zip(names, keys)}
@@ -283,17 +297,22 @@ class Agent:
             self.last_report = {"schema_version": "1.0", "engine": "adaptive-offline", "campaigns": [],
                                 "pilots": [], "resources": self._resources(env), "warnings": ["no_supported_channels"]}
             return []
-        # Pilots themselves count towards net revenue. Start with the cheapest
-        # available channel; expensive channels need their own evidence to justify
-        # consuming campaign budget while the effect is still unknown.
-        scout = min(channels, key=lambda channel: CHANNEL_COSTS[channel])
+        # Limit the worst-case scout spend before choosing its documented signal
+        # strength. This permits inexpensive SMS where affordable while keeping
+        # advertising/calls for measured promotion rather than blind exploration.
+        scout_limit = 16 if len(channels) > 1 else 20
+        scout_slots = max(1, min(scout_limit, int(env.pilots_left)))
+        scout_budget = 0.15 * self._resources(env)["remaining_budget"]
+        affordable = [channel for channel in channels
+                      if scout_slots * 200 * CHANNEL_COSTS[channel] <= scout_budget]
+        scout = (max(affordable, key=lambda channel: CHANNEL_EFFECT[channel]) if affordable
+                 else min(channels, key=lambda channel: CHANNEL_COSTS[channel]))
         candidates, source = self._candidates(profile, tariffs, warnings)
         candidates = self._diverse(candidates)
         events.append({"role": "analyst", "status": "completed", "source": source, "candidate_count": len(candidates)})
         initial = self._diverse(self._advice(advisor, candidates, observations, env, "initial", scout, events))
         attempts, failed, feedback_order = {}, set(), {}
         # Reserve at most four pilot slots for checking profitable paid channels.
-        scout_limit = 16 if len(channels) > 1 else 20
         for step in range(min(scout_limit, int(env.pilots_left))):
             if time.monotonic() - started > 220 or int(env.pilots_left) <= 0:
                 break
@@ -404,7 +423,7 @@ class Agent:
         events.append({"role": "allocator", "status": "completed", "campaign_count": len(campaigns)})
         self.last_report = {
             "schema_version": "1.0", "engine": "adaptive-openai" if any(event["status"] == "completed" for event in advisor.events) else "adaptive-offline",
-            "candidate_source": source, "candidate_count": len(candidates),
+            "candidate_source": source, "candidate_count": len(candidates), "scout_channel": scout,
             "resource_stage": "after_pilots_before_final_campaigns", "resources": resources,
             "planned_resources": {"remaining_budget": budget, "remaining_contacts": contacts},
             "campaigns": campaigns, "allocation": allocation, "pilots": observations,
