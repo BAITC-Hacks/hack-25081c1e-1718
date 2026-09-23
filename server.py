@@ -20,6 +20,7 @@ from urllib.parse import unquote, urlsplit
 import warnings
 
 from report_assistant import MODEL, answer_question
+from report_localization import SUPPORTED_LANGUAGES
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
@@ -27,7 +28,7 @@ MAX_BODY = 16 * 1024
 MAX_REPORT = 2 * 1024 * 1024
 STATIC_FILES = {"/": "index.html", "/index.html": "index.html", "/app.mjs": "app.mjs",
                 "/report.mjs": "report.mjs", "/api.mjs": "api.mjs",
-                "/integration.mjs": "integration.mjs", "/styles.css": "styles.css"}
+                "/integration.mjs": "integration.mjs", "/styles.css": "styles.css", "/i18n.mjs": "i18n.mjs"}
 
 
 def utc_now():
@@ -197,7 +198,7 @@ class AppState:
         if worker is not None:
             worker.join(timeout=7)
 
-    def answer(self, report_id, message):
+    def answer(self, report_id, message, language="ru"):
         with self.lock:
             if report_id not in self.reports:
                 raise ApiError(404, "report_not_found", "Отчёт не найден. Загрузите отчёт сервера или запустите анализ.")
@@ -207,7 +208,7 @@ class AppState:
         try:
             with self.lock:
                 self.throttle(self.chat_times, 12)
-            response = answer_question(report, message, offline=not self.openai_status()["enabled"])
+            response = answer_question(report, message, offline=not self.openai_status()["enabled"], language=language)
             return {"report_id": report_id, **response}
         finally:
             self.chat_lock.release()
@@ -322,10 +323,14 @@ class Handler(BaseHTTPRequestHandler):
                         raise ApiError(400, "invalid_run", "Укажите режим offline/openai и корректный целый seed.")
                     return self.send_json(202, self.app.start_run(value["mode"], value["seed"]))
                 if path == "/api/chat":
-                    if (set(value) != {"report_id", "message"} or not isinstance(value["report_id"], str)
+                    if (set(value) not in ({"report_id", "message"}, {"report_id", "message", "language"})
+                            or not isinstance(value["report_id"], str)
                             or not isinstance(value["message"], str) or not 1 <= len(value["message"].strip()) <= 2000):
                         raise ApiError(400, "invalid_message", "Укажите отчёт и вопрос длиной до 2000 символов.")
-                    return self.send_json(200, self.app.answer(value["report_id"], value["message"].strip()))
+                    language = value.get("language", "ru")
+                    if language not in SUPPORTED_LANGUAGES:
+                        raise ApiError(400, "invalid_language", "Поддерживаются языки ru и kk.")
+                    return self.send_json(200, self.app.answer(value["report_id"], value["message"].strip(), language))
                 raise ApiError(404, "not_found", "Действие не найдено.")
             if path == "/api/health":
                 with self.app.lock:
@@ -333,7 +338,7 @@ class Handler(BaseHTTPRequestHandler):
                     value = {"api_version": "1.0", "status": "ok", "csrf_token": self.app.token,
                              "openai": self.app.openai_status(),
                              "run": {"run_id": self.app.current_job, "state": job.get("state", "idle")},
-                             "capabilities": {"run": True, "chat": True}}
+                             "capabilities": {"run": True, "chat": True, "chat_languages": list(SUPPORTED_LANGUAGES)}}
                 return self.send_json(200, value)
             if path == "/api/report":
                 with self.app.lock:

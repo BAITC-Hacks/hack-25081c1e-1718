@@ -195,5 +195,40 @@ class ReportQualityTests(unittest.TestCase):
         self.assertFalse(assistant._invalid_pilot_numbers("Пилоты 17 и 18", ["pilots.16", "pilots.17"]))
 
 
+    def test_kazakh_unit_and_number_guards(self):
+        self.assertTrue(assistant._invalid_uncertainty_units("Белгісіздік 4%"))
+        self.assertFalse(assistant._invalid_uncertainty_units("Белгісіздік 4 пайыздық тармақ"))
+        self.assertTrue(assistant._invalid_pilot_numbers("Пилоттар 0 және 1", ["pilots.0"]))
+        self.assertFalse(assistant._invalid_pilot_numbers("Пилоттар 1 және 2", ["pilots.0", "pilots.1"]))
+
+    def test_kazakh_provider_uses_original_question_and_same_sources(self):
+        question = "Бірінші науқанның болжамы қандай?"
+        comment = "Пилоттық сынақтар болашақ нәтижеге кепілдік бермейді."
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "local-fixture", "ARPU_OFFLINE": "0"}), \
+                patch("urllib.request.urlopen", return_value=ProviderResponse(comment, ["allocation.0"])) as provider:
+            reply = assistant.answer_question(self.report, question, language="kk")
+            body = json.loads(provider.call_args.args[0].data)
+        self.assertEqual(reply["mode"], "openai")
+        self.assertIn(comment, reply["answer"])
+        self.assertIn("Науқан 1", reply["answer"])
+        facts = json.loads(body["input"][1]["content"][0]["text"])
+        self.assertEqual(facts["question"], question)
+        self.assertNotIn("evaluation", facts["report"])
+        self.assertNotIn("selection_diagnostics", facts["report"])
+        self.assertIn("Науқан 1", facts["verified_numeric_summary"])
+        self.assertIn("қазақ тілінде", body["input"][0]["content"][0]["text"])
+        self.assertEqual({row["ref"] for row in reply["citations"]}, {"allocation.0", "pilots.0", "pilots.1"})
+
+    def test_kazakh_provider_failure_keeps_localized_facts_and_usage(self):
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "local-fixture", "ARPU_OFFLINE": "0"}), \
+                patch("urllib.request.urlopen", return_value=ProviderResponse("Бюджет 999999", ["resources"])):
+            reply = assistant.answer_question(self.report, "Бюджет қанша қалды?", language="kk")
+        self.assertEqual(reply["mode"], "offline")
+        self.assertIn("99 200", reply["answer"])
+        self.assertNotIn("999999", reply["answer"])
+        self.assertEqual(reply["usage"]["input_tokens"], 123)
+        self.assertIn("тексеруден өтпеді", reply["warnings"][0])
+
+
 if __name__ == "__main__":
     unittest.main()

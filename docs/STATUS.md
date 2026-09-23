@@ -4,9 +4,9 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: b0975ab реализовал три экспериментальных варианта и новые отчёты; e8353df зафиксировал empirical доholdout. Dev0–9 и независимая100–119 завершены, gate не пройден: ordinary Agent() сохраняет baseline/template. Результаты/хеши в QUALITY_RESULTS.md.
+- Current: Эксперимент b0975ab и freeze e8353df проверены на dev 0–9 и holdout 100–119; gate не пройден, Agent() сохраняет baseline/template. Отдельно OpenAI выиграл 3/3 пары 120–122 при ровно шести обращениях советника. Отчёты и источники числовых ответов улучшены. По запросу из задачи Азима добавляется ru/kk для чата.
 - Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/ и общие контракты. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные остаются замороженными.
-- Next: Три отдельные online/offlineпары120–122 (максимум6советов), регрессияbaseline, CSV/standalone/пакет и интеграция диагностикиАзима.
+- Next: Проверить реальные ru/kk комментарии модели на опубликованном коде; интегрировать диагностику и язык Азима; пересобрать финальный CSV/standalone и пакет. Чистая поставка 33a7152 и регрессия baseline 0–9 уже подтверждены.
 - Blockers: Нет. Рост экономики не подтверждён, экспериментальные режимы по умолчанию не включаются. Послеholdout параметры не подбираем. Новые поля отчёта/источники/единицы готовы.
 
 ## Azim

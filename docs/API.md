@@ -22,7 +22,7 @@ HTTP 400 — ввод; 403 — origin/token; 404 — объект отсутст
 ## GET /api/health
 
 ```json
-{"api_version":"1.0","status":"ok","csrf_token":"opaque","openai":{"configured":false,"enabled":false,"model":"gpt-4.1-mini-2025-04-14"},"run":{"run_id":null,"state":"idle"},"capabilities":{"run":true,"chat":true}}
+{"api_version":"1.0","status":"ok","csrf_token":"opaque","openai":{"configured":false,"enabled":false,"model":"gpt-4.1-mini-2025-04-14"},"run":{"run_id":null,"state":"idle"},"capabilities":{"run":true,"chat":true,"chat_languages":["ru","kk"]}}
 ```
 
 `configured` означает наличие ключа; `enabled` также учитывает `ARPU_OFFLINE`.
@@ -68,7 +68,17 @@ UI опрашивает статус раз в 1–2 секунды, отклю�
 ## POST /api/chat
 
 Тело: `{"report_id":"opaque","message":"Почему выбран этот канал?"}`.
-Ровно эти два поля, вопрос 1–2000 символов после trim.
+Также допустимо необязательное поле `language`: `"ru"` или `"kk"`.
+Без него язык — русский, прежний запрос полностью совместим.
+Пример: `{"report_id":"opaque","message":"Қанша бюджет қалды?","language":"kk"}`.
+Другие поля отклоняются; вопрос — 1–2000 символов после trim.
+Неизвестный язык → HTTP400 `invalid_language`.
+Клиент отправляет language только если health.capabilities.chat_languages его
+объявляет; при работе со старым сервером отправляет прежние два поля и явно
+сообщает, что ответы сервера пока доступны на русском.
+
+Выбранный язык применяется к ответу, citations.label и warnings, включая
+автономный fallback. Машинные refs, report_id, mode, числовые данные не переводятся.
 Неизвестный снимок → 404 `report_not_found`; занятый ответ → 409 `chat_busy`.
 
 ```json

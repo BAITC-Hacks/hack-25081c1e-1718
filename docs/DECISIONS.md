@@ -161,3 +161,14 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: Only8of299hypotheses were researched inseed42; fixed uncertainty ignores disagreement. Exactportfolio alone did not improve20pairedruns. Avoid tuning against holdout or claiming a detection accuracy without labels.
 - Who: Dima owns backend/core/evaluation; Azim owns new diagnostic display. Bounded workers have exclusive files, not personal notes.
 - Consequences: [AFFECTS-OTHERS] Optional report1.0 fields and refs in QUALITY_STAGE.md; no HTTP/CSV/dependency changes. Existing baseline remains default until gate. Tariflow UI9d748c7 integrated. Official package remains offline-capable.
+
+### 2026-09-23 — Russian and Kazakh report explanations
+
+- Decision: Accept Azim's coordination request for the user's bilingual workflow:
+  optional chat language=ru|kk, advertised by health.capabilities.chat_languages;
+  exact static module /i18n.mjs allowed. Existing two-field chat requests stay Russian.
+- Why: UI language should match both model commentary and factual offline answers.
+- Owners: Azim owns web translations; Dima owns server, report explanations and validation.
+- Consequences: [AFFECTS-OTHERS] No new dependencies or changes to algorithm/data/CSV.
+  Source refs and numeric report values stay unchanged. Unknown languages are rejected.
+  The algorithm selection remains frozen after the failed quality holdout.
