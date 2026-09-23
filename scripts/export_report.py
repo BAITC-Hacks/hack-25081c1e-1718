@@ -92,7 +92,7 @@ def main(argv=None):
     if args.run_id:
         provenance["run_id"] = args.run_id
     try:
-        from benchmark import PublicCaptureAgent, validate_returned_plan, _resource_match
+        from benchmark import PublicCaptureAgent, validate_returned_plan, validate_portfolio_evidence, _resource_match
         from local_eval import evaluate_agent
         wrapper = PublicCaptureAgent(importlib.import_module("agent"))
         captured = io.StringIO()
@@ -104,6 +104,8 @@ def main(argv=None):
             print("export failed: invalid_evaluation", file=sys.stderr)
             return 1
         validation = validate_returned_plan(wrapper)
+        portfolio_evidence = validate_portfolio_evidence(wrapper, validation)
+        validation["portfolio"] = portfolio_evidence
         resources_valid, _ = _resource_match(report, wrapper.after)
         rejected = bool(re.search(r"Агент упал|Кампания .*отброшена|Агент не вернул", captured.getvalue()))
         planned = report.get("planned_resources", {})
@@ -112,7 +114,7 @@ def main(argv=None):
         planned_valid = bool(expected) and isinstance(planned, dict) and all(
             _finite(planned.get(key)) is not None and abs(_finite(planned[key]) - value) < 1e-6 for key, value in expected.items())
         pilots = report.get("pilots")
-        if (not validation.get("valid") or not resources_valid or not planned_valid or rejected
+        if (not validation.get("valid") or not portfolio_evidence["valid"] or not resources_valid or not planned_valid or rejected
                 or report.get("campaigns") != wrapper.returned_campaigns or report.get("schema_version") != "1.0"
                 or not isinstance(pilots, list) or not 1 <= len(pilots) <= 20
                 or not 1 <= int(result.get("n_pilots", 0)) <= 20):

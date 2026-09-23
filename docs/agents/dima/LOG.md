@@ -43,3 +43,7 @@ API v1 реализован без новых зависимостей: loopback
 ## 2026-09-23 15:10 - [AFFECTS-OTHERS] совместимость времени API / интеграция настоящего UI2625ecc / server.py, API.md / ISO UTC timestamps в форматеZ
 
 Backend99d5303 опубликован; оба этапа verify прошли. В реальном браузере POSTrun202 запускал расчёт, но frontend отклонял статус из-за суффикса+00:00. Сервер стандартизирован наZ, файлы Азима не менялись. Дополнительно в QUESTIONS запрошен frontend chat timeout30сек против server20сек.
+
+## 2026-09-23 15:15 - [AFFECTS-OTHERS] подтверждённый портфель и evidence gate / качество выбора без новых расходов / agent.py, benchmark/export, docs / bounded exact search и сравнения
+
+Новый selector держит greedy baseline на ties, перебирает до10 подтверждённых вариантов и соблюдает ресурсы/непересечение. Counterexample30→40 и100независимых переборов совпали. Dev0..9 иnew50..59 дали ровно те же результаты, что92872b5; в новой серии10/10положительных, median693054/min526865/p10544366, violations0. Усилен экспорт: overlap публичного профиля, exact same-channel pilot matches, allocation и metadata; mutated-копии с тремя нарушениями отвергнуты. Review blocker нет. Online/offline пары60..62:6валидных планов, все6APIсоветов успешны, online выше в3/3; малая выборка, не гарантия. Core inputs frozen. Подтянут финальный UI dadb2d3, frontend30сектаймаут принят; мои web edits отсутствуют. Далее release и чистый checkout.

@@ -159,6 +159,7 @@ def validate_returned_plan(agent):
     column_map = {"filter_arpu_segment": "arpu_segment", "filter_data_segment": "data_segment",
                   "filter_call_segment": "call_segment", "filter_current_tariff": "current_tariff"}
     names, total_contacts, total_cost = set(), 0, 0.0
+    contacted_positions = set()
     details = []
     for index, campaign in enumerate(campaigns):
         if not isinstance(campaign, dict) or not {"target_tariff", "channel"}.issubset(campaign):
@@ -193,10 +194,14 @@ def validate_returned_plan(agent):
                 part = profile[column].astype(str).isin(values)
                 mask = part if mask is None else mask & part
         count = int(mask.sum()) if mask is not None else len(profile)
+        positions = {position for position, included in enumerate(mask) if included} if mask is not None else set(range(len(profile)))
+        overlap = len(positions & contacted_positions)
+        contacted_positions.update(positions)
         cost = count * {"push": 0.0, "sms": 4.0, "digital_ads": 22.0, "call": 160.0}.get(channel, float("inf"))
         total_contacts += count
         total_cost += cost
-        details.append({"index": index, "audience": count, "cost": cost, "target": target, "channel": channel})
+        details.append({"index": index, "audience": count, "cost": cost, "target": target, "channel": channel,
+                        "overlap_with_previous": overlap})
         if count < 1 or count > 5000:
             errors.append(f"campaign_{index}_audience")
     budget_available, contacts_available = after["remaining_budget"], after["remaining_contacts"]
@@ -206,8 +211,78 @@ def validate_returned_plan(agent):
         errors.append("final_contacts")
     return {"valid": not errors, "errors": errors, "campaign_count": len(campaigns),
             "total_contacts": total_contacts, "total_cost": total_cost,
+            "unique_contacts": len(contacted_positions),
             "available_budget": budget_available, "available_contacts": contacts_available,
             "campaigns": details}
+
+
+def validate_portfolio_evidence(agent, plan):
+    """Check the new selector's promises separately from official plan validity.
+
+    Audience membership comes from the public profile. Pilot details come from
+    the agent report; their total count is also checked against public counters.
+    """
+    report = agent.last_report
+    if "portfolio_selection" not in report:
+        return {"checked": False, "valid": True, "reason": "legacy_controller_without_selection_metadata"}
+    metadata = report["portfolio_selection"]
+    if not isinstance(metadata, dict) or not plan.get("valid"):
+        return {"checked": True, "valid": False, "errors": ["selection_metadata_or_plan"]}
+    errors, score_sum, fallback_count = [], 0.0, 0
+    allocations, pilots = report.get("allocation"), report.get("pilots")
+    if not isinstance(allocations, list) or not isinstance(pilots, list):
+        return {"checked": True, "valid": False, "errors": ["allocation_or_pilots_missing"]}
+    if len(allocations) != len(agent.returned_campaigns):
+        errors.append("allocation_count")
+    for detail, campaign in zip(plan["campaigns"], agent.returned_campaigns):
+        name, channel = campaign.get("campaign_name", ""), campaign["channel"]
+        if detail["overlap_with_previous"]:
+            errors.append("overlapping_final_audiences")
+        fallback = isinstance(name, str) and name.startswith("fallback_")
+        prefix = "fallback_" if fallback else "compass_"
+        if not isinstance(name, str) or not name.startswith(prefix):
+            errors.append("unrecognized_campaign_identity")
+            continue
+        cid = name[len(prefix):]
+        matches = [item for item in allocations if isinstance(item, dict)
+                   and item.get("candidate_id") == cid and item.get("channel") == channel]
+        if len(matches) != 1:
+            errors.append("ambiguous_allocation")
+            continue
+        allocation = matches[0]
+        if (finite(allocation.get("audience_size")) != detail["audience"]
+                or finite(allocation.get("communication_cost")) != detail["cost"]):
+            errors.append("allocation_resources_mismatch")
+        if fallback:
+            fallback_count += 1
+            if (len(agent.returned_campaigns) != 1 or not set(report.get("warnings", [])) &
+                    {"no_positive_conservative_plan_fallback", "unobserved_fallback"}):
+                errors.append("unmarked_mandatory_fallback")
+            continue
+        filters = {key: value for key, value in campaign.items() if key.startswith("filter_")}
+        evidence = [row for row in pilots if isinstance(row, dict) and row.get("status") == "completed"
+                    and row.get("candidate_id") == cid and row.get("channel") == channel
+                    and row.get("target_tariff") == campaign["target_tariff"] and row.get("filters") == filters]
+        if len(evidence) < 2 or finite(allocation.get("repeats")) != len(evidence):
+            errors.append("insufficient_same_channel_pilots")
+        score = finite(allocation.get("conservative_net"))
+        if score is None or score <= 0:
+            errors.append("nonpositive_confirmed_campaign")
+        else:
+            score_sum += score
+    selected, baseline = finite(metadata.get("selected_conservative_net")), finite(metadata.get("baseline_conservative_net"))
+    eligible = metadata.get("eligible_count")
+    if (selected is None or baseline is None or baseline < 0 or selected + 1e-6 < baseline
+            or abs((selected or 0) - score_sum) > 1e-6
+            or type(eligible) is not int or eligible < len(agent.returned_campaigns) - fallback_count
+            or metadata.get("mode") not in {"exact", "greedy"}
+            or (metadata.get("mode") == "exact" and eligible > 10)
+            or metadata.get("improved") is not (selected is not None and baseline is not None and selected > baseline + 1e-9)):
+        errors.append("selection_metadata_mismatch")
+    return {"checked": True, "valid": not errors, "errors": sorted(set(errors)),
+            "confirmed_campaigns": len(agent.returned_campaigns) - fallback_count,
+            "fallback_campaigns": fallback_count, "selected_conservative_net": score_sum,
+            "pilot_record_source": "agent_report_matched_by_candidate_channel_target_filters"}
 
 
 def _reported_resource_stage(resources):
@@ -276,10 +351,11 @@ def run_one(module, seed, evaluate):
             record["reason"] = "invalid_plan_or_metrics"
             return record
         plan_validation = validate_returned_plan(agent)
+        portfolio_evidence = validate_portfolio_evidence(agent, plan_validation)
         resource_valid, resource_errors = _resource_match(report, agent.after)
-        if not plan_validation["valid"] or not resource_valid:
+        if not plan_validation["valid"] or not resource_valid or not portfolio_evidence["valid"]:
             record["reason"] = "invalid_plan_or_resource_report"
-            record["validation"] = {"plan": plan_validation, "resources": resource_errors}
+            record["validation"] = {"plan": plan_validation, "resources": resource_errors, "portfolio": portfolio_evidence}
             return record
         completed = 0
         for pilot in pilots:
@@ -334,8 +410,11 @@ def run_one(module, seed, evaluate):
             "resources": resources, "planned_resources": planned_resources,
             "public_before": {key: value for key, value in agent.before.items() if key not in ("customer_profile", "tariffs", "channels")},
             "public_after": {key: value for key, value in agent.after.items() if key not in ("customer_profile", "tariffs", "channels")},
-            "validation": {"plan": plan_validation, "resources": "matched_public_after_pilots"},
+            "validation": {"plan": plan_validation, "resources": "matched_public_after_pilots", "portfolio": portfolio_evidence},
             "resource_evidence": "Actual returned campaigns and public env counters were independently validated.",
+            "pilot_spend": agent.before["remaining_budget"] - agent.after["remaining_budget"],
+            "final_spend": plan_validation["total_cost"],
+            "portfolio_selection": report.get("portfolio_selection"),
             "warnings": report.get("warnings", []),
         })
     except Exception:
@@ -347,14 +426,24 @@ def run_one(module, seed, evaluate):
 
 def summary(records):
     values = [item["net_arpu_gain"] for item in records if item.get("status") == "ok"]
+    failures = sum(item.get("status") == "failure" for item in records)
     if not values:
-        return {"successful_runs": 0, "positive_count": 0, "negative_count": 0}
+        return {"successful_runs": 0, "failure_count": failures, "positive_count": 0, "negative_count": 0}
     values.sort()
+    # Linear interpolation of the empirical 10th percentile, not a confidence bound.
+    p10_index = (len(values) - 1) * 0.1
+    p10_left, p10_right = int(p10_index), min(int(p10_index) + 1, len(values) - 1)
+    p10 = values[p10_left] + (values[p10_right] - values[p10_left]) * (p10_index - p10_left)
+    valid = [item for item in records if item.get("status") == "ok"]
     return {
-        "successful_runs": len(values), "median": values[len(values) // 2] if len(values) % 2 else (values[len(values) // 2 - 1] + values[len(values) // 2]) / 2,
-        "min": min(values), "max": max(values),
+        "successful_runs": len(values), "failure_count": failures,
+        "median": values[len(values) // 2] if len(values) % 2 else (values[len(values) // 2 - 1] + values[len(values) // 2]) / 2,
+        "min": min(values), "max": max(values), "p10": p10,
         "positive_count": sum(value > 0 for value in values),
         "negative_count": sum(value < 0 for value in values),
+        "mean_pilot_spend": sum(item["pilot_spend"] for item in valid) / len(valid),
+        "mean_final_spend": sum(item["final_spend"] for item in valid) / len(valid),
+        "mean_pilots": sum(item["pilots_completed"] for item in valid) / len(valid),
     }
 
 
@@ -375,7 +464,7 @@ def main(argv=None):
         os.chdir(ROOT)
         controller_hash = hashlib.sha256((ROOT / "agent.py").read_bytes()).hexdigest()
         shared_hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() if (ROOT / name).is_file() else None
-                         for name in ("candidate_model.py", "llm_advisor.py", "customer_profile.csv", "tariff_dictionary.csv",
+                         for name in ("candidate_model.py", "llm_advisor.py", "local_eval.py", "customer_profile.csv", "tariff_dictionary.csv",
                                       "data/change_tariff.csv", "data/traffic.csv", "data/arpu_monthly.csv", "data/dict_tariff.csv")}
         local_eval = importlib.import_module("local_eval")
         evaluate = getattr(local_eval, "evaluate_agent", None)
@@ -388,17 +477,29 @@ def main(argv=None):
             current_records.append(current); baseline_records.append(baseline)
             left = current.get("net_arpu_gain", "FAIL"); right = baseline.get("net_arpu_gain", "FAIL")
             print(f"seed {seed}: current={left} baseline={right}", flush=True)
+        inputs_unchanged = controller_hash == hashlib.sha256((ROOT / "agent.py").read_bytes()).hexdigest()
+        inputs_unchanged = inputs_unchanged and all(
+            expected == (hashlib.sha256((ROOT / name).read_bytes()).hexdigest() if (ROOT / name).is_file() else None)
+            for name, expected in shared_hashes.items())
+        pairs = [(left["net_arpu_gain"], right["net_arpu_gain"])
+                 for left, right in zip(current_records, baseline_records)
+                 if left.get("status") == right.get("status") == "ok"]
         payload = {
             "schema_version": "1.0", "note": "not judge score", "git_sha": None,
             "dirty": None, "seeds": seeds, "current": current_records,
             "controller_sha256": controller_hash,
             "shared_input_sha256": shared_hashes,
+            "fingerprinted_inputs_unchanged": inputs_unchanged,
             "comparison_scope": "Controller comparison; both use current data, optional candidate_model, advisor and public evaluator.",
             "baseline": {"ref": args.baseline_ref,
                          "resolved_sha": getattr(baseline_module, "_benchmark_git_sha", None),
                          "controller_sha256": getattr(baseline_module, "_benchmark_source_sha256", None),
                          "records": baseline_records},
             "summary": {"current": summary(current_records), "baseline": summary(baseline_records)},
+            "paired_comparison": {"count": len(pairs),
+                                  "better": sum(left > right + 1e-6 for left, right in pairs),
+                                  "worse": sum(left < right - 1e-6 for left, right in pairs),
+                                  "equal": sum(abs(left - right) <= 1e-6 for left, right in pairs)},
         }
         try:
             payload["git_sha"] = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(ROOT), check=True, capture_output=True, text=True, timeout=10).stdout.strip()
@@ -413,7 +514,7 @@ def main(argv=None):
         print(json.dumps(payload["summary"], ensure_ascii=False))
         current_ok = all(item.get("status") == "ok" for item in current_records)
         baseline_ok = not args.baseline_ref or all(item.get("status") == "ok" for item in baseline_records)
-        return 0 if current_ok and baseline_ok else 1
+        return 0 if current_ok and baseline_ok and inputs_unchanged else 1
     finally:
         if previous is None:
             os.environ.pop("ARPU_OFFLINE", None)

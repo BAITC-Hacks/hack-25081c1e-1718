@@ -4,10 +4,10 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: Принят UI Азима 1775bc5. Реализованы server.py и report_assistant.py: запуск расчёта, неизменяемый проверенный снимок и ответы OpenAI со ссылками. Реальные offline/online сценарии прошли; online advisor completed в обеих фазах, чат mode=openai. Ключ только в процессе. Основной автономный алгоритм пока 92872b5.
-- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests, API.md и общая интеграция. Азим: web/**, DESIGN/DEMO/README; candidate_model.py/analysis/ заморожены на время сравнения ядра.
-- Next: Опубликовать backend; сравнить улучшение финального выбора кампаний; принять API-интерфейс Азима и проверить общий сценарий. Примерно каждые 4 активные минуты fetch и законченный проверенный checkpoint.
-- Blockers: Формат/дедлайн сдачи и расхождение guide/template по сети ещё уточняются. UI-интеграция выполняется Азимом; backend её больше не блокирует. Mock net не является прогнозом реальной прибыли.
+- Current: Принят финальный UI dadb2d3. Backend99d5303/a10dc23 проверен в настоящем браузере с OpenAI. Добавлен bounded exact portfolio и проверка подтверждений/пересечений; dev0..9/new50..59 совпали с92872b5 без нарушений. Три новых online/offline пары60..62: все планы валидны, OpenAI выше в3/3; это малая исследовательская выборка.
+- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests, API.md и общая интеграция. Азим: web/**, DESIGN/DEMO/README; candidate_model.py/analysis/ заморожены для проверки.
+- Next: Release-генерация CSV, checkpoint, чистый checkout и standalone без helper-файлов, окончательный общий аудит. UI готов; Азиму переданы только неблокирующие уточнения карточек. Примерно каждые4 активные минуты Git-синхронизация.
+- Blockers: Нет блокера реализации. Формат/дедлайн официальной загрузки ещё не подтверждены; пакет готовим локально, самостоятельно не отправляем. Mock net не является прогнозом реальной прибыли.
 
 ## Azim
 

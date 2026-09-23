@@ -287,6 +287,69 @@ class Agent:
                     break
             promoted_members.update(item["members"])
 
+    @staticmethod
+    def _select_portfolio(options, budget, contacts):
+        """Choose a disjoint portfolio; exact search is bounded to small eligible sets."""
+        eligible = []
+        for option in options:
+            score, item, channel, estimate = option
+            score = finite(score, None)
+            audience = int(finite(item.get("audience_size"), 0))
+            repeats = int(finite(estimate.get("repeats"), 0))
+            if (score is None or score <= 0 or repeats < 2 or audience < 1 or audience > 5000
+                    or channel not in CHANNEL_COSTS):
+                continue
+            cost = CHANNEL_COSTS[channel] * audience
+            if cost <= budget and audience <= contacts:
+                eligible.append((score, item, channel, estimate, cost, audience))
+
+        def greedy_pick(pool):
+            used, left_budget, left_contacts, selected = set(), budget, contacts, []
+            for score, item, channel, estimate, cost, audience in pool:
+                members = item.get("members", frozenset())
+                if members & used or cost > left_budget or audience > left_contacts or len(selected) >= 10:
+                    continue
+                selected.append((score, item, channel, estimate, cost, audience))
+                used.update(members)
+                left_budget -= cost
+                left_contacts -= audience
+            return selected
+
+        greedy = greedy_pick(eligible)
+        greedy_score = sum(item[0] for item in greedy)
+        best = list(greedy)
+        if len(eligible) <= 10:
+            best_score = greedy_score
+            suffix = [0.0] * (len(eligible) + 1)
+            for index in range(len(eligible) - 1, -1, -1):
+                suffix[index] = suffix[index + 1] + eligible[index][0]
+
+            def search(index, used, left_budget, left_contacts, selected, total):
+                nonlocal best, best_score
+                if len(selected) >= 10 or index >= len(eligible):
+                    if total > best_score + 1e-9:
+                        best, best_score = list(selected), total
+                    return
+                if total + suffix[index] <= best_score + 1e-9:
+                    return
+                option = eligible[index]
+                score, item, channel, estimate, cost, audience = option
+                members = item.get("members", frozenset())
+                if not members & used and cost <= left_budget and audience <= left_contacts:
+                    search(index + 1, used | set(members), left_budget - cost,
+                           left_contacts - audience, selected + [option], total + score)
+                search(index + 1, used, left_budget, left_contacts, selected, total)
+
+            search(0, set(), budget, contacts, [], 0.0)
+        selected_score = sum(item[0] for item in best)
+        return best, {
+            "mode": "exact" if len(eligible) <= 10 else "greedy",
+            "eligible_count": len(eligible),
+            "baseline_conservative_net": greedy_score,
+            "selected_conservative_net": selected_score,
+            "improved": selected_score > greedy_score + 1e-9,
+        }
+
     def act(self, env):
         started = time.monotonic()
         warnings, observations, events = [], [], []
@@ -295,7 +358,10 @@ class Agent:
         channels = [str(channel) for channel in env.channels if str(channel) in CHANNEL_COSTS]
         if not channels:
             self.last_report = {"schema_version": "1.0", "engine": "adaptive-offline", "campaigns": [],
-                                "pilots": [], "resources": self._resources(env), "warnings": ["no_supported_channels"]}
+                                "pilots": [], "resources": self._resources(env),
+                                "portfolio_selection": {"mode": "greedy", "eligible_count": 0,
+                                "baseline_conservative_net": 0.0, "selected_conservative_net": 0.0,
+                                "improved": False}, "warnings": ["no_supported_channels"]}
             return []
         # Limit the worst-case scout spend before choosing its documented signal
         # strength. This permits inexpensive SMS where affordable while keeping
@@ -387,15 +453,11 @@ class Agent:
                                "audience_size": item["audience_size"], "communication_cost": cost, **estimate})
             return cost
 
-        for score, item, channel, estimate in options:
-            cost = CHANNEL_COSTS[channel] * item["audience_size"]
-            if score <= 0 or estimate["repeats"] < 2 or item["members"] & members or cost > budget or item["audience_size"] > contacts:
-                continue
+        selected_options, portfolio_selection = self._select_portfolio(options, budget, contacts)
+        for score, item, channel, estimate, cost, audience in selected_options:
             budget -= add_campaign(item, channel, estimate)
-            contacts -= item["audience_size"]
+            contacts -= audience
             members.update(item["members"])
-            if len(campaigns) >= 10:
-                break
         if not campaigns:
             # Prefer an actually observed arm for the mandatory minimum campaign.
             observed_options = sorted(options, key=lambda option: option[0], reverse=True)
@@ -427,6 +489,7 @@ class Agent:
             "resource_stage": "after_pilots_before_final_campaigns", "resources": resources,
             "planned_resources": {"remaining_budget": budget, "remaining_contacts": contacts},
             "campaigns": campaigns, "allocation": allocation, "pilots": observations,
+            "portfolio_selection": portfolio_selection,
             "events": events, "advisor": advisor.events, "warnings": sorted(set(warnings)),
             "uncertainty_note": "Approximate planning margin from public template; not a calibrated confidence interval.",
             "elapsed_seconds": round(time.monotonic() - started, 3),

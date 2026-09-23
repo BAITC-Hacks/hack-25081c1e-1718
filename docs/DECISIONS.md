@@ -129,3 +129,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: The interface needs actual analysis and grounded answers while the standalone evaluator contract stays reproducible.
 - Who: Dima, with independent read-only review; Azim integrates the frontend.
 - Consequences: [AFFECTS-OTHERS] server.py --offline/--ask-key serves loopback 8765. Startup has no report; successful jobs create output/runs/id.json, then an in-memory report_id. Key never enters HTTP/web/files, offline child receives no key. One analysis and one answer at a time, bounded handlers/timeouts/rate limits. Live online advice and report Q&A succeeded; a single net result does not establish economic superiority. CLI --run-id is server-internal; normal report export and official submission remain unchanged.
+
+### 2026-09-23 - Select and verify a bounded confirmed portfolio
+
+- Decision: Keep pilot policy fixed; search all compatible subsets of at most ten positive variants confirmed by two same-channel pilots. Retain the full greedy plan on ties; fall back to greedy above the guard bound. Add optional portfolio_selection and a separate evidence gate for current reports.
+- Why: A greedy first campaign can block a higher-value combination. A bounded exact selector solves that case without changing candidate inputs or increasing API/pilot spend. Report-based evidence must not silently pass overlap or cross-channel confirmation bugs.
+- Who: Dima, bounded worker in agent.py and independent read-only review; Azim UI/data ownership unchanged.
+- Consequences: [AFFECTS-OTHERS] Compatible report1.0 extension. Export/benchmark verify final audience overlap from the public profile, allocation resources and matching pilot records; historical controllers without new metadata remain explicitly unchecked by this new gate. Development0..9 and new50..59 are exactly equal to92872b5; no measured net improvement claimed. One illustrative30→40 counterexample and100 independent exhaustive cases verify the selector. New online/offline pairs60..62 all favor OpenAI in this small exploratory sample; not a general performance guarantee.
