@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current:
-- Ownership:
-- Next:
-- Blockers:
+- Current: candidate_model.py готов: 299 кандидатов, 160 сегментов, осторожные priors; 7/7 тестов. Интегрирован e7c9f6f Димы: offline seed42 PASS, net +599050, 16 пилотов/3 SMS-кампании, без warnings. Первый data checkpoint.
+- Ownership: candidate_model.py, analysis/; затем web/ и README.md. Только свои LOG/HANDOFF и этот раздел STATUS.
+- Next: Push data checkpoint; затем после pull web/ по DESIGN и README. Main/handoff сверять примерно каждые 5 минут; Диме пересоздать submission.csv после интеграции.
+- Blockers: Mock-результат не предсказывает судейский; независимая проверка и сравнение контроллеров остаются у Димы. Изменения общего контракта не требуются.
