@@ -137,6 +137,16 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("Вариантов с каналом", reply["answer"])
         self.assertEqual(reply["citations"][0]["ref"], "selection_diagnostics")
 
+    def test_specific_pilot_and_risk_intents_precede_generic_plan(self):
+        risk = assistant.answer_question(self.report, "Какие риски у этого плана?", offline=True)
+        self.assertIn("Риск оценивается", risk["answer"])
+        pilots = assistant.answer_question(self.report, "На каких пилотах основан финальный план?", offline=True)
+        self.assertIn("2 записей пилотов", pilots["answer"])
+        self.assertNotIn("Кампаний в плане", pilots["answer"])
+        scoped = assistant.answer_question(self.report, "Какие риски у кампании 1?", offline=True)
+        self.assertIn("Кампания 1", scoped["answer"])
+        self.assertIn("Номера пилотов: 1–2", scoped["answer"])
+
     def call_provider(self, answer, refs, question="Какой бюджет остался?"):
         with patch.dict("os.environ", {"OPENAI_API_KEY": "local-fixture", "ARPU_OFFLINE": "0"}), \
                 patch("urllib.request.urlopen", return_value=ProviderResponse(answer, refs)) as provider:

@@ -124,6 +124,30 @@ class ReportLocalizationTests(unittest.TestCase):
         self.assertIn("бақыланған өсім: 18.4%–23.4%", answer)
         self.assertIn("3.6 пайыздық тармақ.", answer)
         self.assertNotIn("ақша бірл..", answer)
+        self.assertIn("Белгісіздікті ескеретін шамамен түзету", answer)
+        dispersion = localize_response({"answer": "Взвешенный разброс повторов — 3.6 п. п."}, "kk")["answer"]
+        self.assertIn("Қайталанған сынақтар нәтижелерінің салмақталған шашырауы", dispersion)
+
+    def test_ui_queries_reach_the_matching_real_offline_branch(self):
+        report = {"allocation": [], "pilots": [{"status": "completed", "candidate_id": "c1",
+                                                  "channel": "sms", "n_customers": 10,
+                                                  "observed_lift_ratio": 0.1}],
+                  "resources": {"remaining_budget": 500, "remaining_contacts": 25, "pilots_left": 2},
+                  "evaluation": {"net_arpu_gain": 123}}
+        cases = (
+            ("Қорытынды жоспар қандай сынақтарға сүйенеді?", "сынақ"),
+            ("Бұл жоспардың қандай тәуекелдері бар?", "тәуекел"),
+            ("Қанша байланысу әрекеті қалды?", "байланысу әрекеттері"),
+        )
+        for message, expected in cases:
+            answer = _offline_answer(report, message, [], language="kk")
+            self.assertIn(expected, answer["answer"].lower(), message)
+        answer = _offline_answer(report, "Қандай жорамалдар тексерілді?", [], language="kk")
+        self.assertIn("бұл есепте", answer["answer"].lower())
+
+    def test_missing_diagnostics_sentence_is_translated_before_token_replacements(self):
+        localized = _offline_answer({}, "Қандай жорамалдар тексерілді?", [], language="kk")["answer"]
+        self.assertEqual(localized, "Бұл есепте зерттеу ауқымы мен нұсқаларды алып тастау себептері туралы диагностика жоқ.")
 
     def test_metadata_translation_without_touching_model_answer(self):
         response = {"answer": "Model answer: keep this exact sentence 42.",

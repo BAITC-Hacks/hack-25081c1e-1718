@@ -377,6 +377,14 @@ def _offline_answer(report, message, warnings, language="ru"):
         else:
             answer = "В отчёте нет достаточных данных по каналам кампаний."
             used = []
+    elif any(word in query for word in ("риск", "неопредел", "надёж")):
+        answer = "Риск оценивается по наблюдаемым пилотам и разбросу результатов; причинный эффект по одному историческому числу не подтверждается."
+        used = ["pilots.0"] if "pilots.0" in refs else []
+    elif any(word in query for word in ("пилот", "развед", "наблюд")):
+        items = context.get("pilots", [])
+        completed = sum(item.get("status") == "completed" for item in items)
+        answer = f"В отчёте есть {len(items)} записей пилотов, из них завершённых: {completed}."
+        used = ["pilots." + str(item["index"]) for item in items[:3]]
     elif any(word in query for word in ("кампан", "план", "распредел")):
         items = context.get("allocation", [])
         answer = f"Кампаний в плане: {len(items)}. " if items else "Распределение кампаний в отчёте отсутствует. "
@@ -387,14 +395,6 @@ def _offline_answer(report, message, warnings, language="ru"):
                 _display(item.get("communication_cost")), _display(item.get("conservative_net")))
             used.append("allocation." + str(item["index"]))
         answer += "Оценки плана не являются гарантией эффекта."
-    elif any(word in query for word in ("пилот", "развед", "наблюд")):
-        items = context.get("pilots", [])
-        completed = sum(item.get("status") == "completed" for item in items)
-        answer = f"В отчёте есть {len(items)} записей пилотов, из них завершённых: {completed}."
-        used = ["pilots." + str(item["index"]) for item in items[:3]]
-    elif any(word in query for word in ("риск", "неопредел", "надёж")):
-        answer = "Риск оценивается по наблюдаемым пилотам и разбросу результатов; причинный эффект по одному историческому числу не подтверждается."
-        used = ["pilots.0"] if "pilots.0" in refs else []
     elif "evaluation" in context and any(word in query for word in ("результат", "эффект", "net", "arpu", "оценк")):
         value = context["evaluation"].get("net_arpu_gain", "нет данных")
         answer = (f"Прирост выручки за вычетом расходов на коммуникации в этом синтетическом прогоне: {_display(value)} ден. ед. "
@@ -517,7 +517,7 @@ def answer_question(report, message, offline=False, language="ru"):
     )
     if canonical:
         body["input"][0]["content"][0]["text"] = (
-            "Ты пишешь короткий качественный комментарий для Tariflow. Числовой ответ на вопрос уже готов: "
+            "Ты пишешь короткий качественный комментарий для Tariflow. Ответь кратко по-русски. Числовой ответ на вопрос уже готов: "
             "сервер покажет verified_numeric_summary дословно перед твоим комментарием. "
             "Твоя задача — дополнить его одним предложением об основании или ограничении решения по приложенным фактам. "
             "answer содержит только этот комментарий. Не повторяй сводку или вопрос. "

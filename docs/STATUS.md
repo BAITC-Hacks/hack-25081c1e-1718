@@ -6,8 +6,8 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 - Current: Эксперимент b0975ab и freeze e8353df проверены на dev 0–9 и holdout 100–119; gate не пройден, Agent() сохраняет baseline/template. Отдельно OpenAI выиграл 3/3 пары 120–122 при ровно шести обращениях советника. Отчёты и источники числовых ответов улучшены. По запросу из задачи Азима добавляется ru/kk для чата.
 - Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/ и общие контракты. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные остаются замороженными.
-- Next: Реальные ru/kk ответы и веб-ссылки проверены на161473c. Чистая поставка:56quality/API+7analysis+23Node, exact standalone/CSV PASS; официальный --runs10:10/10положительных. Аудит всех критериев в JUDGING_AUDIT.md. Пакет пересобирается; новый UI/README/DEMO ожидают самостоятельного checkpoint Азима и последующей интеграции.
-- Blockers: Своих нет. Все5must-have проверены;100баллов обещать нельзя. Рост от нового алгоритма не подтверждён, baseline сохранён. Новый UI и обновление README/DEMO ещё не опубликованы Азимом; способ и факт финальной загрузки организаторам не подтверждены.
+- Next: Двуязычный UI db56214 принят: 33 Node-теста и обзор 375/768/1440 PASS. Исправлены вопросы о рисках/пилотах и термины из QUESTIONS 16:38; текущих quality/API-тестов 59. Чистый standalone/CSV и официальный --runs10 подтверждены. Аудит в JUDGING_AUDIT.md; Азиму остаются диагностические блоки QUALITY_STAGE и актуальные README/DEMO.
+- Blockers: Своих нет. Все 5 must-have проверены; 100 баллов обещать нельзя. Рост от нового алгоритма не подтверждён, baseline сохранён. Двуязычие опубликовано; диагностический UI и обновление результатов README/DEMO ещё нужны. Способ и факт финальной загрузки организаторам не подтверждены.
 
 ## Azim
 
