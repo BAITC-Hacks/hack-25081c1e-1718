@@ -78,14 +78,19 @@ def _atomic_write(path, payload):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--run-id", help="Server-owned output identity; exactly 32 lowercase hex characters")
     args = parser.parse_args(argv)
     if not 0 <= args.seed < 2 ** 32:
         parser.error("--seed must be between 0 and 4294967295")
+    if args.run_id is not None and not re.fullmatch(r"[0-9a-f]{32}", args.run_id):
+        parser.error("--run-id must be 32 lowercase hex characters")
     os.chdir(ROOT)
-    destination = ROOT / "output" / "report.json"
+    destination = ROOT / "output" / "runs" / (args.run_id + ".json") if args.run_id else ROOT / "output" / "report.json"
     destination.parent.mkdir(parents=True, exist_ok=True)
     provenance = _provenance()
     provenance["seed"] = args.seed
+    if args.run_id:
+        provenance["run_id"] = args.run_id
     try:
         from benchmark import PublicCaptureAgent, validate_returned_plan, _resource_match
         from local_eval import evaluate_agent

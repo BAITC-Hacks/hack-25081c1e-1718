@@ -122,3 +122,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: The user wants a more polished usable product, actual OpenAI answers and better campaign decisions. The current viewer cannot start a run or ask questions. Existing API advice and an offline report must be distinguished clearly.
 - Who: Dima under explicit user direction; Azim receives a self-contained prompt and can begin design immediately.
 - Consequences: [AFFECTS-OTHERS] docs/API.md fixes same-origin run/report/chat contracts, token/origin restrictions, honest offline mode and report citations. New server modules do not enter the official agent bundle. Quality is measured by campaign net/resource safety and evidence, not a fabricated detection-accuracy percentage. Four-minute Git checkpoints continue.
+
+### 2026-09-23 - Deliver the local run and report assistant API
+
+- Decision: Implement the agreed API with Python stdlib, isolated run output identities, immutable server snapshots and Responses API answers constrained to public report references. No new dependencies. Allow api.mjs/integration.mjs requested by Azim; keep his source ownership.
+- Why: The interface needs actual analysis and grounded answers while the standalone evaluator contract stays reproducible.
+- Who: Dima, with independent read-only review; Azim integrates the frontend.
+- Consequences: [AFFECTS-OTHERS] server.py --offline/--ask-key serves loopback 8765. Startup has no report; successful jobs create output/runs/id.json, then an in-memory report_id. Key never enters HTTP/web/files, offline child receives no key. One analysis and one answer at a time, bounded handlers/timeouts/rate limits. Live online advice and report Q&A succeeded; a single net result does not establish economic superiority. CLI --run-id is server-internal; normal report export and official submission remain unchanged.

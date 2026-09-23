@@ -4,10 +4,10 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: Интегрированы f740180/217e338 Азима. Разведка выбирает сильнейший доступный канал в15% бюджета, платное усиление проверяется попарно; seed42 PASS+685150,20 пилотов/3 кампании. Девять новых40,41,43..49:9/9 положительных, медиана+657090 против предыдущей+582083. Проверяемый атомарный экспорт опубликован678eb7b.
-- Ownership: agent.py, llm_advisor.py, scripts/, manifests, общие контракты и интеграция. candidate_model.py/analysis/ и затем web/ зарезервированы Азиму согласно ARCHITECTURE.
-- Next: Новый этап по запросу пользователя (>2 часов): Дима делает server.py, report_assistant.py, качество ядра и API.md. Азим независимо улучшает web/**, DESIGN, DEMO и README; candidate_model/analysis заморожены для сравнения. Контракт API и120-минутный план публикуются первыми, чтобы UI не ждал backend. Четырёхминутная синхронизация сохранена.
-- Blockers: Требуется уточнение официального дедлайна/способа сдачи и расхождения guide/template по сети. Автономный режим обязателен. API-ключ не хранится в репозитории.
+- Current: Принят UI Азима 1775bc5. Реализованы server.py и report_assistant.py: запуск расчёта, неизменяемый проверенный снимок и ответы OpenAI со ссылками. Реальные offline/online сценарии прошли; online advisor completed в обеих фазах, чат mode=openai. Ключ только в процессе. Основной автономный алгоритм пока 92872b5.
+- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests, API.md и общая интеграция. Азим: web/**, DESIGN/DEMO/README; candidate_model.py/analysis/ заморожены на время сравнения ядра.
+- Next: Опубликовать backend; сравнить улучшение финального выбора кампаний; принять API-интерфейс Азима и проверить общий сценарий. Примерно каждые 4 активные минуты fetch и законченный проверенный checkpoint.
+- Blockers: Формат/дедлайн сдачи и расхождение guide/template по сети ещё уточняются. UI-интеграция выполняется Азимом; backend её больше не блокирует. Mock net не является прогнозом реальной прибыли.
 
 ## Azim
 

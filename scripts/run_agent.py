@@ -15,10 +15,13 @@ def main():
     parser = argparse.ArgumentParser(description="ARPU Compass local runner")
     parser.add_argument("--mode", choices=("report", "evaluate", "submission"), default="report")
     parser.add_argument("--seed", type=int, default=42, help="Used by report mode")
+    parser.add_argument("--run-id", help="Server-owned report identity; used only by report mode")
     options = parser.add_mutually_exclusive_group()
     options.add_argument("--ask-key", action="store_true", help="Prompt without echo; key exists only during this process")
     options.add_argument("--offline", action="store_true", help="Disable all model calls")
     args = parser.parse_args()
+    if args.run_id and args.mode != "report":
+        parser.error("--run-id is only supported in report mode")
     previous_key = os.environ.get("OPENAI_API_KEY")
     previous_offline = os.environ.get("ARPU_OFFLINE")
     try:
@@ -44,6 +47,8 @@ def main():
         scripts = {"report": "scripts/export_report.py", "evaluate": "local_eval.py", "submission": "make_submission.py"}
         target = ROOT / scripts[args.mode]
         sys.argv = [str(target)] + (["--seed", str(args.seed)] if args.mode == "report" else [])
+        if args.run_id:
+            sys.argv.extend(["--run-id", args.run_id])
         runpy.run_path(str(target), run_name="__main__")
     finally:
         for name, previous in (("OPENAI_API_KEY", previous_key), ("ARPU_OFFLINE", previous_offline)):
