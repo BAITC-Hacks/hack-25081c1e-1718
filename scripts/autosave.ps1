@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([int]$Minutes = 20)
+param([int]$Minutes = 4)
 
 if ($Minutes -lt 1) { throw 'Minutes must be at least 1.' }
 Write-Host "Checkpoint reminders every $Minutes minute(s). Stop with Ctrl+C."

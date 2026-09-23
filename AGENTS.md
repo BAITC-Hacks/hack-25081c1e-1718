@@ -37,7 +37,11 @@ users, MVP, non-goals, stack, judging fit, and demo path belong in
 
 - Trunk-based on the default branch unless protection/rules require a short PR branch.
 - Use Conventional Commits: `feat|fix|docs|chore|refactor|test`, imperative,
-  one idea per commit. Checkpoint every logical unit and about every 20 active minutes.
+  one idea per commit. During the active event, checkpoint about every 4 active minutes
+  when a coherent verified unit is ready. Do not create empty or broken timer commits.
+- Before each checkpoint, fetch and inspect incoming changed paths plus the other
+  owner's STATUS/HANDOFF. Integrate after the current run finishes, then verify and
+  push. Record what changed and any action needed from the teammate.
 - Before every commit, `pwsh ./scripts/verify.ps1` must pass.
 - Never force-push or rewrite pushed history. Preserve both sides in conflicts;
   if intent is unclear, ask in `docs/agents/shared/QUESTIONS.md` and tell a human.

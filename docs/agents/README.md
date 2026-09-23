@@ -23,7 +23,7 @@
 - Add `[AFFECTS-OTHERS]` when changing an API/contract, schema, dependency,
   environment variable, design token, or folder structure.
 - For every `[AFFECTS-OTHERS]` change, append a record to `docs/DECISIONS.md`.
-- Keep commits small and use `scripts/checkpoint.ps1`.
+- Keep commits small and use `scripts/checkpoint.ps1`; during the active event aim for a verified checkpoint about every 4 active minutes. Fetch and inspect incoming paths plus teammate STATUS/HANDOFF first; do not publish broken or empty timer commits.
 - During a timed hackathon, use `docs/PROJECT.md` and `docs/ARCHITECTURE.md` as the shared project memory. Every handoff names completed work, changed paths/contracts, commit/push state, next action, and blockers.
 - Integrate continuously: push small verified commits when permitted, pull/rebase before dependent integration, and reserve a time buffer for a clean run and demo. Never force-push or overwrite the other person's changes.
 

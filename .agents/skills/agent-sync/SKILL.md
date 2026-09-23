@@ -30,6 +30,12 @@ Read `.agent-identity`; stop this workflow if it is absent or not `dima`/`azim`.
 
 ## Finish
 
+During the active event, aim for a verified checkpoint about every 4 active minutes.
+Before it, fetch and inspect incoming changed paths and the teammate's latest
+STATUS/HANDOFF. Integrate after active evaluations finish; do not change their
+inputs mid-run. No empty or broken timer commits. Unpushed work on the teammate's
+computer is not visible here: use named file ownership and explicit handoffs.
+
 - Update only your STATUS section.
 - Replace your HANDOFF with current state, next three steps, and blockers.
 - Run `pwsh ./scripts/checkpoint.ps1 "type: imperative message"` if pushing is allowed.

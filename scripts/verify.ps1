@@ -1,7 +1,9 @@
 [CmdletBinding()]
-param([string]$PythonCommand = $env:ARPU_PYTHON)
+param([string]$PythonCommand = $env:ARPU_PYTHON, [switch]$Release)
 
 $ErrorActionPreference = 'Stop'
+Push-Location (Split-Path -Parent $PSScriptRoot)
+try {
 $ran = $false
 
 function Run-Step([string]$Name, [scriptblock]$Action) {
@@ -53,6 +55,30 @@ if (Test-Path 'agent.py') {
             throw 'Official evaluator reported an invalid agent/campaign.'
         }
     }
+    if ($Release) {
+        Run-Step 'official submission generation (offline)' {
+            $previousOffline = $env:ARPU_OFFLINE
+            try {
+                $env:ARPU_OFFLINE = '1'
+                & $PythonCommand -X utf8 make_submission.py
+                if ($LASTEXITCODE -ne 0) { throw 'Official CSV generator failed.' }
+            } finally {
+                if ($null -eq $previousOffline) { Remove-Item Env:ARPU_OFFLINE -ErrorAction SilentlyContinue }
+                else { $env:ARPU_OFFLINE = $previousOffline }
+            }
+            $rows = @(Import-Csv -LiteralPath 'submission.csv')
+            if ($rows.Count -lt 1 -or $rows.Count -gt 10) { throw 'Submission must contain 1 through 10 campaigns.' }
+            $expected = @('campaign_name','filter_arpu_segment','filter_data_segment','filter_call_segment','filter_current_tariff','target_tariff','channel')
+            if (($rows[0].PSObject.Properties.Name -join ',') -ne ($expected -join ',')) { throw 'Unexpected submission columns.' }
+            $tariffCodes = @(Import-Csv -LiteralPath 'tariff_dictionary.csv' | ForEach-Object { $_.tariff_plan_code })
+            foreach ($row in $rows) {
+                if ($row.target_tariff -notin $tariffCodes -or $row.channel -notin @('push','sms','digital_ads','call')) {
+                    throw 'Submission has an unknown tariff or channel.'
+                }
+            }
+        }
+        Write-Host 'Release CSV regenerated and checked. Include submission.csv in the next checkpoint.'
+    }
 }
 
 if (Test-Path 'package.json') {
@@ -73,3 +99,6 @@ if (Test-Path 'Cargo.toml') { Run-Step 'cargo test' { cargo test } }
 
 if (-not $ran) { Write-Host 'nothing to verify' }
 Write-Host 'Technical verification passed. Economic quality is evaluated separately; see docs/BASELINE.md.'
+} finally {
+    Pop-Location
+}

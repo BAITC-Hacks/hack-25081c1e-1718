@@ -52,6 +52,14 @@ def load_ref(ref):
         return None, "git_ref_unavailable"
     module = types.ModuleType("benchmark_baseline_agent")
     module.__file__ = str(ROOT / "agent.py")
+    module._benchmark_source_sha256 = hashlib.sha256(source.encode("utf-8")).hexdigest()
+    try:
+        module._benchmark_git_sha = subprocess.run(
+            ["git", "rev-parse", "--verify", ref + "^{commit}"], cwd=str(ROOT),
+            check=True, capture_output=True, text=True, timeout=10,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None, "baseline_commit_unresolved"
     try:
         exec(compile(source, str(ROOT / "agent.py"), "exec"), module.__dict__)
         if not callable(getattr(module, "Agent", None)):
@@ -102,7 +110,8 @@ def run_one(module, seed, evaluate):
         for pilot in pilots:
             if isinstance(pilot, dict) and pilot.get("status", "completed") == "completed":
                 completed += 1
-        if completed > 20:
+        actual_pilots = finite(result.get("n_pilots"))
+        if not 1 <= completed <= 20 or len(pilots) > 20 or actual_pilots is None or not 1 <= actual_pilots <= 20:
             record["reason"] = "pilot_limit_exceeded"
             return record
         resources = report.get("resources", {})
@@ -122,10 +131,15 @@ def run_one(module, seed, evaluate):
         if any(finite(value) is None or finite(value) < 0 for value in resource_values):
             record["reason"] = "invalid_resources"
             return record
+        limits = {"remaining_budget": 100000, "remaining_contacts": 15000, "pilots_left": 20}
+        if any(finite(resources[key]) > limit for key, limit in limits.items()):
+            record["reason"] = "resource_counter_out_of_range"
+            return record
         record.update({
             "status": "ok", "evaluation_status": result.get("status"), "net_arpu_gain": net, "pilots_completed": completed,
             "final_campaign_count": len(campaigns), "elapsed_seconds": time.monotonic() - started,
             "resources": resources, "planned_resources": planned_resources,
+            "resource_evidence": "Agent report; actual pilot count and result also supplied by public evaluator.",
             "warnings": report.get("warnings", []),
         })
     except Exception:
@@ -164,6 +178,9 @@ def main(argv=None):
     try:
         os.chdir(ROOT)
         controller_hash = hashlib.sha256((ROOT / "agent.py").read_bytes()).hexdigest()
+        shared_hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() if (ROOT / name).is_file() else None
+                         for name in ("candidate_model.py", "llm_advisor.py", "customer_profile.csv", "tariff_dictionary.csv",
+                                      "data/change_tariff.csv", "data/traffic.csv", "data/arpu_monthly.csv", "data/dict_tariff.csv")}
         local_eval = importlib.import_module("local_eval")
         evaluate = getattr(local_eval, "evaluate_agent", None)
         current_module = load_current()
@@ -179,8 +196,12 @@ def main(argv=None):
             "schema_version": "1.0", "note": "not judge score", "git_sha": None,
             "dirty": None, "seeds": seeds, "current": current_records,
             "controller_sha256": controller_hash,
+            "shared_input_sha256": shared_hashes,
             "comparison_scope": "Controller comparison; both use current data, optional candidate_model, advisor and public evaluator.",
-            "baseline": {"ref": args.baseline_ref, "records": baseline_records},
+            "baseline": {"ref": args.baseline_ref,
+                         "resolved_sha": getattr(baseline_module, "_benchmark_git_sha", None),
+                         "controller_sha256": getattr(baseline_module, "_benchmark_source_sha256", None),
+                         "records": baseline_records},
             "summary": {"current": summary(current_records), "baseline": summary(baseline_records)},
         }
         try:

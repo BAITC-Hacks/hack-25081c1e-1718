@@ -5,6 +5,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+Push-Location (Split-Path -Parent $PSScriptRoot)
+try {
 if ($Message -notmatch '^(feat|fix|docs|chore|refactor|test)(\([^)]+\))?!?: .+') {
     throw 'Use a Conventional Commit message, for example: docs: add demo checklist'
 }
@@ -36,3 +38,6 @@ Invoke-GitChecked -Arguments @('pull', '--rebase', '--autostash')
 & pwsh -NoProfile -File "$PSScriptRoot/verify.ps1"
 if ($LASTEXITCODE -ne 0) { throw 'Verification after synchronization failed; local commit retained, nothing pushed.' }
 Invoke-GitChecked -Arguments @('push')
+} finally {
+    Pop-Location
+}
