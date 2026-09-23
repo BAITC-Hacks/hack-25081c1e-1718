@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F5F7FA">
+  <meta name="description" content="ARPU Compass — локальный просмотр кампаний, пилотов и ресурсов синтетического прогона HackAlem AI.">
+  <title>ARPU Compass — отчёт кампаний</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+  <header class="app-header">
+    <a class="brand" href="#main" aria-label="ARPU Compass — начало">
+      <svg class="brand-mark" width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="10" fill="currentColor"/><path d="m24 11-4 12-8 3 4-12 8-3Z" fill="#17212B"/><circle cx="18" cy="18" r="2" fill="#F5C518"/></svg>
+      <span>ARPU <strong>Compass</strong></span>
+    </a>
+    <span class="synthetic-label"><span class="label-dot" aria-hidden="true"></span>Синтетические данные хакатона</span>
+    <button class="button button-primary header-import" type="button" data-open><span aria-hidden="true">↑</span> Открыть отчёт</button>
+    <label class="sr-only" for="report-file">Выберите файл report.json</label>
+    <input type="file" id="report-file" accept=".json,application/json" class="sr-only" tabindex="-1">
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Навигация по отчёту">
+      <div class="sidebar-heading">Рабочая область</div>
+      <nav class="navigation">
+        <a href="#overview" class="nav-link active"><span class="nav-icon" aria-hidden="true">◫</span> Обзор</a>
+        <a href="#resources" class="nav-link" data-report-link><span class="nav-icon" aria-hidden="true">◷</span> Ресурсы</a>
+        <a href="#campaigns" class="nav-link" data-report-link><span class="nav-icon" aria-hidden="true">↗</span> Кампании <span id="nav-campaign-count" class="nav-count" hidden></span></a>
+        <a href="#pilots" class="nav-link" data-report-link><span class="nav-icon" aria-hidden="true">⊞</span> Пилоты</a>
+        <a href="#limitations" class="nav-link" data-report-link><span class="nav-icon" aria-hidden="true">ⓘ</span> Ограничения</a>
+      </nav>
+      <div class="sidebar-footer"><span class="eyebrow">HackAlem AI</span><p>Тарифные кампании<br>Учебный кейс Beeline</p><span class="local-indicator"><span aria-hidden="true"></span>Локальный просмотр</span></div>
+    </aside>
+
+    <main id="main" tabindex="-1">
+      <div id="overview" class="page-heading">
+        <div><p class="eyebrow">Аналитика тарифных кампаний</p><h1>Отчёт кампаний</h1><p class="page-description">Гипотезы, проверенные пилотами. План с учётом доступных ресурсов.</p></div>
+        <span id="run-badge" class="badge badge-neutral">Отчёт не загружен</span>
+      </div>
+
+      <div id="load-status" class="notice" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <div><strong id="status-title"></strong><p id="status-description"></p></div>
+        <button id="retry-button" class="button button-secondary" type="button" data-open hidden>Выбрать другой файл</button>
+      </div>
+
+      <section id="empty-state" class="empty-state panel" aria-labelledby="empty-title">
+        <div class="empty-art" aria-hidden="true">
+          <span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>
+          <svg width="92" height="108" viewBox="0 0 92 108"><rect x="8" y="4" width="74" height="96" rx="10" fill="#FFFFFF" stroke="#BAC4CE" stroke-width="1.5"/><path d="M25 27h38M25 36h22" stroke="#B0BBC5" stroke-width="4" stroke-linecap="round"/><rect x="25" y="64" width="9" height="18" rx="2" fill="#DCE3E9"/><rect x="41" y="53" width="9" height="29" rx="2" fill="#F5C518"/><rect x="57" y="43" width="9" height="39" rx="2" fill="#17212B"/><circle cx="76" cy="88" r="16" fill="#F5C518"/><path d="m70 88 4 4 8-9" stroke="#17212B" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="eyebrow">От расчёта к решению</span>
+        <h2 id="empty-title">Посмотрите, что выбрал агент</h2>
+        <p>Откройте фактический <strong>report.json</strong>, чтобы проверить кампании, наблюдения пилотов и остатки бюджета.</p>
+        <div class="empty-actions"><button class="button button-primary" type="button" data-open><span aria-hidden="true">↑</span> Открыть отчёт</button><button id="load-static" class="button button-secondary" type="button">Загрузить сохранённый отчёт</button></div>
+        <p class="empty-note">JSON версии 1.0 · до 10 МБ · файл остаётся в браузере</p>
+        <div class="empty-steps"><div><span>01</span><strong>Ресурсы</strong><p>Бюджет и контакты на каждом этапе</p></div><div><span>02</span><strong>Пилоты</strong><p>Наблюдённый эффект по сегментам</p></div><div><span>03</span><strong>Кампании</strong><p>Цели, каналы и оценки плана</p></div></div>
+      </section>
+
+      <div id="report-view" hidden>
+        <section class="run-meta panel" aria-label="Данные сохранённого прогона"><div><span>Источник</span><strong id="meta-source"></strong></div><div><span>Seed</span><strong id="meta-seed"></strong></div><div><span>Время прогона</span><strong id="meta-time"></strong></div><div><span>Стратегия</span><strong id="meta-engine"></strong></div></section>
+
+        <section class="metric-grid" aria-label="Итоги прогона">
+          <article class="metric-card metric-evaluation"><span class="metric-label">Чистый прирост · evaluator</span><strong id="metric-net" class="metric-value"></strong><span id="evaluation-status" class="metric-footnote"></span></article>
+          <article class="metric-card"><span class="metric-label">Кампаний в плане</span><strong id="metric-campaigns" class="metric-value"></strong><span class="metric-footnote">Предложены агентом</span></article>
+          <article class="metric-card"><span class="metric-label">Записей о пилотах</span><strong id="metric-pilots" class="metric-value"></strong><span id="pilot-completion" class="metric-footnote"></span></article>
+          <article class="metric-card"><span class="metric-label">Пилотов осталось</span><strong id="metric-pilots-left" class="metric-value"></strong><span class="metric-footnote">После исследования</span></article>
+        </section>
+
+        <section id="resources" class="report-section" aria-labelledby="resources-heading">
+          <div class="section-heading"><div><p class="eyebrow">01 / Контроль лимитов</p><h2 id="resources-heading">Ресурсы</h2></div><span class="section-note">Денежные значения в у. е.</span></div>
+          <div class="resource-grid panel"><div class="resource-intro"><h3>Два этапа, два остатка</h3><p>Пилоты уже учтены в ресурсах. Финальный план показывает последующее ожидаемое расходование.</p></div><div class="resource-stage"><span class="stage-label"><span class="stage-dot" aria-hidden="true"></span>После пилотов</span><dl><div><dt>Бюджет</dt><dd id="budget-pilots"></dd></div><div><dt>Контакты</dt><dd id="contacts-pilots"></dd></div></dl><p>Фактические остатки среды</p></div><div class="resource-stage resource-planned"><span class="stage-label"><span class="stage-dot" aria-hidden="true"></span>После финального плана</span><dl><div><dt>Бюджет</dt><dd id="budget-planned"></dd></div><div><dt>Контакты</dt><dd id="contacts-planned"></dd></div></dl><p>Плановые остатки, до исполнения</p></div></div>
+        </section>
+
+        <section id="campaigns" class="report-section" aria-labelledby="campaigns-heading">
+          <div class="section-heading"><div><p class="eyebrow">02 / Рекомендованный план</p><h2 id="campaigns-heading">Кампании <span id="campaign-heading-count" class="heading-count"></span></h2></div><button id="export-csv" class="button button-secondary" type="button"><span aria-hidden="true">↓</span> Экспорт кампаний</button></div>
+          <p class="section-description">Охват, затраты и эффект ниже — оценки распределения. Фактический чистый прирост показан отдельно, по evaluator.</p>
+          <div class="panel">
+            <div class="table-toolbar"><div class="search-field"><label for="campaign-search" class="sr-only">Найти кампанию по сегменту или тарифу</label><span aria-hidden="true">⌕</span><input id="campaign-search" type="search" placeholder="Найти сегмент или тариф" autocomplete="off"></div><div class="select-field"><label for="campaign-channel">Канал</label><select id="campaign-channel"><option value="">Все каналы</option></select></div><span id="campaign-result-count" class="toolbar-count" aria-live="polite"></span></div>
+            <div id="campaign-empty" class="inline-empty" hidden><h3 id="campaign-empty-title"></h3><p id="campaign-empty-description"></p></div>
+            <div id="campaign-table-wrap" class="table-scroll" tabindex="0" role="region" aria-label="Таблица кампаний, доступна горизонтальная прокрутка">
+              <table class="campaign-table"><caption class="sr-only">Финальные кампании и плановые оценки</caption><thead><tr><th scope="col">Сегмент и обоснование</th><th scope="col">Целевой тариф</th><th scope="col">Канал</th><th scope="col" class="numeric">Охват</th><th scope="col" class="numeric">Расходы</th><th scope="col" class="numeric">Оценка эффекта</th></tr></thead><tbody id="campaign-rows"></tbody></table>
+            </div>
+            <div class="table-footnote"><span class="info-symbol" aria-hidden="true">i</span><p>Осторожная оценка использует приблизительный запас неопределённости. Это не доверительный интервал. CSV содержит весь план и только допустимые поля кампаний.</p></div>
+          </div>
+        </section>
+
+        <section id="pilots" class="report-section" aria-labelledby="pilots-heading">
+          <div class="section-heading"><div><p class="eyebrow">03 / Проверка гипотез</p><h2 id="pilots-heading">Пилоты <span id="pilot-heading-count" class="heading-count"></span></h2></div><span class="section-note">В порядке выполнения</span></div>
+          <div class="panel">
+            <div id="pilot-chart-panel" class="pilot-chart-panel" hidden><div><h3>Наблюдённый эффект</h3><p>Относительное изменение ARPU<br><span class="chart-legend"><span aria-hidden="true">↗</span> рост <span aria-hidden="true">↘</span> снижение</span></p></div><div class="pilot-chart-container"><div id="pilot-chart" class="pilot-chart" aria-hidden="true"></div><p>Каждый столбец — пилот; нулевая линия в центре. Значения приведены в таблице.</p></div></div>
+            <div class="table-toolbar"><p class="toolbar-explanation">Наблюдения пилотов не гарантируют эффект финальной кампании.</p><div class="select-field"><label for="pilot-status">Статус</label><select id="pilot-status"><option value="">Все статусы</option></select></div></div>
+            <div id="pilot-empty" class="inline-empty" hidden><h3>Пилотов для показа нет</h3><p>В отчёте нет наблюдений, подходящих под выбранный статус.</p></div>
+            <div id="pilot-table-wrap" class="table-scroll" tabindex="0" role="region" aria-label="Таблица пилотов, доступна горизонтальная прокрутка"><table class="pilot-table"><caption class="sr-only">Пилоты, фактические размеры, расходы и наблюдённый эффект</caption><thead><tr><th scope="col">№</th><th scope="col">Сегмент → тариф</th><th scope="col">Канал</th><th scope="col" class="numeric">Размер</th><th scope="col" class="numeric">Эффект</th><th scope="col" class="numeric">Стоимость</th><th scope="col">Статус</th></tr></thead><tbody id="pilot-rows"></tbody></table></div>
+          </div>
+        </section>
+
+        <section id="limitations" class="report-section" aria-labelledby="limitations-heading">
+          <div class="section-heading"><div><p class="eyebrow">04 / Границы результата</p><h2 id="limitations-heading">Что учесть перед решением</h2></div></div>
+          <div class="limits-grid"><article class="panel limits-card"><span class="small-icon" aria-hidden="true">!</span><h3>Ограничения и предупреждения</h3><ul id="warnings-list"></ul></article><article class="panel limits-card"><span class="small-icon" aria-hidden="true">↔</span><h3>Как читать оценки</h3><p>История и целевая база — разные выборки. Исторические приоры помогают выбрать гипотезы, но не доказывают эффект на новой аудитории.</p><p id="uncertainty-note"></p><p>Это синтетический прогон хакатона. Результаты не прогнозируют реальную выручку Beeline.</p></article></div>
+          <details class="panel advisor-details"><summary>Работа советника и пояснения агента <span aria-hidden="true">＋</span></summary><div id="advisor-content"></div></details>
+        </section>
+      </div>
+      <footer class="page-footer"><span>ARPU Compass <span aria-hidden="true">/</span> HackAlem AI</span><span>Синтетические данные · без реальных рассылок</span></footer>
+    </main>
+  </div>
+  <noscript><p class="notice notice-error">Для локального чтения отчёта включите JavaScript. Файл не отправляется на сервер.</p></noscript>
+</body>
+</html>

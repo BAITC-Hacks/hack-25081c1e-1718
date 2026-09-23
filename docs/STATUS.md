@@ -11,7 +11,7 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Azim
 
-- Current: Data checkpoint f740180 опубликован и воспроизведён из чистого клона: 7/7 тестов, 299 кандидатов/160 сегментов. Подтянуты 7dd1fcf/7b97ff9; фактический push-report seed42 +475595, 16 пилотов/3 кампании, warnings=[]. Web и README в реализации.
+- Current: Data f740180 опубликован (7/7 тестов, 299 кандидатов/160 сегментов). Web/README готовы: импорт реального JSON, ресурсы двух этапов, пилоты/кампании/CSV; 8/8 тестов и Chromium375/768/1440. Подтянут678eb7b: seed42 net+644555,20 пилотов/3 кампании, warnings=[], validation.valid=true. Новый provenance/validation совместим; UI checkpoint.
 - Ownership: candidate_model.py, analysis/; затем web/ и README.md. Только свои LOG/HANDOFF и этот раздел STATUS.
-- Next: Закончить web/ по DESIGN, проверить реальные/битые/пустые отчёты и 375/768/1440, опубликовать UI и README. Main/handoff сверять примерно каждые4 активные минуты; Дима уже обновил submission.csv.
+- Next: Диме подтянуть UI checkpoint и проверить совместный запуск по README; final release/CSV и выбор стратегии ведёт Дима. Сверять main/handoff примерно каждые4 активные минуты во время активной совместной работы.
 - Blockers: Mock-результат не предсказывает судейский; независимая проверка и сравнение контроллеров остаются у Димы. Изменения общего контракта не требуются.
