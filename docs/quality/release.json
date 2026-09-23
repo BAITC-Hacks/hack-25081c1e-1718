@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "revision": "161473ca609f1d91000dbffedaf7394f3e53cba6",
+  "clone": "output/quality-release-161473c",
+  "fresh_venv": true,
+  "tests": {
+    "quality": {
+      "passed": 56,
+      "failed": 0,
+      "command": "python -X utf8 -m unittest scripts.test_quality_policy scripts.test_quality_benchmark scripts.test_report_quality scripts.test_report_localization scripts.test_chat_language -q"
+    },
+    "analysis": {
+      "passed": 7,
+      "failed": 0,
+      "command": "python -X utf8 -m unittest analysis.test_candidates -q"
+    },
+    "web_node": {
+      "passed": 23,
+      "failed": 0,
+      "command": "node --test web/api.test.mjs web/report.test.mjs"
+    }
+  },
+  "release_gate": {
+    "verify_ps1_release": "PASS",
+    "official_local_eval": "PASS",
+    "official_csv_generated": "PASS",
+    "official_net_arpu_gain_rounded": 685150,
+    "official_net_arpu_gain_exact": 685149.5196317472
+  },
+  "package": {
+    "entries": [
+      "agent.py",
+      "submission.csv",
+      "requirements.txt",
+      "manifest.json"
+    ],
+    "entry_count": 4,
+    "manifest_source_git_sha": "161473ca609f1d91000dbffedaf7394f3e53cba6",
+    "manifest_code_hashes_match": true,
+    "artifact_hashes_match": true,
+    "packaged_agent_sha256": "e8f4a1a24832707c2bdf0a469f562e2d7c8a943d5c1b970c07f0eba211dbcbb7",
+    "manifest_packaged_agent_sha256": "e8f4a1a24832707c2bdf0a469f562e2d7c8a943d5c1b970c07f0eba211dbcbb7",
+    "submission_csv_sha256": "e52d7a2570211b0b52060181ac56dff5e9cb719a199aa49e344f670f4ca15f40",
+    "zip_sha256": "35ddc07aeedf104a61a51def475bb033b1076c9530bc55679fcb1609f3be5ae3"
+  },
+  "standalone": {
+    "generated_agent": "output/submission/agent.py",
+    "candidate_model_external_present": false,
+    "llm_advisor_external_present": false,
+    "official_evaluator_command": "python -I -c with explicit standalone cwd/sys.path",
+    "official_status": "PASS",
+    "net_arpu_gain_exact": 685149.5196317472,
+    "n_pilots": 20,
+    "n_campaigns": 23,
+    "matches_modular_net_exact": true,
+    "csv_sha256": "e52d7a2570211b0b52060181ac56dff5e9cb719a199aa49e344f670f4ca15f40",
+    "matches_modular_csv_exact": true,
+    "submission_generator": "PASS"
+  },
+  "limits": [
+    "No OpenAI calls or additional seed series were run.",
+    "Organizer evaluator files were copied unchanged solely for execution and not inspected."
+  ],
+  "official_runs_10": {
+    "command": "ARPU_OFFLINE=1 python -X utf8 local_eval.py --runs 10",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "successful_runs": 10,
+    "positive_runs": 10,
+    "crashes": 0,
+    "median_rounded": 615745,
+    "minimum_rounded": 418038,
+    "maximum_rounded": 714284,
+    "log": "quality/official-runs-10.txt",
+    "new_holdout": false
+  }
+}

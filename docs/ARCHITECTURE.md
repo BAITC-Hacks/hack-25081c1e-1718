@@ -187,3 +187,12 @@ Agent() сохраняет baseline/template. Keyword-параметры explora
 и uncertainty_mode=empirical предназначены для воспроизводимого исследования.
 После отрицательных dev/holdout результатов они не включаются в обычном запуске.
 Кандидаты, данные, Agent.act, CSV и HTTP-запросы неизменны. Результаты — QUALITY_RESULTS.md.
+
+## Языки объяснений
+
+Совместимое дополнение API: optional POST /api/chat language=ru|kk, default ru,
+health.capabilities.chat_languages. report_localization.py переводит стандартные
+числовые ответы, labels/warnings и маршрутизирует казахские вопросы к тем же
+проверенным источникам. OpenAI получает исходный вопрос и нужную языковую инструкцию.
+Числа, report_id, mode и машинные ссылки остаются неизменными. Клиент использует
+capability для совместимости со старым сервером; контракт описан в API.md.
