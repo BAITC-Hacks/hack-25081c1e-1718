@@ -82,29 +82,204 @@ def load_current():
     return importlib.import_module("agent")
 
 
+class PublicCaptureAgent:
+    """Delegate while retaining only the evaluator's public environment surface."""
+
+    def __init__(self, module):
+        self._delegate = module.Agent()
+        self.last_report = {}
+        self.returned_campaigns = None
+        self.before = None
+        self.after = None
+
+    @staticmethod
+    def _snapshot(env):
+        profile = env.customer_profile
+        tariffs = env.tariffs
+        channels = env.channels
+        if hasattr(profile, "copy"):
+            profile = profile.copy(deep=True)
+        if hasattr(tariffs, "copy"):
+            tariffs = tariffs.copy(deep=True)
+        elif isinstance(tariffs, list):
+            tariffs = list(tariffs)
+        if isinstance(channels, dict):
+            channels = dict(channels)
+        elif isinstance(channels, (list, tuple, set)):
+            channels = list(channels)
+        return {
+            "customer_profile": profile,
+            "tariffs": tariffs,
+            "channels": channels,
+            "remaining_budget": finite(getattr(env, "remaining_budget", None)),
+            "remaining_contacts": finite(getattr(env, "remaining_contacts", None)),
+            "pilots_left": finite(getattr(env, "pilots_left", None)),
+        }
+
+    def act(self, env):
+        self.before = self._snapshot(env)
+        try:
+            self.returned_campaigns = self._delegate.act(env)
+            return self.returned_campaigns
+        finally:
+            self.after = self._snapshot(env)
+            report = getattr(self._delegate, "last_report", {})
+            self.last_report = report if isinstance(report, dict) else {}
+
+
+def _channel_names(value):
+    if isinstance(value, dict):
+        value = value.keys()
+    try:
+        return {str(item) for item in value}
+    except TypeError:
+        return set()
+
+
+def _filter_values(value, allow_union=False):
+    if not isinstance(value, str) or not value.strip():
+        return None
+    if ";" in value and not allow_union:
+        return None
+    return {item.strip() for item in value.split(";") if item.strip()}
+
+
+def validate_returned_plan(agent):
+    """Validate the actual act() return using only captured public env data."""
+    errors = []
+    campaigns = agent.returned_campaigns
+    before, after = agent.before, agent.after
+    if not isinstance(campaigns, list) or not 1 <= len(campaigns) <= 10:
+        return {"valid": False, "errors": ["campaign_count"], "campaign_count": 0}
+    profile = before["customer_profile"]
+    tariffs = {str(item) for item in before["tariffs"]["tariff_plan_code"].tolist()}
+    channels = _channel_names(before["channels"])
+    allowed = {"campaign_name", "target_tariff", "channel", "filter_arpu_segment",
+               "filter_data_segment", "filter_call_segment", "filter_current_tariff"}
+    column_map = {"filter_arpu_segment": "arpu_segment", "filter_data_segment": "data_segment",
+                  "filter_call_segment": "call_segment", "filter_current_tariff": "current_tariff"}
+    names, total_contacts, total_cost = set(), 0, 0.0
+    details = []
+    for index, campaign in enumerate(campaigns):
+        if not isinstance(campaign, dict) or not {"target_tariff", "channel"}.issubset(campaign):
+            errors.append(f"campaign_{index}_required_keys")
+            continue
+        unknown = set(campaign) - allowed
+        if unknown:
+            errors.append(f"campaign_{index}_unknown_keys")
+        target, channel = campaign["target_tariff"], campaign["channel"]
+        if not isinstance(target, str) or not target.strip():
+            errors.append(f"campaign_{index}_target_type")
+        if not isinstance(channel, str) or not channel.strip():
+            errors.append(f"campaign_{index}_channel_type")
+        target, channel = str(target), str(channel)
+        if target not in tariffs:
+            errors.append(f"campaign_{index}_target")
+        if channel not in channels or channel not in {"push", "sms", "digital_ads", "call"}:
+            errors.append(f"campaign_{index}_channel")
+        name = str(campaign.get("campaign_name", f"campaign_{index}"))
+        if name in names:
+            errors.append("duplicate_campaign_name")
+        names.add(name)
+        mask = None
+        for key, column in column_map.items():
+            values = _filter_values(campaign.get(key), allow_union=(key == "filter_current_tariff"))
+            if campaign.get(key) is not None and values is None:
+                errors.append(f"campaign_{index}_filter_type")
+            if values:
+                if column not in profile.columns:
+                    errors.append(f"campaign_{index}_filter_column")
+                    continue
+                part = profile[column].astype(str).isin(values)
+                mask = part if mask is None else mask & part
+        count = int(mask.sum()) if mask is not None else len(profile)
+        cost = count * {"push": 0.0, "sms": 4.0, "digital_ads": 22.0, "call": 160.0}.get(channel, float("inf"))
+        total_contacts += count
+        total_cost += cost
+        details.append({"index": index, "audience": count, "cost": cost, "target": target, "channel": channel})
+        if count < 1 or count > 5000:
+            errors.append(f"campaign_{index}_audience")
+    budget_available, contacts_available = after["remaining_budget"], after["remaining_contacts"]
+    if budget_available is None or contacts_available is None or total_cost > budget_available + 1e-6:
+        errors.append("final_budget")
+    if contacts_available is None or total_contacts > contacts_available:
+        errors.append("final_contacts")
+    return {"valid": not errors, "errors": errors, "campaign_count": len(campaigns),
+            "total_contacts": total_contacts, "total_cost": total_cost,
+            "available_budget": budget_available, "available_contacts": contacts_available,
+            "campaigns": details}
+
+
+def _reported_resource_stage(resources):
+    if not isinstance(resources, dict):
+        return None
+    if all(key in resources for key in ("remaining_budget", "remaining_contacts", "pilots_left")):
+        return resources
+    for key in ("after_pilots", "afterPILOTS", "remaining"):
+        value = resources.get(key)
+        if isinstance(value, dict) and all(item in value for item in ("remaining_budget", "remaining_contacts", "pilots_left")):
+            return value
+    return None
+
+
+def _resource_match(report, observed):
+    stage = _reported_resource_stage(report.get("resources"))
+    if stage is None:
+        stage = _reported_resource_stage(report)
+    if stage is None:
+        return False, ["report_resource_stage_missing"]
+    errors = []
+    for key in ("remaining_budget", "remaining_contacts", "pilots_left"):
+        expected, actual = finite(observed.get(key)), finite(stage.get(key))
+        if expected is None or actual is None or abs(expected - actual) > 1e-6:
+            errors.append(f"report_{key}_mismatch")
+        if actual is None or actual < 0:
+            errors.append(f"report_{key}_invalid")
+    return not errors, errors
+
+
+def _planned_resource_stage(report):
+    if not isinstance(report, dict):
+        return None
+    for key in ("planned_resources", "planned_resources_after_final"):
+        value = report.get(key)
+        if isinstance(value, dict):
+            return value
+    resources = report.get("resources")
+    if isinstance(resources, dict):
+        for key in ("planned_resources", "planned_resources_after_final", "after_final"):
+            value = resources.get(key)
+            if isinstance(value, dict):
+                return value
+    return None
+
+
 def run_one(module, seed, evaluate):
     started = time.monotonic()
     record = {"seed": seed, "status": "failure"}
     try:
-        agent = module.Agent()
+        agent = PublicCaptureAgent(module)
         output = io.StringIO()
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
             result = evaluate(agent, seed=seed, verbose=False)
         if re.search(r"Агент упал|Кампания .*отброшена|Агент не вернул", output.getvalue()):
             record["reason"] = "official_evaluator_rejected_execution_or_campaign"
             return record
-        report = getattr(agent, "last_report", None)
+        report = agent.last_report
         if result is None or not isinstance(report, dict):
             record["reason"] = "missing_evaluation_or_report"
             return record
         net = finite(result.get("net_arpu_gain")) if isinstance(result, dict) else None
-        campaigns = report.get("campaigns")
+        campaigns = agent.returned_campaigns
         pilots = report.get("pilots", report.get("pilot_records"))
         if net is None or not isinstance(campaigns, list) or not isinstance(pilots, list):
             record["reason"] = "invalid_plan_or_metrics"
             return record
-        if len(campaigns) < 1 or len(campaigns) > 10:
-            record["reason"] = "invalid_final_campaign_count"
+        plan_validation = validate_returned_plan(agent)
+        resource_valid, resource_errors = _resource_match(report, agent.after)
+        if not plan_validation["valid"] or not resource_valid:
+            record["reason"] = "invalid_plan_or_resource_report"
+            record["validation"] = {"plan": plan_validation, "resources": resource_errors}
             return record
         completed = 0
         for pilot in pilots:
@@ -115,9 +290,20 @@ def run_one(module, seed, evaluate):
             record["reason"] = "pilot_limit_exceeded"
             return record
         resources = report.get("resources", {})
-        planned_resources = report.get("planned_resources", {})
-        if not isinstance(resources, dict) or not all(key in resources for key in ("remaining_budget", "remaining_contacts", "pilots_left")):
-            record["reason"] = "missing_resource_counters"
+        planned_resources = report.get("planned_resources", report.get("planned_resources_after_final", {}))
+        if isinstance(resources, dict) and not planned_resources:
+            planned_resources = resources.get("planned_resources_after_final", {})
+        planned_stage = _planned_resource_stage(report)
+        expected_planned = {
+            "remaining_budget": plan_validation["available_budget"] - plan_validation["total_cost"],
+            "remaining_contacts": plan_validation["available_contacts"] - plan_validation["total_contacts"],
+        }
+        if planned_stage is None or any(
+            finite(planned_stage.get(key)) is None or abs(finite(planned_stage.get(key)) - expected_planned[key]) > 1e-6
+            for key in expected_planned
+        ):
+            record["reason"] = "planned_resource_mismatch"
+            record["validation"] = {"plan": plan_validation, "resources": "after_pilots_matched", "planned": {"expected": expected_planned, "reported": planned_stage}}
             return record
         resource_values = []
         if isinstance(resources, dict):
@@ -132,14 +318,18 @@ def run_one(module, seed, evaluate):
             record["reason"] = "invalid_resources"
             return record
         limits = {"remaining_budget": 100000, "remaining_contacts": 15000, "pilots_left": 20}
-        if any(finite(resources[key]) > limit for key, limit in limits.items()):
+        observed_stage = _reported_resource_stage(resources)
+        if observed_stage is None or any(finite(observed_stage[key]) > limit for key, limit in limits.items()):
             record["reason"] = "resource_counter_out_of_range"
             return record
         record.update({
             "status": "ok", "evaluation_status": result.get("status"), "net_arpu_gain": net, "pilots_completed": completed,
             "final_campaign_count": len(campaigns), "elapsed_seconds": time.monotonic() - started,
             "resources": resources, "planned_resources": planned_resources,
-            "resource_evidence": "Agent report; actual pilot count and result also supplied by public evaluator.",
+            "public_before": {key: value for key, value in agent.before.items() if key not in ("customer_profile", "tariffs", "channels")},
+            "public_after": {key: value for key, value in agent.after.items() if key not in ("customer_profile", "tariffs", "channels")},
+            "validation": {"plan": plan_validation, "resources": "matched_public_after_pilots"},
+            "resource_evidence": "Actual returned campaigns and public env counters were independently validated.",
             "warnings": report.get("warnings", []),
         })
     except Exception:

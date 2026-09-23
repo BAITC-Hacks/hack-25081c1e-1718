@@ -198,6 +198,81 @@ class Agent:
             events.append({"role": "advisor", "phase": phase, "status": "fallback"})
         return candidates
 
+    def _run_pilot(self, env, candidate, channel, sample, observations, events, warnings, action):
+        before = self._resources(env)
+        cid = candidate["candidate_id"]
+        completed = False
+        try:
+            result = env.run_pilot(target_tariff=candidate["target_tariff"], channel=channel,
+                                   n_customers=sample, **candidate["filters"])
+            ratio = finite(result.get("observed_lift_ratio"), None)
+            actual_n = int(finite(result.get("n_customers"), sample))
+            if ratio is None or not 10 <= actual_n <= sample:
+                raise ValueError("invalid_pilot_response")
+            after = self._resources(env)
+            observations.append({"candidate_id": cid, "target_tariff": candidate["target_tariff"],
+                                 "filters": candidate["filters"], "channel": channel,
+                                 "requested_n": sample, "n_customers": actual_n,
+                                 "cost": before["remaining_budget"] - after["remaining_budget"],
+                                 "observed_lift_ratio": ratio,
+                                 "observed_lift_total": finite(result.get("observed_lift_total"), None),
+                                 "remaining_budget": after["remaining_budget"],
+                                 "remaining_contacts": after["remaining_contacts"], "status": "completed"})
+            completed = True
+        except Exception:
+            observations.append({"candidate_id": cid, "target_tariff": candidate["target_tariff"],
+                                 "channel": channel, "n_customers": sample, "status": "failed"})
+            warnings.append("pilot_failed_" + cid + "_" + channel)
+        events.append({"role": "experimenter", "step": len(observations), "candidate_id": cid,
+                       "channel": channel, "action": action, "status": observations[-1]["status"]})
+        return completed
+
+    def _promote_channels(self, env, candidates, channels, scout, observations, events, warnings, started):
+        # Public channel multipliers rank hypotheses only. A promoted channel
+        # still needs two real observations before entering the main allocation.
+        initial = self._resources(env)
+        spend_limit = 0.20 * initial["remaining_budget"]
+        considered, promoted_members = set(), set()
+        while len(observations) <= 18 and time.monotonic() - started < 220:
+            resources = self._resources(env)
+            if resources["pilots_left"] < 2:
+                break
+            spent = max(0, initial["remaining_budget"] - resources["remaining_budget"])
+            proposals = []
+            for item in candidates:
+                base = self._estimate(item, observations, scout)
+                if base["repeats"] < 2 or base["conservative_net"] <= 0 or item["members"] & promoted_members:
+                    continue
+                sample = min(200, item["audience_size"])
+                for channel in channels:
+                    key = (item["candidate_id"], channel)
+                    if channel == scout or key in considered or CHANNEL_COSTS[channel] <= CHANNEL_COSTS[scout]:
+                        continue
+                    pilot_cost = 2 * sample * CHANNEL_COSTS[channel]
+                    final_cost = item["audience_size"] * CHANNEL_COSTS[channel]
+                    if spent + pilot_cost > spend_limit or pilot_cost + final_cost > resources["remaining_budget"]:
+                        continue
+                    if 2 * sample + item["audience_size"] > resources["remaining_contacts"]:
+                        continue
+                    projected_mean = base["posterior_mean"] * CHANNEL_EFFECT[channel] / CHANNEL_EFFECT[scout]
+                    incremental = projected_mean * item["arpu_sum"] - final_cost - base["estimated_net"] - pilot_cost
+                    if incremental > 0:
+                        proposals.append((incremental, item, channel, sample))
+            if not proposals:
+                break
+            _, item, channel, sample = max(proposals, key=lambda proposal: proposal[0])
+            considered.add((item["candidate_id"], channel))
+            for _ in range(2):
+                resources = self._resources(env)
+                if time.monotonic() - started >= 220 or len(observations) >= 20 or resources["pilots_left"] < 1:
+                    break
+                if (sample + item["audience_size"] > resources["remaining_contacts"]
+                        or (sample + item["audience_size"]) * CHANNEL_COSTS[channel] > resources["remaining_budget"]):
+                    break
+                if not self._run_pilot(env, item, channel, sample, observations, events, warnings, "channel_check"):
+                    break
+            promoted_members.update(item["members"])
+
     def act(self, env):
         started = time.monotonic()
         warnings, observations, events = [], [], []
@@ -217,7 +292,9 @@ class Agent:
         events.append({"role": "analyst", "status": "completed", "source": source, "candidate_count": len(candidates)})
         initial = self._diverse(self._advice(advisor, candidates, observations, env, "initial", scout, events))
         attempts, failed, feedback_order = {}, set(), {}
-        for step in range(min(20, int(env.pilots_left))):
+        # Reserve at most four pilot slots for checking profitable paid channels.
+        scout_limit = 16 if len(channels) > 1 else 20
+        for step in range(min(scout_limit, int(env.pilots_left))):
             if time.monotonic() - started > 220 or int(env.pilots_left) <= 0:
                 break
             if step == 8:
@@ -266,32 +343,11 @@ class Agent:
                 break
             cid = chosen["candidate_id"]
             attempts[cid] = attempts.get(cid, 0) + 1
-            try:
-                result = env.run_pilot(target_tariff=chosen["target_tariff"], channel=scout,
-                                       n_customers=sample, **chosen["filters"])
-                ratio = finite(result.get("observed_lift_ratio"), None)
-                if ratio is None:
-                    raise ValueError("nonfinite_pilot")
-                actual_n = int(finite(result.get("n_customers"), sample))
-                if not 10 <= actual_n <= sample:
-                    raise ValueError("invalid_sample_count")
-                after_pilot = self._resources(env)
-                observations.append({"candidate_id": cid, "target_tariff": chosen["target_tariff"],
-                                     "filters": chosen["filters"], "channel": scout,
-                                     "requested_n": sample, "n_customers": actual_n,
-                                     "cost": resources["remaining_budget"] - after_pilot["remaining_budget"],
-                                     "observed_lift_ratio": ratio,
-                                     "observed_lift_total": finite(result.get("observed_lift_total"), None),
-                                     "remaining_budget": after_pilot["remaining_budget"],
-                                     "remaining_contacts": after_pilot["remaining_contacts"],
-                                     "status": "completed"})
-            except Exception:
+            if not self._run_pilot(env, chosen, scout, sample, observations, events, warnings,
+                                   "confirm" if attempts[cid] > 1 else "explore"):
                 failed.add(cid)
-                observations.append({"candidate_id": cid, "target_tariff": chosen["target_tariff"],
-                                     "channel": scout, "n_customers": sample, "status": "failed"})
-                warnings.append("pilot_failed_" + cid)
-            events.append({"role": "experimenter", "step": step + 1, "candidate_id": cid,
-                           "action": "confirm" if attempts[cid] > 1 else "explore", "status": observations[-1]["status"]})
+
+        self._promote_channels(env, candidates, channels, scout, observations, events, warnings, started)
 
         resources = self._resources(env)
         budget, contacts = resources["remaining_budget"], resources["remaining_contacts"]

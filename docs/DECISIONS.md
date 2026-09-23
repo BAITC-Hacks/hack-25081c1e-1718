@@ -87,3 +87,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: Pilot spend is part of net revenue. Existing cwd-dependent verification could skip checks; missing CSV freshness and unstable baseline references weakened evidence.
 - Who: Dima; candidate and web ownership unchanged.
 - Consequences: [AFFECTS-OTHERS] Channel choice changes the default plan, regenerated CSV included. Paired median0..9 improves to +16 068; heldout10..19 median +1 170, 5/10 positive. No final robustness claim. verify -Release rewrites submission.csv explicitly; checkpoint stays selective.
+
+### 2026-09-23 - Confirm paid channels with their own pilot pairs
+
+- Decision: Reserve up to four slots after cheap scouting for paid-channel pairs on confirmed segments. Public multipliers rank hypotheses only; final paid campaigns still require two same-channel observations. Cap promotion pilot spend at20% of budget remaining after scouts and reserve full campaign resources. Independently validate returned campaigns against captured copies of public inputs and resource counters in benchmark.
+- Why: With Azim's cautious candidates the earlier SMS-only controller beat push-only. Direct measurement can justify stronger channels without unsupported extrapolation. A self-reported plan alone is insufficient validation evidence.
+- Who: Dima; Azim's candidate/web areas untouched. Integrated Azim's217e338 handoff.
+- Consequences: [AFFECTS-OTHERS] Optional event action channel_check and channel field; v1/candidate contracts preserved. Heldout30..39 median+607623 versus SMS+579470, both10/10 positive; minimum worsened to+203004 versus+466908. Keep that risk visible; no guarantee of real/judge profit.
