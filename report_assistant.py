@@ -47,6 +47,18 @@ def _number(value):
     return int(number) if number is not None and number.is_integer() else number
 
 
+def _number_ranges(numbers):
+    """Describe requested or missing IDs without expanding a large range in the answer."""
+    numbers = sorted(set(numbers))
+    ranges = []
+    for number in numbers:
+        if ranges and number == ranges[-1][1] + 1:
+            ranges[-1][1] = number
+        else:
+            ranges.append([number, number])
+    return ", ".join(str(start) if start == end else f"{start}–{end}" for start, end in ranges)
+
+
 def _numeric_fields(value, names):
     if not isinstance(value, dict):
         return {}
@@ -232,7 +244,7 @@ def _offline_answer(report, message, warnings):
         missing = context["scope"].get("missing_numbers", [])
         parts = []
         if missing:
-            parts.append("В отчёте нет кампаний с номерами: " + ", ".join(map(str, missing)) + ".")
+            parts.append("В отчёте нет кампаний с номерами: " + _number_ranges(missing) + ".")
         # Keep a citation for every requested campaign before adding detailed pilot refs.
         used = [f"allocation.{item['index']}" for item in items]
         for item in items:
@@ -333,6 +345,11 @@ def _invalid_uncertainty_units(answer):
 def _model_context(context):
     """Show human numbering to the model, keeping zero-based refs only as source IDs."""
     result = dict(context)
+    if "scope" in context:
+        result["scope"] = {**context["scope"],
+                           "numbers": [item["index"] + 1 for item in context.get("allocation", [])],
+                           "requested_numbers": _number_ranges(context["scope"]["numbers"]),
+                           "missing_numbers": _number_ranges(context["scope"]["missing_numbers"])}
     for section in ("allocation", "pilots"):
         if section in context:
             result[section] = [{**{key: value for key, value in item.items() if key != "index"},
