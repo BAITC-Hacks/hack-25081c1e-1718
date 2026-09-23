@@ -55,6 +55,48 @@ class FakeEnv:
 
 
 class QualityPolicyTests(unittest.TestCase):
+    def test_adaptive_repeats_respond_to_observations_not_channel_projection(self):
+        item = candidate(1, size=500)
+        agent = Agent(pilot_sizing="adaptive")
+        def rows(ratio):
+            return [{"candidate_id": item["candidate_id"], "channel": "sms",
+                     "status": "completed", "n_customers": 150,
+                     "observed_lift_ratio": ratio}]
+        near = 4 / 101
+        self.assertEqual(agent._pilot_sample(item, [], "sms", first_sample=150), 150)
+        self.assertEqual(agent._pilot_sample(item, rows(near), "sms", first_sample=150), 200)
+        self.assertEqual(agent._pilot_sample(item, rows(.5), "sms", first_sample=150), 50)
+        self.assertEqual(agent._pilot_sample(item, rows(.5), "digital_ads", first_sample=200), 200)
+        failed = rows(.5)
+        failed[0]["status"] = "failed"
+        self.assertEqual(agent._pilot_sample(item, failed, "sms", first_sample=150), 150)
+        self.assertEqual(Agent()._pilot_sample(item, rows(.5), "sms", first_sample=150), 200)
+
+    def test_adaptive_samples_respect_small_audience_and_zero_revenue(self):
+        agent = Agent(pilot_sizing="adaptive")
+        item = candidate(1, size=12)
+        rows = [{"candidate_id": item["candidate_id"], "channel": "sms",
+                 "status": "completed", "n_customers": 12, "observed_lift_ratio": .5}]
+        self.assertEqual(agent._pilot_sample(item, rows, "sms", first_sample=150), 12)
+        item["arpu_sum"] = 0
+        self.assertEqual(agent._pilot_sample(item, rows, "sms", first_sample=150), 12)
+        with self.assertRaises(ValueError):
+            Agent(pilot_sizing="unknown")
+
+    def test_confirmation_first_reuses_positive_evidence_before_new_hypotheses(self):
+        agent = Agent(exploration_policy="confirmation_first", pilot_sizing="adaptive")
+        pool = [candidate(i, size=20) for i in range(12)]
+        agent._candidates = lambda *_: (pool, "test")
+        env = FakeEnv()
+        agent.act(env)
+        rows = agent.last_report["pilots"]
+        initial = {row["candidate_id"] for row in rows[:8]}
+        self.assertIn(rows[8]["candidate_id"], initial)
+        self.assertTrue(all(10 <= row["n_customers"] <= 200 for row in rows))
+        self.assertLessEqual(len(rows), 20)
+        self.assertGreaterEqual(env.remaining_budget, 0)
+        self.assertGreaterEqual(env.remaining_contacts, 0)
+
     def setUp(self):
         offline = patch.dict("os.environ", {"ARPU_OFFLINE": "1"})
         offline.start()

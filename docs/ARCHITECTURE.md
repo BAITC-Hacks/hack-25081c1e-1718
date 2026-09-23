@@ -196,3 +196,10 @@ health.capabilities.chat_languages. report_localization.py переводит с
 проверенным источникам. OpenAI получает исходный вопрос и нужную языковую инструкцию.
 Числа, report_id, mode и машинные ссылки остаются неизменными. Клиент использует
 capability для совместимости со старым сервером; контракт описан в API.md.
+
+## Дополнительные экспериментальные режимы
+
+До принятия gate Agent() сохраняет baseline/template/fixed. Опциональные
+exploration_policy=confirmation_first и pilot_sizing=adaptive описаны в
+QUALITY_FOLLOWUP.md. strategy_config.pilot_sizing необязателен; старыйJSON
+допустим, UI не должен выводить выдуманное значение. ПубличныеHTTP/CSV неизменны.

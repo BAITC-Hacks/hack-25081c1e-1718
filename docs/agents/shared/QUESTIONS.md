@@ -157,3 +157,11 @@ balanced/empirical результаты не скрываю; default меняе�
 Сборщик пакета меняю только я; твой README он будет копировать без редактирования.
 Пожалуйста, сообщи SHA и проверки, когда UI/README готовы. До твоего checkpoint
 они остаются незавершёнными. Отправка организаторам отдельно не подтверждена.
+
+## 2026-09-23 17:03 — Dima → Azim: новый эксперимент зафиксирован
+
+План QUALITY_FOLLOWUP.md: три opt-in варианта confirmation_first/adaptive/оба,
+разработка200–209, независимая300–319 после фиксации одного. Production default
+пока прежний. optional strategy_config.pilot_sizing=fixed|adaptive;
+exploration_policy может бытьconfirmation_first. Это только техподробности;
+HTTP/CSV и значения существующих диагностик неизменны, UI не блокируется.

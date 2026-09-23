@@ -172,3 +172,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Consequences: [AFFECTS-OTHERS] No new dependencies or changes to algorithm/data/CSV.
   Source refs and numeric report values stay unchanged. Unknown languages are rejected.
   The algorithm selection remains frozen after the failed quality holdout.
+
+### 2026-09-23 — Freeze pilot sizing and confirmation experiments
+
+- Decision: Add opt-in confirmation_first exploration and adaptive repeat sizing; preserve baseline/template/fixed defaults and previous balanced/empirical implementations. Compare new200–209 then freeze one variant before300–319 under the unchanged+10%/p10/paired/resource gate.
+- Why: User asked for another evidence-based quality pass; earlier balanced favored new hypotheses ahead of confirmation. Adaptive sizing uses own-channel evidence and public break-even economics.
+- Who: Dima; read-only algorithm review; Azim retains web/README ownership.
+- Consequences: [AFFECTS-OTHERS] Optional strategy_config.pilot_sizing=fixed|adaptive; exploration_policy may be confirmation_first. No HTTP/CSV/data/dependency changes. SIZE is heuristic, no confidence-interval claim. Detailed freeze in QUALITY_FOLLOWUP.md.

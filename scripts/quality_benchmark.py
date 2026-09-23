@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_SEEDS = 50
 MAX_RUNTIME_SECONDS = 300.0
 FORBIDDEN_NAMES = {"environment.py", "mock_environment.py", "scoring_core.py"}
-VARIANT_NAMES = ("balanced", "empirical", "combined")
+VARIANT_NAMES = ("balanced", "empirical", "combined", "confirmation_first", "adaptive", "adaptive_confirmation")
 REQUIRED_COMPARISON_PATHS = {"agent.py", "candidate_model.py", "llm_advisor.py",
                              "local_eval.py", "scripts/benchmark.py"}
 
@@ -188,6 +188,9 @@ def _child_source() -> str:
             "balanced": {"exploration_policy": "balanced", "uncertainty_mode": "template"},
             "empirical": {"exploration_policy": "baseline", "uncertainty_mode": "empirical"},
             "combined": {"exploration_policy": "balanced", "uncertainty_mode": "empirical"},
+            "confirmation_first": {"exploration_policy": "confirmation_first", "uncertainty_mode": "template"},
+            "adaptive": {"exploration_policy": "baseline", "uncertainty_mode": "template", "pilot_sizing": "adaptive"},
+            "adaptive_confirmation": {"exploration_policy": "confirmation_first", "uncertainty_mode": "template", "pilot_sizing": "adaptive"},
         }.get(variant, {})
 
         class UnsupportedStrategyConfig(Exception):
@@ -244,6 +247,8 @@ def _child_source() -> str:
                 "selection_diagnostics": selection,
                 "forecast_sum_conservative_net": sum(forecasts) if forecasts else None,
                 "allocation_count": len(allocations) if isinstance(allocations, list) else None,
+                "pilot_sample_sizes": [row.get("n_customers") for row in report.get("pilots", [])
+                                       if isinstance(row, dict) and row.get("status") == "completed"],
             }
         record["variant"] = variant
         record["strategy_config"] = {"requested": options, "applied": variant == "baseline" or record.get("status") == "ok",
