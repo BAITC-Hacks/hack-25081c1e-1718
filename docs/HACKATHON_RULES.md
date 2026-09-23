@@ -1,24 +1,65 @@
-# HackAlem AI rules known on 2026-09-21
+# Правила Beeline Tariff Marketing Campaigns Case
 
-Sources: [official event page and FAQ](https://hackalem.ai/) and the repository `README.md`.
+Актуализация: 23.09.2026 после выдачи задачи. Источник требований — корневой PARTICIPANT_GUIDE.md; текст с судейской рубрикой сохранён в docs/CHALLENGE_ORIGINAL.txt. Общая страница мероприятия: https://hackalem.ai/.
 
-## Confirmed
+## Обязательная поставка
 
-- Event and opening: offline in Astana on 2026-09-23; attendance that day is mandatory.
-- Judging/review: 2026-09-24 through 2026-09-28.
-- Demo Day: 2026-09-29; awards at Digital Bridge on 2026-10-01.
-- Team size: up to three people; this team has Dima and Azim.
-- Eligibility: participants must be 18+ and meet the published experience/education criteria.
-- Mandatory tool: the team must use Codex during development.
-- Registration: free, but prior registration and confirmation are mandatory; published registration close was 2026-09-19.
-- Repository: the supplied README identifies this as hackathon team repository 1718.
+- agent.py: класс Agent и act(env), вызываемый официальным local_eval.py.
+- От 1 до 10 корректных кампаний, без строк об отброшенных кампаниях.
+- Обязательное использование env.run_pilot; пилотные результаты влияют на решения.
+- submission.csv, сгенерированный python make_submission.py.
+- requirements.txt, если нужны библиотеки. README формально дополнительный, но воспроизводимость даёт 25/100 баллов.
+- Использование Codex во время разработки — требование мероприятия.
 
-## Not published in the reviewed sources
+## Лимиты
 
-- No submission format or submission deadline is stated.
-- No required README sections, demo-video requirement, commit cadence, or license is stated.
-- No judging criteria or challenge topic is stated.
-- No explicit rule about pre-event scaffolding, commits, or pushes is stated.
-- Branch protection was not visible without GitHub authentication.
+| Ограничение | Значение |
+|---|---|
+| Финальные кампании | 1–10 |
+| Аудитория одной кампании | Не больше 5 000 |
+| Контакты суммарно | Не больше 15 000, включая пилоты |
+| Бюджет | 100 000 у.е., включая пилоты |
+| Пилоты | Не больше 20 |
+| Размер пилота | 10–200 абонентов |
+| Время Agent.act | Guide: 10 минут, включая вызовы LLM |
 
-Treat these as unresolved, not permission. Ask organizers/team leads before a pre-event push or when submission instructions arrive. Event contact: `team@baitc.org` or the official Telegram community linked from the event page.
+| Канал | Стоимость контакта, у.е. | Опубликованный коэффициент эффективности |
+|---|---:|---:|
+| push | 0 | 0.50 |
+| sms | 4 | 0.65 |
+| digital_ads | 22 | 0.85 |
+| call | 160 | 1.20 |
+
+Допустимые тарифы брать из env.tariffs (21 в данном пакете). Возврат: target_tariff и channel обязательны; campaign_name и фильтры ARPU/data/call/current_tariff опциональны. Точный порядок CSV задаёт официальный генератор.
+
+Эффект — процент от predicted_arpu абонента. Итоговый прирост: эффект по уникальным абонентам минус расходы всех контактов. При повторных кампаниях для одного абонента берётся лучший эффект, но лишние контакты стоят денег. Пилоты тоже участвуют в оценке. Базовая выручка 150 641 084 приведена в guide; её нельзя выдавать за прирост нашей системы.
+
+## Разрешённые действия и данные
+
+- Только публичный API env, собственная pilot_history и разрешённые CSV участника.
+- Запрещены обходы среды: __closure__, gc, извлечение скрытых эффектов/данных организатора и аналогичная интроспекция.
+- Не менять организаторские scoring/eval файлы ради результата.
+- Данные и денежные величины синтетические, не относятся к реальным показателям Beeline.
+- LLM разрешён и приветствуется, но не обязателен. Ключ — только OPENAI_API_KEY из окружения. Ошибка API должна иметь fallback, агент не должен падать.
+- Судейские эффекты отличаются от mock. Мок пригоден для проверки поведения, а не подбора секретных констант.
+
+## Критерии из выданного текста
+
+| Критерий | Баллы | Как подтверждаем |
+|---|---:|---|
+| Соответствие задаче и работоспособность | 25 | Официальные прогоны, лимиты, CSV |
+| Техническая реализация | 25 | Обратная связь пилотов, архитектура, совпадение описания с кодом |
+| README и воспроизводимость | 25 | Команды, зависимости, чистый запуск вторым участником |
+| Ценность и применимость | 15 | Чистая выгода, расходы, устойчивость, объяснение выбора |
+| Развитие и оригинальность | 10 | Адаптивность/неопределённость и реалистичные следующие шаги |
+
+## Проверки
+
+Из корня: python local_eval.py; python local_eval.py --runs 10; python make_submission.py. Один обычный прогон и submission используют seed=42, runs=10 перебирает 0..9. Сравнение baseline и новой стратегии проводить на одном наборе seed.
+
+## Расхождения и неизвестное
+
+- В заголовке guide — 9 часов мероприятия; пользователь выделил команде 5 часов. Внутренний план = 300 минут. Абсолютный официальный дедлайн и способ финальной загрузки ещё не подтверждены.
+- Комментарий agent_template.py требует отсутствия интернета и 5 минут, guide разрешает LLM и 10 минут. До ответа организаторов: основная стратегия автономна, цель <300 секунд. Не блокирует текущую реализацию.
+- Мультиагентность, публичный веб-хостинг и конкретная LLM-модель не обязательны по выданному guide.
+- В тексте говорится о 14 824 переходах; фактически CSV содержит 14 823 строки данных. Данные не дополнять выдуманными строками.

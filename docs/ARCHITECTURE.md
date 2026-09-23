@@ -1,31 +1,101 @@
-# Architecture
+# ARPU Compass — архитектура и договорённости v1
 
-Fill this after the stack and ownership are approved.
+## Контекст и границы
 
-## Context
+Основная среда запуска — скрипты организаторов в корне репозитория. Они импортируют `from agent import Agent`, без опции --agent. Пакет участника скопирован в корень без изменения файлов. Оригинальная распакованная папка сохранена локально как резерв и не дублируется в Git.
 
-- Users and external systems:
-- Trust boundaries:
+Публичный вход: `env.customer_profile`, `env.tariffs`, `env.channels`, `env.remaining_budget`, `env.remaining_contacts`, `env.pilots_left`, `env.run_pilot(...)`, `env.pilot_history`. Внутренние эффекты и реализацию среды не использовать для построения стратегии. Запуск официального evaluator разрешён.
 
-## Components
+## Владение файлами
 
-| Component | Responsibility | Owner | Interfaces |
-|---|---|---|---|
-| | | | |
+| Владелец | Файлы | Ответственность |
+|---|---|---|
+| Дима | agent.py | Оркестрация, пилоты, адаптация, финальные кампании, Agent.last_report |
+| Дима | scripts/, requirements.txt, .gitignore, .env.example | Запуск, проверки, общий состав/зависимости и безопасные checkpoint |
+| Дима | docs/PROJECT.md, ARCHITECTURE.md, HACKATHON_RULES.md, WORK_PLAN.md | Общая спецификация и интеграция договорённостей |
+| Азим | candidate_model.py, analysis/ | Схемы разрешённых CSV, исторические приоры и кандидаты |
+| Азим | web/, README.md (после стартового коммита) | Веб-представление реального отчёта, воспроизводимость и демо |
+| Дима | llm_advisor.py | OpenAI-советник гипотез и пересмотра пилотов; приоритет повышен прямым поручением пользователя |
+| Каждый свой | docs/agents/<me>/, свой раздел STATUS | Личная координация |
+| Организаторы | environment.py, mock_environment.py, scoring_core.py, local_eval.py, make_submission.py, agent_template.py, исходные CSV/guide | Не изменять ради улучшения оценки или обхода проверки |
 
-## Main flow
+Это распределение согласовано текущим поручением подготовить план на двоих. Азим подтверждает принятие зоны в своём STATUS; Дима не редактирует его личный раздел. Пока Азим не подключился, базовый агент должен работать самостоятельно.
 
-1.
+## Поток
 
-## Contracts and data
+`profile + public history -> candidates/prior -> pilot -> update estimates -> next pilot or allocate -> validate -> campaigns`
 
-- API/events:
-- Data model:
-- Environment variables (names only):
+`campaigns -> official evaluator / make_submission -> CLI score / submission.csv`
 
-## Operations
+`Agent.last_report -> scripts/export_report.py -> output/report.json -> web (план)`
 
-- Local run:
-- Verification:
-- Deployment:
-- Observability and failure handling:
+UI не является зависимостью импорта Agent и официального запуска. Один оркестратор выбирает действия по обратной связи; внутренние модули не заявляются самостоятельными LLM-агентами.
+
+## Контракт candidate_model.py
+
+Азим реализует:
+
+```python
+def build_candidates(profile, tariffs, data_dir):
+    """Return list[dict]; use public data only; no env calls or LLM calls."""
+```
+
+- profile: DataFrame, переданный env.customer_profile, только чтение.
+- tariffs: DataFrame env.tariffs; использовать существующие tariff_plan_code.
+- data_dir: pathlib.Path к публичному каталогу data; не искать закрытые файлы.
+- Результат — ограниченный ранжированный пул гипотез перехода, без выбора канала и без пилотов.
+
+Каждый кандидат:
+
+```json
+{
+  "candidate_id": "stable-segment-target-id",
+  "filters": {"filter_current_tariff": "tariff_N", "filter_arpu_segment": "HIGH"},
+  "target_tariff": "tariff_M",
+  "audience_size": 100,
+  "arpu_sum": 123456.0,
+  "prior_lift_ratio": 0.03,
+  "prior_n": 42,
+  "rationale": "Краткое описание наблюдаемой исторической опоры"
+}
+```
+
+Это пример структуры, не настоящий результат и не предписанные тарифы/показатели. prior_lift_ratio — дробное относительное изменение ARPU из истории до поправки на канал; 0.03 означает +3%. prior_n — число исходных наблюдений, не гарантия переноса эффекта на целевую выборку. Для отсутствующей истории: слабый/нулевой приор, prior_n=0, причина в rationale.
+
+filters содержит только разрешённые фильтры. audience_size и arpu_sum рассчитываются из целевой базы ровно для этих фильтров. Не выдавать набор выбранных ID, если формат кампании не умеет его выразить. Большие сегменты делить разрешёнными фильтрами, не обрезать DataFrame и не сообщать фиктивный охват. При пустых данных вернуть []. Функция не изменяет profile, не пишет на диск, не проводит пилоты, не зашивает скрытые эффекты.
+
+Дима сначала использует собственную простую генерацию; после первого коммита Азима подключает контракт. Ошибка необязательного data-модуля должна быть видна в отчёте и включать базовую генерацию.
+
+## Контракт Agent и кампаний
+
+```python
+class Agent:
+    def act(self, env) -> list[dict]: ...
+```
+
+Обязательные поля кампании: `target_tariff`, `channel`. Разрешённые дополнительные поля: `campaign_name`, `filter_arpu_segment`, `filter_data_segment`, `filter_call_segment`, `filter_current_tariff`. Пропуск фильтра означает отсутствие ограничения. Формат объединения тарифов через `;` показан в guide. Нельзя добавлять неподдерживаемый параметр числа клиентов финальной кампании: контроль через выражаемые фильтры.
+
+Пилот: обязательны target_tariff, channel, n_customers; фильтры — по публичной сигнатуре. Шаблон публично читает `result['observed_lift_ratio']`. Поля размера/дисперсии/ошибок и точную семантику коэффициента канала выяснять по возвращаемым результатам нормального запуска или публичным пояснениям, не по закрытым эффектам.
+
+Перед каждым пилотом проверять доступные ресурсы, размер сегмента и срок исполнения; после пилота перечитывать остатки среды. Финальный план учитывать по остаткам после разведки. Для повторных контактов стоимость не исчезает от дедупликации эффекта.
+
+## Отчёт для веба v1
+
+`Agent.last_report` — JSON-совместимый dict; выгрузка отдельным локальным скриптом, а не частью обязательного CSV. Минимум:
+
+- schema_version: "1.0";
+- engine: имя стратегии;
+- campaigns: возвращённые словари кампаний;
+- pilots: выполненные публичные запросы и наблюдённый observed_lift_ratio;
+- resources: remaining_budget, remaining_contacts, pilots_left;
+- пояснения/предупреждения и оценки — необязательны, UI допускает их отсутствие.
+
+Скрипт экспорта дополняет seed, время запуска и метку synthetic. Прибыль показывать только когда она получена от публичного evaluator; в иных случаях поле отсутствует/null. Не подменять её pilot ratio или предполагаемой прибылью. Снимок успешного прогона имеет метку «Сохранённый прогон», а искусственная фикстура — «Демонстрационные данные».
+
+Веб v1 загружает отчёт через input type=file или статический report.json. Веб v2 с кнопкой серверного запуска допускается после G3, только на localhost и с фиксированной командой. Не принимать произвольную shell-команду/путь из браузера. Для MVP сервер не обязателен: достаточно `python -m http.server 8080 --bind 127.0.0.1 --directory web`.
+
+## Проверка и конфигурация
+
+Официальные команды из корня: `python local_eval.py`, `python local_eval.py --runs 10`, `python make_submission.py`. Не редактировать runner ради соответствия стратегии. В локальном Codex Python доступен также через bundled executable; README для команды использует обычный Python 3.12 + venv.
+
+OPENAI_API_KEY — только окружение, необязателен для базового режима. OPENAI_MODEL — будущий необязательный конфиг LLM. P2 ограничивается одной короткой рекомендацией с таймаутом и fallback; API не определяет лимиты и не получает весь CSV. Сначала проверяется согласованность доступа к сети с условиями.

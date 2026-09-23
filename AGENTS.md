@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repository is a project-agnostic HackAlem AI harness. The challenge,
+This repository is a telecom-focused, project-agnostic HackAlem AI harness. The exact challenge,
 users, MVP, non-goals, stack, judging fit, and demo path belong in
 `docs/PROJECT.md`; do not invent them before kickoff.
 
@@ -51,6 +51,16 @@ users, MVP, non-goals, stack, judging fit, and demo path belong in
   cross-cutting choices in append-only `docs/DECISIONS.md`.
 - Keep secrets out of Git and files; credentials come only from environment variables.
 - Do not commit generated dependencies, caches, real `.env` files, or unrelated artifacts.
+
+## Subagents
+
+- Delegate only bounded, independent work that benefits from parallelism; prefer the custom roles in `.codex/agents/`.
+- Use at most three subagents. Prefer read-heavy analysis and verification to parallel code edits.
+- `challenge_analyst` maps the announced telecom task; `security_reviewer` reviews evidence and risk; `verification_runner` runs checks without product edits.
+- The main agent owns decisions and verifies every result. A subagent may not update personal LOG/HANDOFF/STATUS files.
+- Dima and Azim are the human implementation owners: assign disjoint modules/files, agree interfaces in `docs/ARCHITECTURE.md`, and integrate through small pushed commits and explicit handoffs.
+- Use a write-capable worker only with an exclusive file scope that does not overlap Dima, Azim, or another agent.
+- Security work is limited to authorized hackathon assets and local test targets; never probe unrelated real systems or collect real credentials.
 
 ## Definition of done
 

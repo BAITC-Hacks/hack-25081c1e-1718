@@ -1,23 +1,57 @@
-# hack-25081c1e-1718
-Hackathon team repository for 1718
+# ARPU Compass
 
-## Team
+Агент управления тарифными маркетинговыми кампаниями для синтетического кейса Beeline, HackAlem AI, команда 1718 (Дима и Азим).
 
-- Dima
-- Azim
+Статус: ТЗ, план на 300 минут и стартовый каркас готовы. Baseline запускается и создаёт CSV, но seed 42 даёт net −19 097, а 10 seed — только 2 положительных результата: оптимизация не завершена. См. [фактические результаты](docs/BASELINE.md). OpenAI-советник внедряется следующим коммитом; веб-экран поручен Азиму.
 
-## Project
+## Документы команды
 
-The challenge is announced at HackAlem AI on 23 September 2026. Until then,
-this repository contains only the shared development harness and planning
-templates. See `docs/PROJECT.md` after kickoff.
+- [Полное ТЗ](docs/PROJECT.md)
+- [План работы на двоих и промпт Азиму](docs/WORK_PLAN.md)
+- [Архитектура, владение и контракт кандидатов](docs/ARCHITECTURE.md)
+- [Условия и критерии оценки](docs/HACKATHON_RULES.md)
+- [Исходный guide](PARTICIPANT_GUIDE.md)
+- [Последний handoff Димы](docs/agents/dima/HANDOFF.md)
 
-## Run
+## Запуск
 
-Run instructions will be added after the stack is chosen at kickoff.
-
-## Verify
+Из корня репозитория, Python 3.12:
 
 ```powershell
-pwsh ./scripts/verify.ps1
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+$env:PYTHONUTF8 = '1'
+python -m pip install -r requirements.txt
+python local_eval.py
+python local_eval.py --runs 10
+python make_submission.py
+python scripts/export_report.py --seed 42
 ```
+
+Linux/macOS: активировать окружение командой `source .venv/bin/activate`. Исходные CSV и скрипты организаторов находятся в корне/data и включены в репозиторий. Папка первоначальной распаковки локально сохранена, для запуска не нужна.
+
+PYTHONUTF8 в Windows нужен для корректной печати предупреждения evaluator. Альтернатива: `python -X utf8 local_eval.py --runs 10`. Для scripts/verify.ps1 можно задать ARPU_PYTHON путём к своему Python, если он отсутствует в PATH.
+
+Обычный прогон и генератор используют seed 42; `--runs 10` использует 0..9. CSV создаётся в корне, с 7 колонками, определёнными организаторами. Скрипты импортируют `from agent import Agent` и не имеют параметра --agent.
+
+## Подход
+
+Начальная версия выбирает динамические гипотезы из справочника тарифов и сегментов целевой базы, проводит пилоты и строит план по наблюдённым результатам с ограничениями бюджета/контактов. Исторические приоры и полноценное адаптивное уточнение добавляются по плану. Не используется чтение скрытых эффектов. Публичный mock служит для проверки механики; его результат не равен результату на судействе.
+
+Вычислительное ядро работает без сети и API-ключа. Будущий LLM-адаптер будет читать OPENAI_API_KEY только из окружения и иметь fallback. Не помещать ключи в Git, браузер и отчёты.
+
+## Работа команды
+
+Азим начинает с docs/WORK_PLAN.md и реализует candidate_model.py по контракту, затем web/ и описание подхода. Дима ведёт agent.py и интеграцию. Каждый указывает локальную .agent-identity (dima/azim); файл игнорируется Git.
+
+Проверка репозитория: `pwsh ./scripts/verify.ps1`. Checkpoint теперь использует выбранные файлы или уже подготовленный индекс:
+
+```powershell
+pwsh ./scripts/checkpoint.ps1 "feat: improve candidate priors" -Paths candidate_model.py
+```
+
+Скрипт прекращает работу при ошибке проверки, коммита, rebase или push. Он не добавляет все файлы автоматически. scripts/autosave.ps1 только напоминает о checkpoint.
+
+## Ограничения
+
+Все данные синтетические. Веб и LLM не обязательны для evaluator. История описывает другую выборку абонентов; ID не соединяются напрямую с целевой базой. Guide даёт 10 минут и разрешает LLM, комментарий шаблона говорит 5 минут и отсутствие интернета: до уточнения ориентируемся на автономную работу менее 5 минут.

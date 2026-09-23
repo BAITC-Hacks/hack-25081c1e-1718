@@ -24,6 +24,15 @@
   environment variable, design token, or folder structure.
 - For every `[AFFECTS-OTHERS]` change, append a record to `docs/DECISIONS.md`.
 - Keep commits small and use `scripts/checkpoint.ps1`.
+- During a timed hackathon, use `docs/PROJECT.md` and `docs/ARCHITECTURE.md` as the shared project memory. Every handoff names completed work, changed paths/contracts, commit/push state, next action, and blockers.
+- Integrate continuously: push small verified commits when permitted, pull/rebase before dependent integration, and reserve a time buffer for a clean run and demo. Never force-push or overwrite the other person's changes.
+
+## Subagents
+
+- Use project roles from `.codex/agents/` for bounded independent analysis or verification.
+- Subagents never impersonate Dima/Azim and never edit personal LOG, HANDOFF, or STATUS sections.
+- Prefer parallel read-only work. Allow code edits only with an exclusive file scope assigned by the main agent.
+- The main agent waits for results, validates evidence, and remains responsible for the final change.
 
 ## End a session
 

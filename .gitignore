@@ -16,3 +16,8 @@ coverage/
 Thumbs.db
 playwright-report/
 test-results/
+
+# Local original unpacked kit; unchanged canonical copy lives at repository root.
+beeline_case_participants (1)/
+output/
+reports/
