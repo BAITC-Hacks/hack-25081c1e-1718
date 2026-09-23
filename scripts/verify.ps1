@@ -17,6 +17,11 @@ $hits = & rg -n -I --hidden --glob '!.git/**' --glob '!node_modules/**' --glob '
 if ($LASTEXITCODE -eq 0) { throw 'Possible secret detected. Remove it before committing; matched values are not printed.' }
 if ($LASTEXITCODE -gt 1) { throw 'Secret scan could not run.' }
 
+# Inspect what will actually be committed, including ignored files staged explicitly.
+$stagedSecretPaths = & git grep --cached -I -l -E -e $secretPattern -- . ':!scripts/verify.ps1' 2>$null
+if ($LASTEXITCODE -eq 0) { throw 'Possible secret in the staged Git snapshot. Values are not printed.' }
+if ($LASTEXITCODE -gt 1) { throw 'Staged secret scan could not run.' }
+
 $badEnv = git diff --cached --name-only --diff-filter=ACMR | Where-Object {
     $_ -match '(^|/|\\)\.env($|\.)' -and $_ -notmatch '\.env\.example$'
 }

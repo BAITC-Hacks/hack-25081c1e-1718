@@ -150,18 +150,19 @@ class Agent:
 
     @staticmethod
     def _estimate(candidate, observations, channel):
-        rows = [row for row in observations if row["candidate_id"] == candidate["candidate_id"] and row["status"] == "completed"]
+        rows = [row for row in observations if row["candidate_id"] == candidate["candidate_id"]
+                and row["status"] == "completed" and row["channel"] == channel]
         # The target population differs: history ranks exploration, but contributes
         # only a weak bounded prior once we have actual pilot feedback.
         weight = min(5, candidate["prior_n"])
         total = sum(row["n_customers"] for row in rows)
         prior = max(-0.15, min(0.15, candidate["prior_lift_ratio"]))
         numerator = prior * CHANNEL_EFFECT[channel] * weight
-        numerator += sum(row["observed_lift_ratio"] * CHANNEL_EFFECT[channel] / CHANNEL_EFFECT[row["channel"]] * row["n_customers"] for row in rows)
+        # The response's channel semantics are not fully specified. A measured
+        # SMS arm is not evidence for an untested advertising/call arm.
+        numerator += sum(row["observed_lift_ratio"] * row["n_customers"] for row in rows)
         mean = numerator / max(1, weight + total)
-        uncertainty = 0.07 * math.sqrt(150 / max(1, weight + total))
-        if rows:
-            uncertainty *= max(CHANNEL_EFFECT[channel] / CHANNEL_EFFECT[row["channel"]] for row in rows)
+        uncertainty = 0.07 * math.sqrt(150 / max(1, total))
         lower = mean - 0.8 * uncertainty
         return {"posterior_mean": mean, "uncertainty": uncertainty, "n_customers": total,
                 "estimated_net": mean * candidate["arpu_sum"] - CHANNEL_COSTS[channel] * candidate["audience_size"],
@@ -268,9 +269,19 @@ class Agent:
                 ratio = finite(result.get("observed_lift_ratio"), None)
                 if ratio is None:
                     raise ValueError("nonfinite_pilot")
+                actual_n = int(finite(result.get("n_customers"), sample))
+                if not 10 <= actual_n <= sample:
+                    raise ValueError("invalid_sample_count")
+                after_pilot = self._resources(env)
                 observations.append({"candidate_id": cid, "target_tariff": chosen["target_tariff"],
-                                     "filters": chosen["filters"], "channel": scout, "n_customers": sample,
-                                     "observed_lift_ratio": ratio, "status": "completed"})
+                                     "filters": chosen["filters"], "channel": scout,
+                                     "requested_n": sample, "n_customers": actual_n,
+                                     "cost": resources["remaining_budget"] - after_pilot["remaining_budget"],
+                                     "observed_lift_ratio": ratio,
+                                     "observed_lift_total": finite(result.get("observed_lift_total"), None),
+                                     "remaining_budget": after_pilot["remaining_budget"],
+                                     "remaining_contacts": after_pilot["remaining_contacts"],
+                                     "status": "completed"})
             except Exception:
                 failed.add(cid)
                 observations.append({"candidate_id": cid, "target_tariff": chosen["target_tariff"],
@@ -308,17 +319,26 @@ class Agent:
             if len(campaigns) >= 10:
                 break
         if not campaigns:
+            # Prefer an actually observed arm for the mandatory minimum campaign.
+            observed_options = sorted(options, key=lambda option: option[0], reverse=True)
+            for _, item, channel, estimate in observed_options:
+                cost = CHANNEL_COSTS[channel] * item["audience_size"]
+                if item["audience_size"] <= contacts and cost <= budget:
+                    budget -= add_campaign(item, channel, estimate, fallback=True)
+                    contacts -= item["audience_size"]
+                    warnings.append("no_positive_conservative_plan_fallback")
+                    break
+        if not campaigns:
             cheapest = min(channels, key=lambda channel: CHANNEL_COSTS[channel])
-            observed = [item for item in candidates if self._estimate(item, observations, cheapest)["repeats"]]
             # Minimum one campaign is mandatory; report this explicitly as fallback.
-            for pool in (observed, candidates):
+            for pool in (candidates,):
                 ranked = sorted(pool, key=lambda item: self._estimate(item, observations, cheapest)["conservative_net"], reverse=True)
                 for item in ranked:
                     cost = CHANNEL_COSTS[cheapest] * item["audience_size"]
                     if item["audience_size"] <= contacts and cost <= budget:
                         budget -= add_campaign(item, cheapest, self._estimate(item, observations, cheapest), fallback=True)
                         contacts -= item["audience_size"]
-                        warnings.append("no_positive_conservative_plan_fallback" if observed else "unobserved_fallback")
+                        warnings.append("unobserved_fallback")
                         break
                 if campaigns:
                     break

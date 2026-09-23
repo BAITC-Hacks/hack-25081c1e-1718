@@ -66,3 +66,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 - Why: The user asked to finish Dima's current files, commit/push, describe current state and provide a precise independent task for Azim.
 - Who: Dima
 - Consequences: [AFFECTS-OTHERS] Report v1 is extended compatibly with planned_resources, allocation, events, advisor and evaluation. Checkpoints are offline. API integration is verified live, but economic quality remains below G3: current 3/10 positive and negative median. Early history-transfer experiment was rejected; built-in candidates use cautious price hypotheses until Azim's specialist module. Keep 1a025b4 as the reference; do not present this integration commit as a final winning strategy.
+
+### 2026-09-23 - Keep final decisions within measured channels
+
+- Decision: Estimate each campaign from pilots of that same channel. Remove automatic SMS-to-advertising/call extrapolation. Capture actual public pilot sample size, budget delta, observed total and remaining resources. Add offline controller comparisons via scripts/benchmark.py and scan both working tree and Git index for secrets.
+- Why: Guide lists effectiveness multipliers but does not fully specify the semantics needed for transferring observed_lift_ratio. Previously an untested expensive channel could enter the final plan. The public run_pilot response supplies additional useful operational evidence without reading hidden internals.
+- Who: Dima, independent of Azim's candidate_model and web work.
+- Consequences: [AFFECTS-OTHERS] Optional report-v1 fields added; no candidate interface or Azim-owned files changed. On paired seeds 0..9, median improved from −14 363 to −2 150 and positive runs from 3/10 to 5/10; economic robustness still incomplete. Historical priors no longer reduce the estimated pilot noise variance. New evaluations remain local mock evidence only.
