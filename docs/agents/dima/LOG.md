@@ -121,3 +121,7 @@ ZIP включает README/SUBMISSION и связанные продуктов�
 ## 2026-09-23 17:03 - freeze adaptive / 70 сравнительных запусков / QUALITY_FOLLOWUP и evidence / default сохранён
 
 Новые200–209 завершены: baseline median613019, adaptive519063, остальные новые хуже; ни одинgateнепройден. Зафиксированadaptivea10e7b1до300–319 без подбора. Default0–9побайтово одинаков по данным сравнения в10/10пар. Публикуем все результаты, включая отрицательные.
+
+## 2026-09-23 17:06 - независимая серия и чистая поставка / завершить свою часть / QUALITY_FOLLOWUP, evidence, audit / baselineсохранён
+
+300–319:baseline674970.62median/adaptive642092.75, p10тоже хуже, 8/12;40запусковвалидны. Общий новыйэксперимент110запусков. Чистый9a1b3b1:69Python/7analysis/33NodePASS, exactstandalone/CSV, manifestчистый. СозданаGitHubissue#1с владением/приёмкой. НовогоАзимcheckpointнет; UI/README/DEMOнеобъявленыготовыми.

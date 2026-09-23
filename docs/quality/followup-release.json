@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "kind": "release_followup_verification",
+  "commit": "9a1b3b18ee503a4ad4321d1e1d32c088536fa081",
+  "requested_commit": "9a1b3b1",
+  "commit_match": true,
+  "runtime": {
+    "python": "C:\\Users\\dmitrii\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "node": "C:\\Users\\dmitrii\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+    "offline": "ARPU_OFFLINE=1 in verify release"
+  },
+  "commands": [
+    "ARPU_PYTHON=<bundled python> pwsh ./scripts/verify.ps1 -Release",
+    "<bundled python> -B -X utf8 -m unittest analysis.test_candidates -q",
+    "<bundled node> --test web/report.test.mjs web/api.test.mjs web/i18n.test.mjs",
+    "<bundled python> -X utf8 scripts/package_submission.py",
+    "<bundled python> -X utf8 local_eval.py (modular and standalone seed=42)",
+    "<bundled python> -X utf8 make_submission.py (modular and standalone)"
+  ],
+  "results": {
+    "verify_release": "PASS; 69 Python tests; official local_eval PASS; CSV regeneration PASS",
+    "web_tests": "PASS; 33/33",
+    "package": "PASS",
+    "standalone": "PASS",
+    "analysis_tests": "PASS; 7/7"
+  },
+  "git_clean": true,
+  "git_status_raw": "",
+  "package": {
+    "path": "C:\\Users\\dmitrii\\Documents\\Codex\\2026-09-21\\you-are-codex-set-up-a-2\\work\\hack-25081c1e-1718\\output\\release-followup-9a1b3b1\\output\\submission.zip",
+    "manifest_source": {
+      "dirty": false,
+      "source_git_sha": "9a1b3b18ee503a4ad4321d1e1d32c088536fa081"
+    },
+    "manifest_file_count": 26,
+    "zip_entry_count": 26,
+    "zip_inventory_exact": true,
+    "artifact_hashes_exact": true,
+    "zip_sha256": "67dd417c8dbf91063221f96d4449714e64c0077a3c6700335638acde67ac4cc7",
+    "manifest_files": [
+      "agent.py",
+      "submission.csv",
+      "requirements.txt",
+      "SUBMISSION.md",
+      "PARTICIPANT_GUIDE.md",
+      "README.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/BASELINE.md",
+      "docs/DEMO.md",
+      "docs/DESIGN.md",
+      "docs/HACKATHON_RULES.md",
+      "docs/NEXT_STAGE.md",
+      "docs/PROJECT.md",
+      "docs/QUALITY_FOLLOWUP.md",
+      "docs/QUALITY_RESULTS.md",
+      "docs/RUNBOOK.md",
+      "docs/STATUS.md",
+      "docs/WORK_PLAN.md",
+      "docs/quality/default-regression.json",
+      "docs/quality/development.json",
+      "docs/quality/holdout.json",
+      "docs/quality/live-chat.json",
+      "docs/quality/online.json",
+      "docs/quality/release.json",
+      "manifest.json"
+    ]
+  },
+  "parity": {
+    "modular_net_arpu_gain": 685149.5196317472,
+    "standalone_net_arpu_gain": 685149.5196317472,
+    "net_exact": true,
+    "modular_csv_sha256": "e52d7a2570211b0b52060181ac56dff5e9cb719a199aa49e344f670f4ca15f40",
+    "standalone_csv_sha256": "e52d7a2570211b0b52060181ac56dff5e9cb719a199aa49e344f670f4ca15f40",
+    "csv_byte_exact": true,
+    "standalone_forbidden_files": [],
+    "standalone_files": [
+      "__pycache__/agent.cpython-312.pyc",
+      "__pycache__/environment.cpython-312.pyc",
+      "__pycache__/local_eval.cpython-312.pyc",
+      "__pycache__/mock_environment.cpython-312.pyc",
+      "__pycache__/scoring_core.cpython-312.pyc",
+      "agent.py",
+      "customer_profile.csv",
+      "data/arpu_monthly.csv",
+      "data/change_tariff.csv",
+      "data/dict_tariff.csv",
+      "data/traffic.csv",
+      "environment.py",
+      "local_eval.py",
+      "make_submission.py",
+      "mock_environment.py",
+      "requirements.txt",
+      "scoring_core.py",
+      "submission.csv"
+    ]
+  },
+  "coverage_gaps": [
+    "No new seed series run per assignment; no provider API calls."
+  ]
+}
