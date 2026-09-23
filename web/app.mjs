@@ -1,6 +1,7 @@
 import {
   MAX_FILE_BYTES, MISSING, FILTER_LABELS, parseReport, validateReport, number, money, ratio,
   isNumber, displayText, findAllocation, campaignMatches, campaignsToCsv, translate, channelLabel,
+  tariffInfo, tariffCodes, tariffLabel, segmentInfo,
 } from "./report.mjs";
 
 const $ = (id) => document.getElementById(id);
@@ -126,16 +127,39 @@ function addDefinition(dl, title, value) {
 
 function makeSegment(filters = {}) {
   const container = element("div");
-  container.append(element("div", "segment-title", filters.filter_current_tariff || "Все текущие тарифы"));
+  container.append(element("div", "segment-title", tariffLabel(filters.filter_current_tariff)));
   const tags = element("div", "segment-tags");
   for (const [key, label] of Object.entries(FILTER_LABELS)) {
     if (key !== "filter_current_tariff" && typeof filters[key] === "string" && filters[key]) {
-      tags.append(element("span", "segment-tag", `${label} · ${filters[key]}`));
+      const info = segmentInfo(key, filters[key]);
+      const tag = element("span", "segment-tag", info.label);
+      tag.title = info.description;
+      tags.append(tag);
     }
   }
   if (!tags.childElementCount) tags.append(element("span", "cell-subtext", "Без дополнительных фильтров"));
   container.append(tags);
   return container;
+}
+
+function tariffTransition(campaign) {
+  const transition = element("span", "tariff-transition");
+  for (const [index, [caption, value]] of [["Сейчас", campaign.filter_current_tariff], ["Предложить", campaign.target_tariff]].entries()) {
+    if (index) { const arrow = element("span", "tariff-arrow", "→"); arrow.setAttribute("aria-hidden", "true"); transition.append(arrow); }
+    const option = element("span", "tariff-option");
+    option.append(element("span", "tariff-caption", caption));
+    const codes = tariffCodes(value);
+    if (!codes.length) option.append(element("strong", "tariff-package", "Любой текущий тариф"));
+    codes.forEach((code, codeIndex) => {
+      if (codeIndex) option.append(element("span", "tariff-caption", "или"));
+      const info = tariffInfo(code);
+      const packageText = element("strong", "tariff-package", info.package);
+      packageText.title = info.description;
+      option.append(packageText, element("span", "tariff-price", info.price), element("span", "tariff-code", info.name));
+    });
+    transition.append(option);
+  }
+  return transition;
 }
 
 function numericCell(main, secondary, className = "") {
@@ -154,9 +178,20 @@ function campaignDetails(campaign, allocation) {
   details.append(element("summary", "", "Основания и оценки"));
   const dl = element("dl");
   addDefinition(dl, "Название кампании", displayText(campaign.campaign_name));
+  for (const code of tariffCodes(campaign.target_tariff)) {
+    const info = tariffInfo(code);
+    addDefinition(dl, `Предложение · ${info.name}`, info.description);
+  }
+  for (const code of tariffCodes(campaign.filter_current_tariff)) {
+    const info = tariffInfo(code);
+    addDefinition(dl, `Сейчас · ${info.name}`, info.description);
+  }
+  for (const key of Object.keys(FILTER_LABELS)) {
+    if (key !== "filter_current_tariff" && campaign[key]) { const info = segmentInfo(key, campaign[key]); addDefinition(dl, info.label, info.description); }
+  }
   if (allocation) {
-    addDefinition(dl, "Оценка изменения ARPU", ratio(allocation.posterior_mean));
-    addDefinition(dl, "Приблизительный запас неопределённости", isNumber(allocation.uncertainty) ? `${number(allocation.uncertainty * 100, 2)} п. п.` : MISSING);
+    addDefinition(dl, "Ожидаемое изменение дохода с абонента", ratio(allocation.posterior_mean));
+    addDefinition(dl, "Поправка на возможную ошибку оценки", isNumber(allocation.uncertainty) ? `${number(allocation.uncertainty * 100, 2)} п. п.` : MISSING);
     addDefinition(dl, "Контактов в наблюдениях", number(allocation.n_customers));
     addDefinition(dl, "Количество пилотов по гипотезе", number(allocation.repeats));
   } else {
@@ -211,17 +246,17 @@ function renderOverview(report) {
   ranked.forEach(({ campaign, index, allocation }, rank) => {
     const card = element("button", "recommendation-card");
     card.type = "button";
-    card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}, ${channelLabel(campaign.channel)}`);
+    card.setAttribute("aria-label", `Открыть кампанию ${index + 1}: ${tariffLabel(campaign.filter_current_tariff)} → ${tariffLabel(campaign.target_tariff)}, ${channelLabel(campaign.channel)}`);
     const text = element("span", "recommendation-text");
-    text.append(element("strong", "", `${campaign.filter_current_tariff || "Все тарифы"} → ${campaign.target_tariff}`));
+    text.append(tariffTransition(campaign));
     const segment = Object.entries(FILTER_LABELS)
       .filter(([key]) => key !== "filter_current_tariff" && campaign[key])
-      .map(([key, label]) => `${label}: ${campaign[key]}`).join(" · ");
-    text.append(element("span", "recommendation-segment", segment || "Все сегменты"));
+      .map(([key]) => segmentInfo(key, campaign[key]).label).join(" · ");
+    text.append(element("span", "recommendation-segment", segment || "Все абоненты на текущем тарифе"));
     const evidence = campaignPilotIndices(campaign).length;
-    text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `наблюдений: ${number(evidence)}` : "нет связанных наблюдений"}`));
+    text.append(element("span", "", `${channelLabel(campaign.channel)} · ${evidence ? `проверок на небольшой группе: ${number(evidence)}` : "нет связанных проверок"}`));
     const effect = element("span", "recommendation-effect");
-    effect.append(element("strong", effectClass(allocation?.conservative_net), money(allocation?.conservative_net)), element("span", "", "осторожная оценка"));
+    effect.append(element("strong", effectClass(allocation?.conservative_net), money(allocation?.conservative_net)), element("span", "", "прогноз с поправкой на риск"));
     card.append(element("span", "recommendation-rank", String(rank + 1).padStart(2, "0")), text, effect);
     card.addEventListener("click", () => focusEvidence(`campaigns[${index}]`));
     recommendations.append(card);
@@ -258,19 +293,22 @@ function renderCampaigns() {
     row.tabIndex = -1;
     const header = element("div", "campaign-card-header");
     const heading = element("div", "campaign-card-heading");
-    heading.append(element("p", "eyebrow", `Кампания ${String(index + 1).padStart(2, "0")}`),
-      element("h2", "", `${campaign.filter_current_tariff || "Все текущие тарифы"} → ${campaign.target_tariff}`),
+    heading.append(element("h2", "", `Кампания ${String(index + 1).padStart(2, "0")}`),
+      tariffTransition(campaign),
       element("span", "channel-chip", channelLabel(campaign.channel)));
     const effect = element("div", "campaign-effect");
-    effect.append(element("span", "", "Прогноз чистого эффекта"), element("strong", effectClass(allocation?.estimated_net), money(allocation?.estimated_net)),
-      element("span", "effect-secondary", `Осторожная оценка: ${money(allocation?.conservative_net)}`));
+    effect.append(element("span", "", "Прогноз дохода после расходов"), element("strong", effectClass(allocation?.estimated_net), money(allocation?.estimated_net)),
+      element("span", "effect-secondary", `Прогноз с поправкой на риск: ${money(allocation?.conservative_net)}`));
     header.append(heading, effect);
     const facts = element("div", "campaign-facts");
     const segment = element("div");
     segment.append(element("span", "campaign-fact-label", "Аудитория"));
     const tags = element("div", "segment-tags");
     for (const [key, label] of Object.entries(FILTER_LABELS)) {
-      if (key !== "filter_current_tariff" && campaign[key]) tags.append(element("span", "segment-tag", `${label} · ${campaign[key]}`));
+      if (key !== "filter_current_tariff" && campaign[key]) {
+        const info = segmentInfo(key, campaign[key]); const tag = element("span", "segment-tag", info.label);
+        tag.title = info.description; tags.append(tag);
+      }
     }
     if (!tags.childElementCount) tags.append(element("span", "small-note", "Без дополнительных фильтров"));
     segment.append(tags);
@@ -315,7 +353,7 @@ function renderPilots() {
     row.tabIndex = -1;
     const segment = element("td", "segment-cell");
     segment.append(makeSegment(pilot.filters ?? {}));
-    segment.append(element("div", "cell-subtext", `→ ${displayText(pilot.target_tariff)}`));
+    segment.append(element("div", "cell-subtext", `Предложение: ${tariffLabel(pilot.target_tariff)}`));
     segment.append(pilotDetails(pilot));
     const channel = element("td");
     channel.append(element("span", "channel-chip", channelLabel(pilot.channel)));

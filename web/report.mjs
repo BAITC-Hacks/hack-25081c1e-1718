@@ -7,7 +7,7 @@ export const CAMPAIGN_COLUMNS = Object.freeze([
 ]);
 export const FILTER_LABELS = Object.freeze({
   filter_current_tariff: "Текущий тариф",
-  filter_arpu_segment: "ARPU",
+  filter_arpu_segment: "Доход с абонента",
   filter_data_segment: "Интернет",
   filter_call_segment: "Звонки",
 });
@@ -104,8 +104,68 @@ export function number(value, digits = 0) {
   return isNumber(value) ? value.toLocaleString("ru-RU", { maximumFractionDigits: digits }) : MISSING;
 }
 
-export function money(value) {
-  return isNumber(value) ? `${number(value, 0)} у. е.` : MISSING;
+export function money(value, digits = 0) {
+  return isNumber(value) ? `${number(value, digits)} ден. ед.` : MISSING;
+}
+
+// Display-only copy of the public tariff_dictionary.csv. No effect on selection.
+// [code number, MB, other-operator minutes, shared other/city minutes, monthly price]
+const tariffRows = [
+  [1,0,0,0,0], [2,2048,0,0,3140], [3,10240,80,0,5620.6],
+  [4,4096,40,0,4678.6], [5,8192,80,0,5934.6], [6,8192,80,0,5934.6],
+  [7,8192,80,0,5934.6], [8,8192,80,0,5934.6], [9,10240,150,0,4364.6],
+  [10,12288,120,0,7504.6], [11,20480,200,0,9388.6], [12,30720,0,300,12528.6],
+  [13,0,30,0,3108.6], [14,2048,80,0,7410.4], [15,0,50,0,3422.6],
+  [16,12288,150,0,4364.6], [17,7168,40,0,4992.6], [18,12288,80,0,6248.6],
+  [19,3072,80,0,6908], [20,15360,100,0,6562.6], [21,20480,200,0,6248.6],
+];
+export const TARIFF_CATALOG = Object.freeze(Object.fromEntries(tariffRows.map(([id, mb, minutes, sharedMinutes, price]) => [
+  `tariff_${id}`, Object.freeze({mb, minutes, sharedMinutes, price}),
+])));
+
+export function tariffInfo(code) {
+  const row = typeof code === "string" && Object.hasOwn(TARIFF_CATALOG, code) ? TARIFF_CATALOG[code] : null;
+  if (!row) return {name: `Неизвестный тариф: ${displayText(code)}`, package: "Параметры не указаны", price: MISSING, description: "В справочнике нет этого кода."};
+  const name = `Тариф №${code.slice(7)}`;
+  const data = row.mb ? `${number(row.mb / 1024, 2)} ГБ` : "Без пакета интернета";
+  const calls = [row.minutes ? `${number(row.minutes)} мин` : "", row.sharedMinutes ? `${number(row.sharedMinutes)} мин, включая городские` : ""].filter(Boolean);
+  const packageText = [data, ...(calls.length ? calls : ["без пакета минут"])].join(" · ");
+  const callDetails = [row.minutes ? `${number(row.minutes)} минут на других операторов` : "", row.sharedMinutes ? `${number(row.sharedMinutes)} минут на других операторов и городские номера (общий пакет)` : ""].filter(Boolean);
+  return {name, package:packageText, price: row.price ? `${money(row.price, 1)}/мес.` : "Без абонентской платы",
+    description: [row.mb ? `${number(row.mb)} МБ интернета` : "Интернет не включён в пакет", ...(callDetails.length ? callDetails : ["Минуты не включены в пакет"])].join("; ")};
+}
+
+export function tariffCodes(value) {
+  return typeof value === "string" ? value.split(";").map(code => code.trim()).filter(Boolean) : [];
+}
+
+export function tariffLabel(value) {
+  const codes = tariffCodes(value);
+  return codes.length ? codes.map(code => { const info = tariffInfo(code); return `${info.name}: ${info.package}`; }).join(" или ") : "Любой текущий тариф";
+}
+
+const SEGMENTS = {
+  filter_arpu_segment: {
+    LOW: ["Низкий доход с абонента", "Средний месячный доход с абонента за 3 месяца: меньше 1 000 денежных единиц."],
+    MID: ["Средний доход с абонента", "Средний месячный доход с абонента за 3 месяца: от 1 000 до 5 000 денежных единиц."],
+    HIGH: ["Высокий доход с абонента", "Средний месячный доход с абонента за 3 месяца: больше 5 000 денежных единиц."],
+  },
+  filter_data_segment: {
+    NON_USER: ["Не пользуются интернетом", "0 МБ в месяц."],
+    LITE: ["Мало пользуются интернетом", "Больше 0, до 2 000 МБ в месяц."],
+    HEAVY: ["Активно пользуются интернетом", "Больше 2 000 МБ в месяц."],
+  },
+  filter_call_segment: {
+    LOW: ["Редко звонят", "Меньше 100 минут в месяц."],
+    MEDIUM: ["Умеренно звонят", "От 100 до 400 минут в месяц."],
+    HIGH: ["Часто звонят", "Больше 400 минут в месяц."],
+  },
+};
+
+export function segmentInfo(key, value) {
+  const group = Object.hasOwn(SEGMENTS, key) ? SEGMENTS[key] : null;
+  const entry = group && Object.hasOwn(group, value) ? group[value] : null;
+  return entry ? {label:entry[0], description:entry[1]} : {label:`Неизвестный сегмент: ${displayText(value)}`, description:"Описание этого значения не передано."};
 }
 
 export function ratio(value) {
@@ -142,7 +202,9 @@ export function findAllocation(campaign, allocation = []) {
 
 export function campaignMatches(campaign, query, channel) {
   if (channel && campaign.channel !== channel) return false;
-  const text = CAMPAIGN_COLUMNS.map((key) => campaign[key] ?? "").join(" ").toLocaleLowerCase("ru-RU");
+  const descriptions = [tariffLabel(campaign.filter_current_tariff), tariffLabel(campaign.target_tariff), channelLabel(campaign.channel),
+    ...Object.keys(SEGMENTS).filter(key => campaign[key]).map(key => segmentInfo(key, campaign[key]).label)];
+  const text = [...CAMPAIGN_COLUMNS.map((key) => campaign[key] ?? ""), ...descriptions].join(" ").toLocaleLowerCase("ru-RU");
   return text.includes(query.trim().toLocaleLowerCase("ru-RU"));
 }
 

@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   MISSING, CAMPAIGN_COLUMNS, parseReport, validateReport, number, money, ratio,
   findAllocation, campaignsToCsv, campaignMatches, channelLabel, translate,
+  TARIFF_CATALOG, tariffInfo, tariffLabel, segmentInfo,
 } from "./report.mjs";
 
 const minimal = () => ({ schema_version: "1.0", engine: "test-offline", campaigns: [], pilots: [], resources: {} });
@@ -109,4 +111,33 @@ test("campaign search uses displayed campaign fields and exact channel", () => {
   assert.equal(campaignMatches(campaign, " TARIFF_4 ", "push"), true);
   assert.equal(campaignMatches(campaign, "MID", "sms"), false);
   assert.equal(campaignMatches(campaign, "unknown", ""), false);
+  assert.equal(campaignMatches(campaign, "8 ГБ", ""), true);
+  assert.equal(campaignMatches(campaign, "средний доход", ""), true);
+});
+
+test("display tariff catalog stays equal to the public source, including fractional monthly prices", () => {
+  const rows = readFileSync(new URL("../tariff_dictionary.csv", import.meta.url), "utf8").trim().split(/\r?\n/).slice(1);
+  assert.equal(Object.keys(TARIFF_CATALOG).length, rows.length);
+  for (const line of rows) {
+    // The five fixed numeric/code columns precede the free-form CSV description.
+    const [mb, minutes, sharedMinutes, price, code] = line.split(",").slice(0, 5);
+    assert.deepEqual(TARIFF_CATALOG[code], {mb:+mb, minutes:+minutes, sharedMinutes:+sharedMinutes, price:+price});
+  }
+  assert.match(tariffInfo("tariff_4").price, /4\s678,6/);
+});
+
+test("tariff presentation preserves distinct identities, shared minutes, alternatives and unknowns", () => {
+  assert.notEqual(tariffInfo("tariff_5").name, tariffInfo("tariff_8").name);
+  assert.equal(tariffInfo("tariff_5").package, tariffInfo("tariff_8").package);
+  assert.match(tariffInfo("tariff_12").description, /300 минут на других операторов и городские номера \(общий пакет\)/);
+  assert.doesNotMatch(tariffInfo("tariff_12").package, /600/);
+  assert.match(tariffInfo("tariff_1").price, /Без абонентской платы/);
+  assert.match(tariffInfo("tariff_1").description, /не включён/);
+  assert.match(tariffLabel("tariff_4; tariff_8"), /Тариф №4.* или Тариф №8/);
+  assert.equal(tariffLabel(undefined), "Любой текущий тариф");
+  for (const code of ["tariff_99", "constructor", "__proto__"]) assert.equal(tariffInfo(code).price, MISSING);
+  assert.match(segmentInfo("filter_data_segment", "LITE").description, /2 000 МБ/);
+  assert.match(segmentInfo("filter_call_segment", "MEDIUM").description, /100 до 400 минут/);
+  assert.match(segmentInfo("filter_arpu_segment", "MEDIUM").label, /Неизвестный/);
+  assert.match(segmentInfo("constructor", "HIGH").label, /Неизвестный/);
 });
