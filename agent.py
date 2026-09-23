@@ -1,4 +1,4 @@
-"""ARPU Compass: propose, pilot, revise, and allocate using only public data."""
+"""Tariflow: propose, pilot, revise, and allocate using only public data."""
 
 import hashlib
 import importlib

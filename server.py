@@ -1,4 +1,4 @@
-"""Local ARPU Compass API. Only fixed analysis commands and report questions."""
+"""Local Tariflow API. Only fixed analysis commands and report questions."""
 
 import argparse
 from collections import deque
@@ -239,7 +239,7 @@ class LocalServer(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "ARPUCompass"
+    server_version = "Tariflow"
     sys_version = ""
 
     def setup(self):
@@ -400,7 +400,7 @@ def main():
         os.environ["ARPU_OFFLINE"] = "1"
     httpd = LocalServer(("127.0.0.1", args.port), Handler)
     httpd.app = AppState(args.port)
-    print(f"ARPU Compass: http://127.0.0.1:{args.port}", flush=True)
+    print(f"Tariflow: http://127.0.0.1:{args.port}", flush=True)
     print("OpenAI configured:", httpd.app.openai_status()["configured"], flush=True)
     try:
         httpd.serve_forever()

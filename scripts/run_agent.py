@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ARPU Compass local runner")
+    parser = argparse.ArgumentParser(description="Tariflow local runner")
     parser.add_argument("--mode", choices=("report", "evaluate", "submission"), default="report")
     parser.add_argument("--seed", type=int, default=42, help="Used by report mode")
     parser.add_argument("--run-id", help="Server-owned report identity; used only by report mode")
