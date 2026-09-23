@@ -4,10 +4,10 @@ After kickoff, add module/file ownership here. Each person edits only their own 
 
 ## Dima
 
-- Current: Принят UI ebedc80 (понятные тарифы и денежные единицы). Исправлена привязка ответов к собственным пилотам, сравнение/неизвестные номера и единицы неопределённости; общий net исключён из контекста отдельной кампании.17 сценариев сужения/сравнения, проверки единиц/fallback,7/7data и23/23web прошли. Реальный OpenAI подтвердил собственные источники и отсутствие кампании99. Core6550806 проверен чистым клоном и standalone; dev0..9/new50..59 совпали с92872b5. OpenAI выше в3/3исследовательских парах60..62, не гарантия.
-- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests, API.md и общая интеграция. Азим: web/**, DESIGN/DEMO/README; candidate_model.py/analysis/ заморожены для проверки.
-- Next: Ответы опубликованы e978571/a55d02b и проверены live на чистой ревизии; пересобрать итоговый пакет и завершить общий аудит. Азим самостоятельно ведёт web/DEMO/README; его новый интерфейс принят. Примерно каждые4 активные минуты Git-синхронизация.
-- Blockers: Нет блокера реализации. Формат/дедлайн официальной загрузки ещё не подтверждены; пакет готовим локально, самостоятельно не отправляем. Mock net не является прогнозом реальной прибыли.
+- Current: Начат утверждённый 90-минутный этап качества (15:56 UTC+5). Принят Tariflow UI9d748c7. Полный baseline4473540; новые поля описаны в QUALITY_STAGE.md.
+- Ownership: agent.py, llm_advisor.py, server.py, report_assistant.py, scripts/, manifests и общие контракты. Workers имеют исключительные agent.py+test_quality_policy и quality_benchmark+test_quality_benchmark. Азим — web/DESIGN/DEMO/README; candidate_model.py/analysis и данные заморожены.
+- Next: Три варианта на dev0–9 → фиксация одного → независимые100–119 → только принятие по gate. Азим параллельно отображает диагностику, причины исключения и разные области прогноза/факта. Потом online120–122 и выпуск.
+- Blockers: Нет. Новая политика пока не является production-default. При провале gate сохраняем baseline и выпускаем улучшения отчёта. Официальную загрузку выполняет команда.
 
 ## Azim
 

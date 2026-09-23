@@ -154,3 +154,10 @@ Never edit or delete earlier entries. Append corrections as new decisions.
 нулевогоindex. Машинныйsource_ref не является номером для текста. Явный список
 номеров пилотов вне переданных источников отклоняется; это закрывает наблюдавшийся
 сдвиг16/17 вместоUI17/18, сохраняя контрактcitation-кнопок.
+
+### 2026-09-23 - Improve decision quality with a frozen adoption gate
+
+- Decision: Implement the user-approved90-minute plan; full4473540 baseline, fixed candidate/data modules, separate balanced exploration and empirical uncertainty variants. Freeze one candidate before new100–119; at least10% median gain, positive paired median, non-worsep10/negative-count, valid resources and runtime required.
+- Why: Only8of299hypotheses were researched inseed42; fixed uncertainty ignores disagreement. Exactportfolio alone did not improve20pairedruns. Avoid tuning against holdout or claiming a detection accuracy without labels.
+- Who: Dima owns backend/core/evaluation; Azim owns new diagnostic display. Bounded workers have exclusive files, not personal notes.
+- Consequences: [AFFECTS-OTHERS] Optional report1.0 fields and refs in QUALITY_STAGE.md; no HTTP/CSV/dependency changes. Existing baseline remains default until gate. Tariflow UI9d748c7 integrated. Official package remains offline-capable.
